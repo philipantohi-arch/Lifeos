@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { UserProfile } from './engine/types';
 import { generateHistory } from './data/generator';
 import { PERSONAS, getPersona } from './data/personas';
@@ -25,10 +25,33 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'integrations', label: 'Integrations', icon: '🔌' },
 ];
 
+/** Restore persona + profile edits across reloads. */
+function loadSaved(): { personaId: string; overrides: Partial<UserProfile> } {
+  try {
+    const raw = localStorage.getItem('lifeos-profile');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (PERSONAS.some((p) => p.id === parsed.personaId)) return parsed;
+    }
+  } catch {
+    // corrupt/absent storage — fall through to defaults
+  }
+  return { personaId: PERSONAS[0].id, overrides: {} };
+}
+
 export default function App() {
+  const saved = useMemo(loadSaved, []);
   const [tab, setTab] = useState<Tab>('today');
-  const [personaId, setPersonaId] = useState(PERSONAS[0].id);
-  const [overrides, setOverrides] = useState<Partial<UserProfile>>({});
+  const [personaId, setPersonaId] = useState(saved.personaId);
+  const [overrides, setOverrides] = useState<Partial<UserProfile>>(saved.overrides);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('lifeos-profile', JSON.stringify({ personaId, overrides }));
+    } catch {
+      // storage unavailable (private mode) — persistence is best-effort
+    }
+  }, [personaId, overrides]);
 
   const persona = getPersona(personaId);
   const profile: UserProfile = useMemo(
