@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { Goal, UserProfile } from './engine/types';
-import { generateBaselineHistory, generateHistory, isFreshStart } from './data/generator';
+import type { CheckInInput, Goal, UserProfile } from './engine/types';
+import { assembleCustomRecords, generateHistory, isFreshStart, realDays } from './data/generator';
 import { PERSONAS, getPersona } from './data/personas';
 import { computeLifeScore } from './engine/lifeScore';
 import { composeBriefing } from './engine/briefing';
@@ -8,6 +8,7 @@ import { discoverInsights } from './engine/insights';
 import { assessGoals } from './engine/goals';
 import { buildWeeklyReview, computeMomentum, detectAccomplishments, potentialGaps } from './engine/journey';
 import { OnboardingView } from './views/OnboardingView';
+import { CheckInView } from './views/CheckInView';
 import { TodayView } from './views/TodayView';
 import { GoalsView } from './views/GoalsView';
 import { JourneyView } from './views/JourneyView';
@@ -20,6 +21,7 @@ import { ScienceView } from './views/ScienceView';
 
 type Tab =
   | 'today'
+  | 'checkin'
   | 'goals'
   | 'journey'
   | 'dashboard'
@@ -31,6 +33,7 @@ type Tab =
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: '☀️' },
+  { id: 'checkin', label: 'Check in', icon: '✍️' },
   { id: 'goals', label: 'Goals', icon: '🏁' },
   { id: 'journey', label: 'Journey', icon: '🧭' },
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
@@ -43,11 +46,22 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 
 type Mode = 'onboarding' | 'custom' | 'demo';
 
+interface LoggedDay {
+  date: string;
+  input: CheckInInput;
+}
+
 interface SavedState {
   mode: Mode;
   personaId: string;
   overrides: Partial<UserProfile>;
   customProfile?: UserProfile;
+  loggedDays?: LoggedDay[];
+}
+
+/** Real device date — custom mode lives on the actual calendar. */
+function todayISO(): string {
+  return new Date().toISOString().slice(0, 10);
 }
 
 const STORAGE_KEY = 'lifeos-state-v3';
@@ -85,14 +99,15 @@ export default function App() {
   const [personaId, setPersonaId] = useState(initial.personaId);
   const [overrides, setOverrides] = useState<Partial<UserProfile>>(initial.overrides);
   const [customProfile, setCustomProfile] = useState<UserProfile | undefined>(initial.customProfile);
+  const [loggedDays, setLoggedDays] = useState<LoggedDay[]>(initial.loggedDays ?? []);
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, personaId, overrides, customProfile }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ mode, personaId, overrides, customProfile, loggedDays }));
     } catch {
       // storage unavailable (private mode) — persistence is best-effort
     }
-  }, [mode, personaId, overrides, customProfile]);
+  }, [mode, personaId, overrides, customProfile, loggedDays]);
 
   const persona = getPersona(personaId);
   const profile: UserProfile = useMemo(() => {
@@ -107,25 +122,37 @@ export default function App() {
 
   const seed = mode === 'custom' && customProfile ? seedFor(customProfile) : persona.seed;
 
-  // In production this is the sync + scoring pipeline. A fresh user gets
-  // ONLY a deterministic baseline window built from their own inputs — no
-  // invented past. Demo mode uses full persona datasets.
+  // In production this is the sync + scoring pipeline. A custom user's
+  // records = their baseline runway + every day they've actually logged
+  // (real calendar dates); demo mode uses full persona datasets.
   const records = useMemo(
-    () => (mode === 'custom' ? generateBaselineHistory(profile) : generateHistory(profile, seed)),
-    [mode, profile, seed],
+    () =>
+      mode === 'custom'
+        ? assembleCustomRecords(profile, loggedDays, todayISO())
+        : generateHistory(profile, seed),
+    [mode, profile, seed, loggedDays],
   );
   const fresh = isFreshStart(records);
+  const realCount = mode === 'custom' ? realDays(records).length : records.length;
+  const realRecords = useMemo(() => (mode === 'custom' ? realDays(records) : records), [mode, records]);
   const scoreResult = useMemo(() => computeLifeScore(records, profile), [records, profile]);
   const briefing = useMemo(() => composeBriefing(records, profile), [records, profile]);
-  const insights = useMemo(() => discoverInsights(records), [records]);
+  // Patterns come only from REAL days, and need ~3 weeks of them.
+  const insights = useMemo(
+    () => (mode === 'custom' && realCount < 21 ? [] : discoverInsights(realRecords)),
+    [mode, realCount, realRecords],
+  );
   const assessments = useMemo(() => assessGoals(records, profile), [records, profile]);
   const momentum = useMemo(() => computeMomentum(records, profile), [records, profile]);
-  // Fresh users have no lived history — never fabricate wins from it.
+  // Wins come only from REAL days — never from baseline estimates.
   const accomplishments = useMemo(
-    () => (fresh ? [] : detectAccomplishments(records, profile)),
-    [fresh, records, profile],
+    () => (realCount < 7 ? [] : detectAccomplishments(realRecords, profile)),
+    [realCount, realRecords, profile],
   );
-  const gaps = useMemo(() => (fresh ? [] : potentialGaps(records, profile)), [fresh, records, profile]);
+  const gaps = useMemo(
+    () => (realCount < 14 ? [] : potentialGaps(realRecords, profile)),
+    [realCount, realRecords, profile],
+  );
   const review = useMemo(
     () => buildWeeklyReview(records, profile, assessments, scoreResult.history),
     [records, profile, assessments, scoreResult],
@@ -175,6 +202,21 @@ export default function App() {
   const patchGoal = (goalId: string, patch: Partial<Goal>) => {
     const nextGoals = profile.goals.map((g) => (g.id === goalId ? { ...g, ...patch } : g));
     patchProfile({ goals: nextGoals });
+  };
+
+  const saveCheckIn = (input: CheckInInput) => {
+    const date = todayISO();
+    setLoggedDays((prev) => [...prev.filter((l) => l.date !== date), { date, input }]);
+    if (mode === 'custom' && customProfile) {
+      const prevSaved = loggedDays.find((l) => l.date === date)?.input.saved ?? 0;
+      setCustomProfile({
+        ...customProfile,
+        // Savings balance moves by what you actually transferred today.
+        savingsBalance: Math.max(0, customProfile.savingsBalance + input.saved - prevSaved),
+        // A logged weigh-in becomes the profile's current weight.
+        weightLbs: input.weightLbs ?? customProfile.weightLbs,
+      });
+    }
   };
 
   const resetApp = () => {
@@ -232,7 +274,36 @@ export default function App() {
             )}
           </div>
         )}
-        {tab === 'today' && <TodayView briefing={briefing} assessments={assessments} momentum={momentum} fresh={fresh} />}
+        {tab === 'today' && (
+          <>
+            {mode === 'custom' && !loggedDays.some((l) => l.date === todayISO()) && (
+              <div className="checkin-nudge" onClick={() => setTab('checkin')}>
+                ✍️ You haven't logged today yet — 30 seconds keeps your data real. <strong>Check in →</strong>
+              </div>
+            )}
+            <TodayView briefing={briefing} assessments={assessments} momentum={momentum} fresh={fresh} />
+          </>
+        )}
+        {tab === 'checkin' &&
+          (mode === 'custom' ? (
+            <CheckInView
+              profile={profile}
+              todayISO={todayISO()}
+              existing={loggedDays.find((l) => l.date === todayISO())?.input}
+              realDayCount={realCount}
+              onSave={saveCheckIn}
+            />
+          ) : (
+            <div className="view">
+              <header>
+                <h1>Daily check-in</h1>
+                <p className="muted">
+                  Check-ins are for your own LifeOS — demo lives come with their data built in. Set up your own from
+                  the Profile tab.
+                </p>
+              </header>
+            </div>
+          ))}
         {tab === 'goals' && (
           <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} fresh={fresh} />
         )}

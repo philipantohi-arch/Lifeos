@@ -1693,6 +1693,34 @@ h3 {
   min-width: 150px;
 }
 
+/* ── Check-in ─────────────────────────────────────────────────────── */
+
+.checkin-save {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.checkin-saved {
+  color: var(--green);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.checkin-nudge {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(108, 123, 255, 0.45);
+  background: rgba(108, 123, 255, 0.1);
+  font-size: 13.5px;
+  cursor: pointer;
+  margin-bottom: 18px;
+}
+
+.checkin-nudge:hover {
+  background: rgba(108, 123, 255, 0.16);
+}
+
 /* ── Fresh-start unlock list ──────────────────────────────────────── */
 
 .unlock-list {

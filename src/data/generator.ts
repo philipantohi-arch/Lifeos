@@ -18,44 +18,49 @@
  * the numbers, exactly as it would against live wearable/finance data.
  */
 
-import type { BaselineHabits, DayRecord, UserProfile } from '../engine/types';
+import type { BaselineHabits, CheckInInput, DayRecord, UserProfile } from '../engine/types';
 import { deriveTargets } from '../engine/personalize';
 
 /**
  * A fresh (non-demo) user has only a baseline window, no lived history.
  * Views use this to show honest day-one states instead of fabricated
- * streaks, trends, and records.
+ * streaks, trends, and records. "Fresh" now means: fewer than a week of
+ * REAL (logged, non-estimated) days.
  */
 export const BASELINE_WINDOW_DAYS = 14;
 
-export function isFreshStart(records: DayRecord[]): boolean {
-  return records.length <= BASELINE_WINDOW_DAYS + 7;
+export function realDays(records: DayRecord[]): DayRecord[] {
+  return records.filter((r) => !r.estimated);
 }
 
-/**
- * Deterministic baseline history for a fresh user: every day is exactly
- * the typical week they reported — no random noise, no invented trends,
- * no fake accomplishments. Today's numbers ARE their entered numbers
- * (weight shows the weight they typed, sleep the sleep they reported).
- * This seeds the rolling windows the engines need until live connector
- * data replaces it, and it is labeled as such in the UI.
- */
-export function generateBaselineHistory(profile: UserProfile, days = BASELINE_WINDOW_DAYS): DayRecord[] {
-  const b: BaselineHabits = profile.baseline ?? {
-    typicalSleepHours: 7,
-    typicalBedtime: 23,
-    typicalSteps: 6000,
-    workoutsPerWeek: 1,
-    deepWorkHoursPerDay: 2,
-    takeoutMealsPerWeek: 3,
-    drinksPerWeek: 0,
-    mealPreps: false,
-  };
-  const records: DayRecord[] = [];
-  const today = new Date('2026-07-28T00:00:00Z');
+export function isFreshStart(records: DayRecord[]): boolean {
+  // Demo personas have no estimated flag anywhere → never fresh.
+  if (records.length > 0 && records.every((r) => !r.estimated)) {
+    return records.length <= BASELINE_WINDOW_DAYS + 7;
+  }
+  return realDays(records).length < 7;
+}
 
-  // Deterministic weekly placement: workouts Mon/Thu/Sat/Tue/Fri/Wed/Sun,
-  // takeout Fri/Sat/Wed/Tue/Thu/Mon/Sun, drinks split Fri/Sat.
+const DEFAULT_BASELINE: BaselineHabits = {
+  typicalSleepHours: 7,
+  typicalBedtime: 23,
+  typicalSteps: 6000,
+  workoutsPerWeek: 1,
+  deepWorkHoursPerDay: 2,
+  takeoutMealsPerWeek: 3,
+  drinksPerWeek: 0,
+  mealPreps: false,
+};
+
+/**
+ * Build one deterministic baseline-derived day (marked `estimated`):
+ * exactly the typical week the user reported — no random noise. Also
+ * used to fill unlogged gap days between check-ins.
+ */
+export function makeBaselineDay(profile: UserProfile, date: Date, prevAlcohol: number): DayRecord {
+  const b: BaselineHabits = profile.baseline ?? DEFAULT_BASELINE;
+  const clampN = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
   const WORKOUT_ORDER = [1, 4, 6, 2, 5, 3, 0];
   const TAKEOUT_ORDER = [5, 6, 3, 2, 4, 1, 0];
   const workoutDays = new Set(WORKOUT_ORDER.slice(0, Math.min(7, Math.round(b.workoutsPerWeek))));
@@ -69,75 +74,177 @@ export function generateBaselineHistory(profile: UserProfile, days = BASELINE_WI
   const alignedTime: DayRecord['workoutTime'] = profile.chronotype === 'evening' ? 'evening' : 'morning';
   const ageHrvOffset = Math.max(0, (profile.age - 30) * 0.45);
 
-  let prevAlcohol = 0;
-  const clampN = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const dow = date.getUTCDay();
+  const isWeekend = dow === 0 || dow === 6;
+  const sleepHours = b.typicalSleepHours;
+  const sleepQuality = Math.round(clampN(55 + (sleepHours - 6.5) * 11 - prevAlcohol * 9, 22, 98));
+  const recoveryScore = Math.round(
+    clampN(0.55 * sleepQuality + 0.25 * (sleepHours * 10) - prevAlcohol * 6 + 9, 20, 99),
+  );
+  const didWorkout = workoutDays.has(dow);
+  const ateTakeout = takeoutDays.has(dow);
+  const mealPrepped = b.mealPreps && dow >= 1 && dow <= 4;
+  const alcoholDrinks = dow === 5 ? friDrinks : dow === 6 ? satDrinks : 0;
+  const offDay = weekendMatters ? isWeekend : false;
+  let focusScore = clampN(
+    50 + (sleepHours > 7.5 ? 16 : sleepHours < 6.5 ? -12 : 0) + (didWorkout ? 6 : 0) - prevAlcohol * 5,
+    15,
+    99,
+  );
+  if (offDay) focusScore = clampN(focusScore - 15, 10, 99);
+  const tasksPlanned = offDay ? 3 : 7;
 
+  return {
+    date: date.toISOString().slice(0, 10),
+    dayOfWeek: dow,
+    sleepHours,
+    sleepQuality,
+    bedtime: b.typicalBedtime,
+    recoveryScore,
+    hrv: Math.round(clampN(30 + recoveryScore * 0.45 - ageHrvOffset, 14, 95)),
+    restingHR: Math.round(
+      clampN(68 - recoveryScore * 0.12 + prevAlcohol * 2 + (profile.sex === 'female' ? 2.5 : 0), 46, 82),
+    ),
+    steps: b.typicalSteps,
+    activeMinutes: didWorkout ? 50 : 15,
+    didWorkout,
+    workoutTime: didWorkout ? alignedTime : null,
+    nutritionScore: Math.round(clampN(58 + (mealPrepped ? 14 : 0) - (ateTakeout ? 12 : 0), 20, 98)),
+    ateTakeout,
+    alcoholDrinks,
+    mealPrepped,
+    discretionarySpend:
+      Math.round((dailyWants * 0.72 + (ateTakeout ? Math.min(26, dailyWants * 0.35) : 0)) * 100) / 100,
+    savedToday: dow === 5 ? weeklyTransfer : 0,
+    deepWorkHours: Math.round((offDay ? b.deepWorkHoursPerDay * 0.3 : b.deepWorkHoursPerDay) * 10) / 10,
+    tasksCompleted: Math.round(clampN(tasksPlanned * (0.35 + (focusScore / 100) * 0.55), 0, tasksPlanned)),
+    tasksPlanned,
+    focusScore: Math.round(focusScore),
+    weightLbs: profile.weightLbs,
+    mood: clampN(Math.round(4 + (3 + sleepQuality / 20 + recoveryScore / 40) * 0.5), 1, 10),
+    energy: clampN(Math.round(3 + sleepQuality / 20 + recoveryScore / 40), 1, 10),
+    estimated: true,
+  };
+}
+
+/**
+ * Turn a daily check-in into a full DayRecord: the entered values are
+ * kept verbatim; wearable-style derived fields (quality, recovery, HRV,
+ * focus) come from the same deterministic formulas as the baseline.
+ */
+export function buildLoggedDay(
+  profile: UserProfile,
+  dateISO: string,
+  input: CheckInInput,
+  prevAlcohol: number,
+  lastWeight: number,
+): DayRecord {
+  const clampN = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const date = new Date(dateISO + 'T00:00:00Z');
+  const dow = date.getUTCDay();
+  const ageHrvOffset = Math.max(0, (profile.age - 30) * 0.45);
+  const alignedTime: DayRecord['workoutTime'] = profile.chronotype === 'evening' ? 'evening' : 'morning';
+
+  const sleepQuality = Math.round(clampN(55 + (input.sleepHours - 6.5) * 11 - prevAlcohol * 9, 22, 98));
+  const recoveryScore = Math.round(
+    clampN(0.55 * sleepQuality + 0.25 * (input.sleepHours * 10) - prevAlcohol * 6 + 9, 20, 99),
+  );
+  const focusScore = Math.round(
+    clampN(
+      50 +
+        (input.sleepHours > 7.5 ? 16 : input.sleepHours < 6.5 ? -12 : 0) +
+        (input.didWorkout ? 6 : 0) -
+        prevAlcohol * 5,
+      15,
+      99,
+    ),
+  );
+  const tasksPlanned = 6;
+
+  return {
+    date: dateISO,
+    dayOfWeek: dow,
+    sleepHours: input.sleepHours,
+    sleepQuality,
+    bedtime: input.bedtime,
+    recoveryScore,
+    hrv: Math.round(clampN(30 + recoveryScore * 0.45 - ageHrvOffset, 14, 95)),
+    restingHR: Math.round(
+      clampN(68 - recoveryScore * 0.12 + prevAlcohol * 2 + (profile.sex === 'female' ? 2.5 : 0), 46, 82),
+    ),
+    steps: input.steps,
+    activeMinutes: input.didWorkout ? 50 : 15,
+    didWorkout: input.didWorkout,
+    workoutTime: input.didWorkout ? alignedTime : null,
+    nutritionScore: Math.round(clampN(58 + (input.ateTakeout ? -12 : 6), 20, 98)),
+    ateTakeout: input.ateTakeout,
+    alcoholDrinks: input.drinks,
+    mealPrepped: false,
+    discretionarySpend: input.spend,
+    savedToday: input.saved,
+    deepWorkHours: input.deepWorkHours,
+    tasksCompleted: Math.round(clampN(tasksPlanned * (0.35 + (focusScore / 100) * 0.55), 0, tasksPlanned)),
+    tasksPlanned,
+    focusScore,
+    weightLbs: input.weightLbs ?? lastWeight,
+    mood: input.mood,
+    energy: clampN(Math.round(3 + sleepQuality / 20 + recoveryScore / 40), 1, 10),
+  };
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * Assemble a custom user's records: a 14-day baseline runway, then every
+ * calendar day up to `todayISO` — logged days verbatim, unlogged days as
+ * estimated baseline days. Real days are what Journey/Patterns count.
+ */
+export function assembleCustomRecords(
+  profile: UserProfile,
+  logs: { date: string; input: CheckInInput }[],
+  todayISO: string,
+): DayRecord[] {
+  const sorted = [...logs].sort((a, b) => a.date.localeCompare(b.date));
+  const logMap = new Map(sorted.map((l) => [l.date, l.input]));
+  const today = new Date(todayISO + 'T00:00:00Z').getTime();
+  const firstLog = sorted.length ? new Date(sorted[0].date + 'T00:00:00Z').getTime() : today;
+  const start = Math.min(firstLog, today) - (BASELINE_WINDOW_DAYS - 1) * DAY_MS;
+
+  const records: DayRecord[] = [];
+  let prevAlcohol = 0;
+  let lastWeight = profile.weightLbs;
+  for (let ts = start; ts <= today; ts += DAY_MS) {
+    const d = new Date(ts);
+    const iso = d.toISOString().slice(0, 10);
+    const input = logMap.get(iso);
+    const rec = input
+      ? buildLoggedDay(profile, iso, input, prevAlcohol, lastWeight)
+      : makeBaselineDay(profile, d, prevAlcohol);
+    records.push(rec);
+    prevAlcohol = rec.alcoholDrinks;
+    lastWeight = rec.weightLbs;
+  }
+  return records;
+}
+
+/**
+ * Deterministic baseline-only history for a brand-new user (no check-ins
+ * yet), ending at `endISO`.
+ */
+export function generateBaselineHistory(
+  profile: UserProfile,
+  endISO?: string,
+  days = BASELINE_WINDOW_DAYS,
+): DayRecord[] {
+  const today = endISO ? new Date(endISO + 'T00:00:00Z') : new Date('2026-07-28T00:00:00Z');
+  const records: DayRecord[] = [];
+  let prevAlcohol = 0;
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
     d.setUTCDate(d.getUTCDate() - i);
-    const dow = d.getUTCDay();
-    const isWeekend = dow === 0 || dow === 6;
-
-    const sleepHours = b.typicalSleepHours;
-    const sleepQuality = Math.round(clampN(55 + (sleepHours - 6.5) * 11 - prevAlcohol * 9, 22, 98));
-    const recoveryScore = Math.round(
-      clampN(0.55 * sleepQuality + 0.25 * (sleepHours * 10) - prevAlcohol * 6 + 9, 20, 99),
-    );
-    const hrv = Math.round(clampN(30 + recoveryScore * 0.45 - ageHrvOffset, 14, 95));
-    const restingHR = Math.round(
-      clampN(68 - recoveryScore * 0.12 + prevAlcohol * 2 + (profile.sex === 'female' ? 2.5 : 0), 46, 82),
-    );
-
-    const didWorkout = workoutDays.has(dow);
-    const ateTakeout = takeoutDays.has(dow);
-    const mealPrepped = b.mealPreps && dow >= 1 && dow <= 4;
-    const alcoholDrinks = dow === 5 ? friDrinks : dow === 6 ? satDrinks : 0;
-    const nutritionScore = Math.round(clampN(58 + (mealPrepped ? 14 : 0) - (ateTakeout ? 12 : 0), 20, 98));
-
-    const offDay = weekendMatters ? isWeekend : false;
-    const aligned = didWorkout; // baseline users log at their natural time
-    let focusScore = clampN(
-      50 + (sleepHours > 7.5 ? 16 : sleepHours < 6.5 ? -12 : 0) + (aligned ? 6 : 0) - prevAlcohol * 5,
-      15,
-      99,
-    );
-    if (offDay) focusScore = clampN(focusScore - 15, 10, 99);
-    const deepWorkHours = Math.round((offDay ? b.deepWorkHoursPerDay * 0.3 : b.deepWorkHoursPerDay) * 10) / 10;
-    const tasksPlanned = offDay ? 3 : 7;
-    const tasksCompleted = Math.round(clampN(tasksPlanned * (0.35 + (focusScore / 100) * 0.55), 0, tasksPlanned));
-
-    const discretionarySpend =
-      Math.round((dailyWants * 0.72 + (ateTakeout ? Math.min(26, dailyWants * 0.35) : 0)) * 100) / 100;
-
-    records.push({
-      date: d.toISOString().slice(0, 10),
-      dayOfWeek: dow,
-      sleepHours,
-      sleepQuality,
-      bedtime: b.typicalBedtime,
-      recoveryScore,
-      hrv,
-      restingHR,
-      steps: b.typicalSteps,
-      activeMinutes: didWorkout ? 50 : 15,
-      didWorkout,
-      workoutTime: didWorkout ? alignedTime : null,
-      nutritionScore,
-      ateTakeout,
-      alcoholDrinks,
-      mealPrepped,
-      discretionarySpend,
-      savedToday: dow === 5 ? weeklyTransfer : 0,
-      deepWorkHours,
-      tasksCompleted,
-      tasksPlanned,
-      focusScore: Math.round(focusScore),
-      weightLbs: profile.weightLbs,
-      mood: clampN(Math.round(4 + (3 + sleepQuality / 20 + recoveryScore / 40) * 0.5), 1, 10),
-      energy: clampN(Math.round(3 + sleepQuality / 20 + recoveryScore / 40), 1, 10),
-    });
-
-    prevAlcohol = alcoholDrinks;
+    const rec = makeBaselineDay(profile, d, prevAlcohol);
+    records.push(rec);
+    prevAlcohol = rec.alcoholDrinks;
   }
   return records;
 }

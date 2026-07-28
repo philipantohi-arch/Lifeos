@@ -23,8 +23,8 @@ interface Props {
   onExploreDemo: () => void;
 }
 
-/** The app's deterministic "today" (matches the data generator). */
-const TODAY = new Date('2026-07-28T00:00:00Z');
+/** Real device date — a custom LifeOS lives on the actual calendar. */
+const TODAY = new Date();
 
 function isoMonthsFromNow(months: number): string {
   const d = new Date(TODAY);

@@ -62,6 +62,29 @@ export interface DayRecord {
   mood: number;
   /** 1–10 */
   energy: number;
+  /** True for baseline-derived placeholder days (not lived/logged data).
+   *  Estimated days never produce accomplishments, patterns, or records. */
+  estimated?: boolean;
+}
+
+/** What a user enters in the ~30-second daily check-in. */
+export interface CheckInInput {
+  sleepHours: number;
+  /** Decimal hour bedtime (values ≥24 = past midnight) */
+  bedtime: number;
+  steps: number;
+  didWorkout: boolean;
+  ateTakeout: boolean;
+  drinks: number;
+  /** Discretionary spend today, $ */
+  spend: number;
+  /** Moved to savings/investments today, $ */
+  saved: number;
+  deepWorkHours: number;
+  /** Optional morning weigh-in; omit to carry the last known weight */
+  weightLbs?: number;
+  /** 1–10 */
+  mood: number;
 }
 
 export type PillarKey = 'health' | 'wealth' | 'productivity';
