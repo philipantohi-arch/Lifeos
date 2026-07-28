@@ -7,6 +7,7 @@ interface Props {
   profile: UserProfile;
   onSelectPersona: (id: string) => void;
   onChange: (patch: Partial<UserProfile>) => void;
+  onReset: () => void;
 }
 
 const PILLAR_LABELS: Record<PillarKey, string> = {
@@ -64,8 +65,9 @@ function NumberField({
   );
 }
 
-export function ProfileView({ personaId, profile, onSelectPersona, onChange }: Props) {
+export function ProfileView({ personaId, profile, onSelectPersona, onChange, onReset }: Props) {
   const t = deriveTargets(profile);
+  const b = profile.baseline;
 
   return (
     <div className="view">
@@ -76,26 +78,6 @@ export function ProfileView({ personaId, profile, onSelectPersona, onChange }: P
           right now. Change anything below — the whole system recalibrates instantly.
         </p>
       </header>
-
-      <section className="card">
-        <h2>Try a different life</h2>
-        <p className="muted small">Five demo lives, each exercising different research-backed adaptations.</p>
-        <div className="persona-grid">
-          {PERSONAS.map((p) => (
-            <button
-              key={p.id}
-              className={`persona-btn ${p.id === personaId ? 'active' : ''}`}
-              onClick={() => onSelectPersona(p.id)}
-            >
-              <span className="persona-name">{p.profile.name}</span>
-              <span className="persona-meta">
-                {p.profile.age} · {p.profile.chronotype} type · {p.profile.workPattern.replace('-', ' ')}
-              </span>
-              <span className="persona-tagline">{p.tagline}</span>
-            </button>
-          ))}
-        </div>
-      </section>
 
       <div className="two-col">
         <section className="card">
@@ -275,6 +257,55 @@ export function ProfileView({ personaId, profile, onSelectPersona, onChange }: P
           </div>
         </section>
       </div>
+      {b && (
+        <section className="card">
+          <h2>Your typical week</h2>
+          <p className="muted small">
+            Your self-reported starting line — the model runs on these until live device data replaces them. Update
+            anytime; everything recalibrates.
+          </p>
+          <div className="field-grid">
+            <NumberField label="Typical sleep (h/night)" value={b.typicalSleepHours} step={0.5} onChange={(v) => onChange({ baseline: { ...b, typicalSleepHours: v } })} />
+            <NumberField label="Steps on a normal day" value={b.typicalSteps} step={500} onChange={(v) => onChange({ baseline: { ...b, typicalSteps: v } })} />
+            <NumberField label="Workouts / week" value={b.workoutsPerWeek} onChange={(v) => onChange({ baseline: { ...b, workoutsPerWeek: v } })} />
+            <NumberField label="Focused work (h/day)" value={b.deepWorkHoursPerDay} step={0.5} onChange={(v) => onChange({ baseline: { ...b, deepWorkHoursPerDay: v } })} />
+            <NumberField label="Takeout meals / week" value={b.takeoutMealsPerWeek} onChange={(v) => onChange({ baseline: { ...b, takeoutMealsPerWeek: v } })} />
+            <NumberField label="Drinks / week" value={b.drinksPerWeek} onChange={(v) => onChange({ baseline: { ...b, drinksPerWeek: v } })} />
+          </div>
+        </section>
+      )}
+
+      <section className="card">
+        <h2>Explore a demo life</h2>
+        <p className="muted small">
+          Curious how LifeOS adapts to a completely different person? Try one — your own setup stays saved.
+        </p>
+        <div className="persona-grid">
+          {PERSONAS.map((p) => (
+            <button
+              key={p.id}
+              className={`persona-btn ${p.id === personaId ? 'active' : ''}`}
+              onClick={() => onSelectPersona(p.id)}
+            >
+              <span className="persona-name">{p.profile.name}</span>
+              <span className="persona-meta">
+                {p.profile.age} · {p.profile.chronotype} type · {p.profile.workPattern.replace('-', ' ')}
+              </span>
+              <span className="persona-tagline">{p.tagline}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <section className="card danger-card">
+        <h2>Start over</h2>
+        <p className="muted small">
+          Wipe everything on this device — profile, goals, edits — and run first-time setup again.
+        </p>
+        <button className="btn danger" onClick={onReset}>
+          Reset LifeOS & re-run setup
+        </button>
+      </section>
     </div>
   );
 }

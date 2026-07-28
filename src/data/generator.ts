@@ -53,6 +53,8 @@ interface GenParams {
   dailyWantsBudget: number;
   weeklyTransfer: number;
   shiftPattern: boolean;
+  /** Additive correction so generated sleep matches self-reported typicals */
+  sleepOffset: number;
 }
 
 function paramsFor(profile: UserProfile): GenParams {
@@ -79,6 +81,7 @@ function paramsFor(profile: UserProfile): GenParams {
     dailyWantsBudget: dailyWants,
     weeklyTransfer: Math.round((profile.monthlyInvestment * 12) / 52),
     shiftPattern: profile.workPattern === 'shift',
+    sleepOffset: 0,
   };
 
   switch (profile.lifeStage) {
@@ -114,6 +117,25 @@ function paramsFor(profile: UserProfile): GenParams {
   if (profile.workPattern === 'shift') {
     p.stepsShiftBonus = 5500; // on your feet all shift
     p.bedtimeJitter = 0.7;
+  }
+
+  // Real users: their self-reported typical week overrides persona
+  // heuristics — the model runs on THEIR numbers from day one.
+  const b = profile.baseline;
+  if (b) {
+    p.bedtimeBase = clamp(b.typicalBedtime, 20, 27);
+    p.workoutProb = clamp(b.workoutsPerWeek / 7, 0.05, 0.85);
+    // Downstream additions (randomness ~+2,250, workouts +3,500·P) are
+    // subtracted so the generated mean lands on the reported typical.
+    p.stepsBase = Math.max(1200, Math.round(b.typicalSteps - 2250 - p.workoutProb * 3500));
+    p.deepWorkBase = Math.max(0.2, b.deepWorkHoursPerDay - 0.7);
+    p.takeoutProb = clamp(b.takeoutMealsPerWeek / 7, 0, 0.8);
+    p.mealPrepProb = b.mealPreps ? 0.7 : 0.15;
+    p.alcoholWeekendProb = clamp(b.drinksPerWeek / 4, 0, 0.9);
+    p.alcoholWeekdayProb = clamp(b.drinksPerWeek / 20, 0, 0.3);
+    // Align generated sleep mean with the reported typical.
+    const formulaMean = 8.7 - (p.bedtimeBase + 0.1 - 22.5) * 0.85;
+    p.sleepOffset = clamp(b.typicalSleepHours - formulaMean, -2, 2);
   }
 
   return p;
@@ -152,7 +174,7 @@ export function generateHistory(profile: UserProfile, seed: number, days = 120):
       bedtime = P.bedtimeBase - 0.4 + (lateNight ? 1.3 + rand() * 1.5 : rand() * P.bedtimeJitter);
     }
     let sleepHours = clamp(
-      (onShift ? 6.6 : 8.7 - (bedtime - 22.5) * 0.85) + (rand() - 0.5) * 1.6,
+      (onShift ? 6.6 : 8.7 - (bedtime - 22.5) * 0.85) + P.sleepOffset + (rand() - 0.5) * 1.6,
       4.2,
       9.3,
     );

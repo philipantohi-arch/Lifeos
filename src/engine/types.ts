@@ -107,6 +107,23 @@ export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced';
 /** Temporary contexts that change what good coaching looks like today */
 export type Situation = 'normal' | 'sick' | 'travel' | 'crunch' | 'new-baby' | 'injury';
 
+/**
+ * Self-reported typical week, captured at onboarding. Until live
+ * connectors accumulate real data, the engines model the user's life
+ * from these baselines — their numbers, not a demo persona's.
+ */
+export interface BaselineHabits {
+  typicalSleepHours: number;
+  /** Decimal hour, e.g. 23.5 = 11:30 PM */
+  typicalBedtime: number;
+  typicalSteps: number;
+  workoutsPerWeek: number;
+  deepWorkHoursPerDay: number;
+  takeoutMealsPerWeek: number;
+  drinksPerWeek: number;
+  mealPreps: boolean;
+}
+
 export interface UserProfile {
   name: string;
   age: number;
@@ -128,6 +145,8 @@ export interface UserProfile {
   priorities: Record<PillarKey, number>;
   /** The user's own goals — the anchor of their individualized Life Score */
   goals: Goal[];
+  /** Self-reported typical week (set during onboarding for real users) */
+  baseline?: BaselineHabits;
 }
 
 // ── Goals: the anchor of the individualized Life Score ───────────────────

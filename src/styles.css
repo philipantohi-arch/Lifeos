@@ -1514,6 +1514,210 @@ h3 {
   margin-top: 3px;
 }
 
+/* ── Onboarding ───────────────────────────────────────────────────── */
+
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 28px 16px 64px;
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 640px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.onboarding-brand {
+  padding: 0;
+}
+
+.onboarding-steps {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.onboarding-step {
+  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.onboarding-step.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.onboarding-step.done {
+  color: var(--green);
+  border-color: rgba(61, 220, 151, 0.35);
+}
+
+.onboarding-card h1 {
+  font-size: 22px;
+}
+
+.onboarding-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.btn {
+  padding: 11px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 650;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn.primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn.ghost {
+  background: none;
+  color: var(--text-muted);
+}
+
+.btn.ghost:hover,
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.btn.danger {
+  border-color: rgba(255, 107, 107, 0.5);
+  color: var(--red);
+  background: none;
+}
+
+.btn.danger:hover {
+  background: rgba(255, 107, 107, 0.1);
+}
+
+.danger-card {
+  border-color: rgba(255, 107, 107, 0.25);
+}
+
+.goal-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-template {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-raised);
+  overflow: hidden;
+}
+
+.goal-template.selected {
+  border-color: var(--accent);
+}
+
+.goal-template-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 14px;
+  font-family: inherit;
+  text-align: left;
+}
+
+.goal-template-emoji {
+  font-size: 18px;
+}
+
+.goal-template-title {
+  flex: 1;
+  font-weight: 600;
+}
+
+.goal-template-check {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.goal-template-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.goal-template-fields {
+  display: flex;
+  gap: 14px;
+  padding: 0 16px 14px;
+  flex-wrap: wrap;
+}
+
+.goal-template-fields .field {
+  min-width: 150px;
+}
+
+/* ── Demo banner ──────────────────────────────────────────────────── */
+
+.demo-banner {
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: var(--bg-raised);
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-family: inherit;
+}
+
 /* ── Responsive ───────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
