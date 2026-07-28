@@ -45,6 +45,9 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
 
         <section className="card">
           <h2>Pillars</h2>
+          <p className="muted small" style={{ marginBottom: 10 }}>
+            Each pillar = 55% daily habits (vs your personal targets) + 45% pace on your goals.
+          </p>
           <div className="pillar-list">
             {briefing.pillars.map((p) => (
               <div key={p.key} className="pillar-row">
@@ -63,7 +66,15 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
                   <div className="bar-track">
                     <div className="bar-fill" style={{ width: `${p.score}%` }} data-level={p.score >= 75 ? 'good' : p.score >= 55 ? 'ok' : 'low'} />
                   </div>
-                  <div className="pillar-driver">{p.driver}</div>
+                  <div className="pillar-driver">
+                    {p.driver}
+                    {p.process !== undefined && (
+                      <span className="pillar-breakdown">
+                        {' '}· habits {p.process}
+                        {p.outcome !== undefined ? ` · goal pace ${p.outcome}` : ''}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

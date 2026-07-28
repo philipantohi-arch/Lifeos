@@ -22,10 +22,12 @@ import type {
   SimulationResult,
   UserProfile,
 } from './types';
-import { computeLifeScore } from './lifeScore';
+import { pillarProcessScores, pillarOutcomeScores, PROCESS_WEIGHT, OUTCOME_WEIGHT } from './lifeScore';
 import { deriveTargets } from './personalize';
 import { forecastGoal, oddsDelta } from './montecarlo';
-import { METRIC_META, currentMetric } from './goals';
+import { METRIC_META, assessGoals, currentMetric } from './goals';
+import { generateBaselineHistory } from '../data/generator';
+import type { BaselineHabits, PillarKey } from './types';
 
 const clamp = (v: number, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
 
@@ -68,6 +70,49 @@ export function getScenarioDefs(profile: UserProfile, records: DayRecord[]): Sce
   const stepsNow = currentMetric('stepsAvg', records, profile);
 
   const list: ScenarioDef[] = [];
+
+  // ── The full protocol: every right habit at once ─────────────────────
+  // Single habits move single slices; this is the honest ceiling of
+  // sustained good behavior across the board.
+  {
+    const savingsGoal = profile.goals.find((g) => g.metric === 'savingsBalance');
+    const observedWeekly = records.slice(-28).reduce((a, r) => a + r.savedToday, 0) / 4;
+    const surplusWeekly = Math.max(0, ((profile.monthlyIncome - (profile.monthlyEssentials || profile.monthlyIncome * 0.6)) * 0.75) / 4.33);
+    const extraWeekly = savingsGoal
+      ? Math.round(Math.min(Math.max(20, surplusWeekly - observedWeekly), surplusWeekly))
+      : 0;
+    const deepGoal = profile.goals.find((g) => g.metric === 'deepWorkWeekly');
+    const deepNow = currentMetric('deepWorkWeekly', records, profile);
+    // The protocol aims at the higher of the research target and the
+    // user's own goal — "everything right" includes YOUR bar.
+    const stepsGoal = profile.goals.find((g) => g.metric === 'stepsAvg');
+    const stepsAim = Math.max(t.stepsTarget, stepsGoal?.target ?? 0);
+    list.push({
+      id: 'all-in',
+      question: 'What if I do everything right, consistently?',
+      emoji: '🚀',
+      description:
+        'The full protocol: sleep in your range, hit your steps, train, meal prep, hold budget, save toward your goals — sustained.',
+      intervention: {
+        sleepFloorLift: 0.9,
+        stepsBoost: Math.max(500, stepsAim + 400 - stepsNow),
+        deepWorkBoost: deepGoal ? Math.max(0.3, (deepGoal.target - deepNow) / 5 + 0.2) : 0.5,
+        workoutsBoost: 2,
+        spendMult: 0.93,
+        extraWeeklySavings: extraWeekly || undefined,
+        weightDriftShift: profile.goals.some((g) => g.metric === 'weightLbs')
+          ? -((t.weightLossLbPerWeek[0] + t.weightLossLbPerWeek[1]) / 2) * 0.7
+          : undefined,
+      },
+      affects: ['sleepAvg', 'stepsAvg', 'deepWorkWeekly', 'workoutsWeekly', 'savingsBalance', 'weightLbs'],
+      shifts: { rampMonths: 3, monthlyDollars: extraWeekly ? Math.round(extraWeekly * 4.33) : undefined },
+      highlights: [
+        'This is your realistic ceiling — the same scoring engine, run on a version of you whose habits all hit their marks.',
+        'No single habit gets you here; the compounding of all of them does. Pick the one habit below to start with.',
+        'Your goals\' odds under the full protocol are shown below — this is what consistency actually buys.',
+      ],
+    });
+  }
 
   if (profile.goals.some((g) => g.metric === 'weightLbs') || (profile.weightLbs > 150 && profile.lifeStage !== 'retired')) {
     const rate = (t.weightLossLbPerWeek[0] + t.weightLossLbPerWeek[1]) / 2;
@@ -199,6 +244,59 @@ export function getScenarios(profile: UserProfile, records: DayRecord[]): Scenar
   }));
 }
 
+/**
+ * "You, if this habit becomes your norm": clone the profile with its
+ * baseline habits upgraded by the intervention. Personas without an
+ * explicit baseline get one derived from their history's actual means,
+ * so the same machinery works for demo lives.
+ */
+function improvedProfile(profile: UserProfile, records: DayRecord[], def: ScenarioDef): UserProfile {
+  const t = deriveTargets(profile);
+  const last30 = records.slice(-30);
+  const mean = (f: (r: DayRecord) => number) => last30.reduce((a, r) => a + f(r), 0) / Math.max(last30.length, 1);
+
+  const base: BaselineHabits = profile.baseline ?? {
+    typicalSleepHours: Math.round(mean((r) => r.sleepHours) * 10) / 10,
+    typicalBedtime: t.bedtimeIdeal + 0.5,
+    typicalSteps: Math.round(mean((r) => r.steps)),
+    workoutsPerWeek: Math.round(mean((r) => (r.didWorkout ? 1 : 0)) * 7),
+    deepWorkHoursPerDay: Math.round(mean((r) => r.deepWorkHours) * 10) / 10,
+    takeoutMealsPerWeek: Math.round(mean((r) => (r.ateTakeout ? 1 : 0)) * 7),
+    drinksPerWeek: Math.round(mean((r) => r.alcoholDrinks) * 7),
+    mealPreps: mean((r) => (r.mealPrepped ? 1 : 0)) > 0.3,
+  };
+
+  const iv = def.intervention;
+  const nb: BaselineHabits = { ...base };
+  if (iv.sleepFloorLift) {
+    nb.typicalSleepHours = Math.max(base.typicalSleepHours, t.sleepRange[0] + 0.3);
+    nb.typicalBedtime = t.bedtimeIdeal;
+  }
+  if (iv.stepsBoost) nb.typicalSteps = base.typicalSteps + iv.stepsBoost;
+  if (iv.deepWorkBoost) nb.deepWorkHoursPerDay = base.deepWorkHoursPerDay + iv.deepWorkBoost;
+  if (iv.workoutsBoost) nb.workoutsPerWeek = Math.min(6, base.workoutsPerWeek + iv.workoutsBoost);
+  if (def.id === 'quit-alcohol') nb.drinksPerWeek = 0;
+  if (def.id === 'meal-prep' || def.id === 'commit-cut' || def.id === 'all-in') {
+    nb.mealPreps = true;
+    nb.takeoutMealsPerWeek = Math.min(base.takeoutMealsPerWeek, 2);
+  }
+  if (def.id === 'commit-cut' || def.id === 'all-in') {
+    nb.workoutsPerWeek = Math.max(nb.workoutsPerWeek, t.strengthSessionsWeekly + 1);
+  }
+  if (def.id === 'all-in') {
+    nb.drinksPerWeek = Math.min(nb.drinksPerWeek, 2);
+    nb.typicalSleepHours = Math.max(nb.typicalSleepHours, t.sleepRange[0] + 0.5);
+    const stepsGoal = profile.goals.find((g) => g.metric === 'stepsAvg');
+    nb.typicalSteps = Math.max(nb.typicalSteps, t.stepsTarget, stepsGoal?.target ?? 0);
+  }
+
+  return {
+    ...profile,
+    baseline: nb,
+    monthlyInvestment: profile.monthlyInvestment + (iv.extraWeeklySavings ? Math.round(iv.extraWeeklySavings * 4.33) : 0),
+  };
+}
+
 export function simulate(
   scenarioId: string,
   records: DayRecord[],
@@ -208,17 +306,48 @@ export function simulate(
   const t = deriveTargets(profile);
   const defs = getScenarioDefs(profile, records);
   const def = defs.find((s) => s.id === scenarioId) ?? defs[0];
-  const base = computeLifeScore(records, profile);
-
-  const basePillars: Record<string, number> = {};
-  for (const p of base.pillars) basePillars[p.key] = p.score;
   const weights = t.weights;
+  const keys: PillarKey[] = ['health', 'wealth', 'productivity'];
+
+  // ── Engine-grounded endpoints ────────────────────────────────────────
+  // The "with this change" ceiling is computed by running the REAL
+  // scoring engine on a window where the improved habits are your norm —
+  // not by nudging abstract pillar numbers. Doing the right thing daily
+  // for months moves the score the way it actually would.
+  const assessments = assessGoals(records, profile);
+  const procNow = pillarProcessScores(records, profile);
+  const outNow = pillarOutcomeScores(assessments);
+
+  const improved = improvedProfile(profile, records, def);
+  const lastDate = records[records.length - 1].date;
+  const improvedWindow = generateBaselineHistory(improved, lastDate);
+  const procEnd = pillarProcessScores(improvedWindow, improved);
+  // Sustained right behavior also puts affected goals on/ahead of pace.
+  const outEnd: Record<PillarKey, number | null> = { ...outNow };
+  for (const key of keys) {
+    const relevant = assessments.filter((a) => a.goal.pillar === key);
+    if (!relevant.length) continue;
+    let sum = 0;
+    let wsum = 0;
+    for (const a of relevant) {
+      const affected = def.affects.includes(a.goal.metric);
+      sum += (affected ? Math.max(a.paceScore, 90) : a.paceScore) * a.goal.priority;
+      wsum += a.goal.priority;
+    }
+    outEnd[key] = sum / wsum;
+  }
+
+  const blendAt = (proc: number, out: number | null) =>
+    out === null ? proc : PROCESS_WEIGHT * proc + OUTCOME_WEIGHT * out;
+  const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
 
   const baseline: SimulationPoint[] = [];
   const simulated: SimulationPoint[] = [];
   const r = NOMINAL_ANNUAL_RETURN / 12;
   let baseDollars = profile.savingsBalance;
   let simDollars = profile.savingsBalance;
+  const habitRamp = Math.max(def.shifts.rampMonths, 1.5);
+  const goalRamp = Math.max(horizonMonths * 0.6, habitRamp * 2);
 
   for (let m = 0; m <= horizonMonths; m++) {
     if (m > 0) {
@@ -226,34 +355,35 @@ export function simulate(
       simDollars = simDollars * (1 + r) + profile.monthlyInvestment + (def.shifts.monthlyDollars ?? 0);
     }
 
-    const drift = Math.min(m * 0.05, 1);
+    const basePillarVals = keys.map((k) => clamp(blendAt(procNow[k], outNow[k])));
     const basePoint: SimulationPoint = {
       month: m,
-      health: clamp(basePillars.health + drift),
-      wealth: clamp(basePillars.wealth + (profile.lifeStage === 'retired' ? 0 : m * 0.12)),
-      productivity: clamp(basePillars.productivity + drift),
-      lifeScore: 0,
+      health: basePillarVals[0],
+      wealth: basePillarVals[1],
+      productivity: basePillarVals[2],
+      lifeScore: Math.round(keys.reduce((acc, k, i) => acc + basePillarVals[i] * weights[k], 0)),
       dollars: Math.round(baseDollars),
     };
-    basePoint.lifeScore = Math.round(
-      basePoint.health * weights.health + basePoint.wealth * weights.wealth + basePoint.productivity * weights.productivity,
-    );
     baseline.push(basePoint);
 
-    const k = ramp(m, def.shifts.rampMonths);
-    const apply = (baseScore: number, maxShift = 0) => clamp(baseScore + maxShift * k * (1 - baseScore / 180));
-
+    const kHabit = ramp(m, habitRamp);
+    const kGoal = ramp(m, goalRamp);
+    const simVals = keys.map((k) =>
+      clamp(
+        blendAt(
+          lerp(procNow[k], procEnd[k], kHabit),
+          outNow[k] === null ? null : lerp(outNow[k]!, outEnd[k]!, kGoal),
+        ),
+      ),
+    );
     const simPoint: SimulationPoint = {
       month: m,
-      health: apply(basePoint.health, def.shifts.health ?? 0),
-      wealth: apply(basePoint.wealth, def.shifts.wealth ?? 0),
-      productivity: apply(basePoint.productivity, def.shifts.productivity ?? 0),
-      lifeScore: 0,
+      health: simVals[0],
+      wealth: simVals[1],
+      productivity: simVals[2],
+      lifeScore: Math.round(keys.reduce((acc, k, i) => acc + simVals[i] * weights[k], 0)),
       dollars: Math.round(simDollars),
     };
-    simPoint.lifeScore = Math.round(
-      simPoint.health * weights.health + simPoint.wealth * weights.wealth + simPoint.productivity * weights.productivity,
-    );
     simulated.push(simPoint);
   }
 

@@ -100,6 +100,10 @@ export interface PillarScore {
   weight: number;
   /** Short human explanation of the day's main driver */
   driver: string;
+  /** 0–100 daily-habits component (55% of the pillar) */
+  process?: number;
+  /** 0–100 goal-pace component (45%), absent if the pillar has no goals */
+  outcome?: number;
 }
 
 export interface LifeScoreResult {

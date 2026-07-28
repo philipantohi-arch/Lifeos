@@ -359,6 +359,10 @@ h3 {
   margin-top: 4px;
 }
 
+.pillar-breakdown {
+  opacity: 0.75;
+}
+
 /* Actions */
 
 .action-list {

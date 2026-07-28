@@ -229,9 +229,12 @@ function forecastSustain(
     switch (goal.metric) {
       case 'sleepAvg': {
         let v = r.sleepHours;
-        // Bedtime discipline lifts short nights toward the range floor.
-        if (iv.sleepFloorLift && v < t.sleepRange[0]) {
-          v = Math.min(t.sleepRange[0], v + iv.sleepFloorLift);
+        // Bedtime discipline lifts short nights toward the higher of the
+        // research floor and the user's OWN target (a 7.5h goal must be
+        // reachable even when the age-band floor is 7h).
+        const ceil = Math.max(t.sleepRange[0], goal.target + 0.2);
+        if (iv.sleepFloorLift && v < ceil) {
+          v = Math.min(ceil, v + iv.sleepFloorLift);
         }
         return v;
       }
@@ -302,6 +305,39 @@ function forecastSustain(
   }));
 
   return { goalId: goal.id, pHit: hits / runs, fan, runs };
+}
+
+/**
+ * The canonical "plan" for a goal: the intervention representing actually
+ * doing the daily work the goal implies. Used to show odds-with-plan next
+ * to odds-on-current-habits.
+ */
+export function planIntervention(
+  goal: Goal,
+  current: number,
+  requiredWeeklyRate: number,
+  records: DayRecord[],
+  profile: UserProfile,
+): InterventionEffect {
+  const t = deriveTargets(profile);
+  switch (goal.metric) {
+    case 'sleepAvg':
+      return { sleepFloorLift: Math.max(0.4, goal.target - current + 0.3) };
+    case 'stepsAvg':
+      return { stepsBoost: Math.max(500, Math.round(goal.target - current + 400)) };
+    case 'deepWorkWeekly':
+      return { deepWorkBoost: Math.max(0.3, (goal.target - current) / 5 + 0.2) };
+    case 'workoutsWeekly':
+      return { workoutsBoost: Math.max(1, Math.round(goal.target - current)) };
+    case 'weightLbs': {
+      const mid = (t.weightLossLbPerWeek[0] + t.weightLossLbPerWeek[1]) / 2;
+      return { weightDriftShift: -mid * 0.8 };
+    }
+    case 'savingsBalance': {
+      const observedWeekly = (records.slice(-28).reduce((a, r) => a + r.savedToday, 0) / 4) || 0;
+      return { extraWeeklySavings: Math.max(20, Math.round(requiredWeeklyRate - observedWeekly)) };
+    }
+  }
 }
 
 /**

@@ -125,23 +125,42 @@ function wealthProcess(win: DayRecord[], profile: UserProfile, t: PersonalTarget
     win.map((r) => clamp(100 - ((r.discretionarySpend - dailyBudget) / Math.max(dailyBudget, 1)) * 100, 0, 100)),
   );
   if (profile.lifeStage === 'retired') return spendDiscipline;
-  const actualRate = profile.monthlyIncome > 0 ? profile.monthlyInvestment / profile.monthlyIncome : 0;
+  // What you actually move to savings (logged transfers) counts alongside
+  // the standing plan — real behavior beats a settings field.
+  const observedMonthly = (win.reduce((a, r) => a + r.savedToday, 0) / Math.max(win.length, 1)) * 30;
+  const actualMonthly = Math.max(profile.monthlyInvestment, observedMonthly);
+  const actualRate = profile.monthlyIncome > 0 ? actualMonthly / profile.monthlyIncome : 0;
   const savingsExecution = t.savingsRateTarget > 0 ? clamp((actualRate / t.savingsRateTarget) * 100) : 100;
   return clamp(0.6 * spendDiscipline + 0.4 * savingsExecution);
 }
 
+/**
+ * The deep-work bar is personal: your goal's daily equivalent if you set
+ * one, else your reported baseline stretched ~30%, else a sane default.
+ */
+function deepWorkCeiling(profile: UserProfile): number {
+  const goal = profile.goals.find((g) => g.metric === 'deepWorkWeekly');
+  if (goal) return Math.max(1, goal.target / 5);
+  if (profile.baseline) return Math.max(1, profile.baseline.deepWorkHoursPerDay * 1.3);
+  return profile.lifeStage === 'retired' ? 2.5 : 4;
+}
+
 function productivityProcess(win: DayRecord[], profile: UserProfile): number {
-  const deepCeiling = profile.lifeStage === 'retired' ? 2.5 : 4;
+  const deepCeiling = deepWorkCeiling(profile);
   const weekendAware = profile.workPattern === 'standard' || profile.workPattern === 'flexible';
+  // Custom users have no task manager connected — don't score fabricated
+  // task counts; weight focus + deep work only.
+  const hasTasks = !profile.baseline;
   let sum = 0;
   let wsum = 0;
   win.forEach((r, i) => {
     const recency = Math.pow(0.5, (win.length - 1 - i) / 3);
     const isOff = weekendAware ? r.dayOfWeek === 0 || r.dayOfWeek === 6 : r.workedShift === true;
     const dayWeight = isOff ? 0.25 : 1;
-    const completion = r.tasksPlanned ? (r.tasksCompleted / r.tasksPlanned) * 100 : 60;
     const deep = clamp((r.deepWorkHours / deepCeiling) * 100);
-    const day = 0.4 * r.focusScore + 0.35 * deep + 0.25 * completion;
+    const day = hasTasks
+      ? 0.4 * r.focusScore + 0.35 * deep + 0.25 * ((r.tasksCompleted / Math.max(r.tasksPlanned, 1)) * 100)
+      : 0.45 * r.focusScore + 0.55 * deep;
     sum += day * recency * dayWeight;
     wsum += recency * dayWeight;
   });
@@ -193,6 +212,7 @@ function pillarDriver(
   records: DayRecord[],
   t: PersonalTargets,
   assessments: GoalAssessment[],
+  profileForDriver: UserProfile,
 ): string {
   const today = records[records.length - 1];
   const goals = assessments.filter((a) => a.goal.pillar === key);
@@ -211,9 +231,13 @@ function pillarDriver(
       if (behind) return `"${behind.goal.label}" needs $${Math.round(behind.requiredWeeklyRate)}/wk from here`;
       return `$${Math.round(spend7)} of your $${t.weeklyDiscretionary} weekly budget`;
     }
-    case 'productivity':
+    case 'productivity': {
       if (behind) return `"${behind.goal.label}" at ${Math.round(behind.paceRatio * 100)}% of target level`;
-      return `${today.deepWorkHours}h deep work · ${today.tasksCompleted}/${today.tasksPlanned} tasks yesterday`;
+      const ceiling = deepWorkCeiling(profileForDriver);
+      return profileForDriver.baseline
+        ? `${today.deepWorkHours}h deep work vs your ${ceiling.toFixed(1)}h/day bar`
+        : `${today.deepWorkHours}h deep work · ${today.tasksCompleted}/${today.tasksPlanned} tasks yesterday`;
+    }
   }
 }
 
@@ -253,7 +277,9 @@ export function computeLifeScore(records: DayRecord[], profile: UserProfile): Li
       score: Math.round(score),
       delta: Math.round((score - yScore) * 10) / 10,
       weight: Math.round(w[key] * 1000) / 1000,
-      driver: pillarDriver(key, records, targets, assessments),
+      driver: pillarDriver(key, records, targets, assessments, profile),
+      process: Math.round(procToday[key]),
+      outcome: outcomes[key] === null ? undefined : Math.round(outcomes[key]!),
     };
   });
 
@@ -285,3 +311,20 @@ export function processAdherence(records: DayRecord[], profile: UserProfile, end
   const p = pillarProcessAt(records, endIndex, profile, targets);
   return composite(p, targets.weights);
 }
+
+/** Per-pillar process scores at the end of a window — used by the simulator. */
+export function pillarProcessScores(records: DayRecord[], profile: UserProfile): Record<PillarKey, number> {
+  const targets = deriveTargets(profile);
+  return pillarProcessAt(records, records.length - 1, profile, targets);
+}
+
+/** Per-pillar goal-pace outcomes (null = no goals in pillar). */
+export function pillarOutcomeScores(assessments: GoalAssessment[]): Record<PillarKey, number | null> {
+  return {
+    health: outcomeScore('health', assessments),
+    wealth: outcomeScore('wealth', assessments),
+    productivity: outcomeScore('productivity', assessments),
+  };
+}
+
+export { PROCESS_WEIGHT, OUTCOME_WEIGHT };

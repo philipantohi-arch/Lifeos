@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import type { DayRecord, Goal, GoalAssessment, UserProfile } from '../engine/types';
 import { METRIC_META } from '../engine/goals';
-import { forecastGoal } from '../engine/montecarlo';
+import { forecastGoal, planIntervention } from '../engine/montecarlo';
 import { adaptiveTargets } from '../engine/journey';
 import { FanChart } from '../components/FanChart';
 
@@ -25,16 +25,41 @@ function fmtMetric(goal: Goal, v: number): string {
   return meta.unit === '$' ? `$${num}` : `${num} ${meta.unit}`;
 }
 
-function OddsBadge({ p }: { p: number }) {
+function fmtPct(p: number): string {
   const pct = Math.round(p * 100);
-  const cls = pct >= 70 ? 'good' : pct >= 40 ? 'warn' : 'bad';
-  return <span className={`odds-badge ${cls}`}>{pct}% odds</span>;
+  if (pct === 0 && p > 0) return '<1%';
+  if (pct === 100 && p < 1) return '>99%';
+  return `${pct}%`;
+}
+
+/** Current-habits odds next to with-the-plan odds — leverage, not doom. */
+function OddsPair({ now, plan }: { now: number; plan: number }) {
+  const cls = plan >= 0.7 ? 'good' : plan >= 0.4 ? 'warn' : 'bad';
+  return (
+    <span className={`odds-badge ${cls}`} title="Odds on current habits → odds if you do the daily plan">
+      {fmtPct(now)} → {fmtPct(plan)} with the plan
+    </span>
+  );
 }
 
 export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }: Props) {
   const forecasts = useMemo(
     () => new Map(profile.goals.map((g) => [g.id, forecastGoal(g, records, profile, { runs: 800 })])),
     [profile, records],
+  );
+  const planForecasts = useMemo(
+    () =>
+      new Map(
+        assessments.map((a) => [
+          a.goal.id,
+          forecastGoal(a.goal, records, profile, {
+            runs: 800,
+            seedTag: 'plan',
+            intervention: planIntervention(a.goal, a.current, a.requiredWeeklyRate, records, profile),
+          }),
+        ]),
+      ),
+    [assessments, records, profile],
   );
   const micro = useMemo(() => adaptiveTargets(records, profile), [records, profile]);
 
@@ -58,6 +83,7 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
       {assessments.map((a) => {
         const g = a.goal;
         const fc = forecasts.get(g.id);
+        const plan = planForecasts.get(g.id);
         const feas = FEAS_LABEL[a.feasibility];
         return (
           <section key={g.id} className="card goal-card">
@@ -73,7 +99,7 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
                 </span>
               </div>
               <div className="goal-badges">
-                {fc && <OddsBadge p={fc.pHit} />}
+                {fc && plan && <OddsPair now={fc.pHit} plan={plan.pHit} />}
                 <span className={`feas-badge ${feas.cls}`}>{feas.text}</span>
               </div>
             </div>
@@ -110,10 +136,10 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
             </div>
 
             {a.suggestion && <div className="suggestion-box">🎯 {a.suggestion}</div>}
-            {!a.suggestion && fc && fc.pHit < 0.35 && a.feasibility === 'comfortable' && (
+            {!a.suggestion && fc && plan && fc.pHit < 0.35 && a.feasibility === 'comfortable' && (
               <div className="suggestion-box">
-                💡 The capacity is there — these odds reflect your <em>current</em> behavior, not your limits. The
-                Today tab ranks the exact actions that move this number.
+                💡 {fmtPct(fc.pHit)} is what happens if nothing changes — do the daily plan and your odds are{' '}
+                {fmtPct(plan.pHit)}. The Today tab ranks exactly those actions.
               </div>
             )}
 
