@@ -175,6 +175,9 @@ export interface Goal {
   target: number;
   /** ISO deadline (reach goals only) */
   deadline?: string;
+  /** ISO date the goal was set; pace is measured from here (defaults to
+   *  history start for demo personas) */
+  startDate?: string;
   /** 1–5, how much this goal matters to the user */
   priority: number;
 }

@@ -6,7 +6,29 @@ const CONF_LABEL: Record<Insight['confidence'], string> = {
   emerging: 'Emerging pattern',
 };
 
-export function InsightsView({ insights }: { insights: Insight[] }) {
+export function InsightsView({ insights, fresh }: { insights: Insight[]; fresh?: boolean }) {
+  if (fresh || insights.length === 0) {
+    return (
+      <div className="view">
+        <header>
+          <h1>Your Patterns</h1>
+          <p className="muted">
+            LifeOS mines your history for personal cause-and-effect — statistically, from your own days, never from
+            generic advice.
+          </p>
+        </header>
+        <section className="card note-card">
+          <h2>🔓 Unlocks after ~2–3 weeks of data</h2>
+          <p className="muted">
+            Pattern discovery needs variation to find truth in: nights you slept more and less, weeks you cooked and
+            weeks you didn't. Once enough real days accumulate, LifeOS starts surfacing findings like "you focus 40%
+            better after 7.5h+ sleep" or "your spending jumps after short nights" — each one shown with the
+            correlation strength and sample size behind it, so you can judge the evidence yourself.
+          </p>
+        </section>
+      </div>
+    );
+  }
   return (
     <div className="view">
       <header>

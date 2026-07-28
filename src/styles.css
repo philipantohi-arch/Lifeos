@@ -1693,6 +1693,36 @@ h3 {
   min-width: 150px;
 }
 
+/* ── Fresh-start unlock list ──────────────────────────────────────── */
+
+.unlock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.unlock-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13.5px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-raised);
+}
+
+.unlock-when {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  min-width: 110px;
+}
+
 /* ── Demo banner ──────────────────────────────────────────────────── */
 
 .demo-banner {

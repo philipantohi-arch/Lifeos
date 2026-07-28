@@ -201,13 +201,13 @@ function suggestionSustain(goal: Goal, cap: Capacity): string | undefined {
 }
 
 /**
- * Goal start date: 90 days before the last record (the demo assumes goals
- * were set at history start). In production this is stored per goal.
+ * Goal start date: the stored startDate when present (real users set
+ * goals at onboarding — day one starts on pace, not "behind"), else
+ * history start (demo personas assume goals were set back then).
  */
 function goalStartDate(goal: Goal, records: DayRecord[]): number {
-  void goal;
-  const first = new Date(records[0].date + 'T00:00:00Z').getTime();
-  return first;
+  if (goal.startDate) return new Date(goal.startDate + 'T00:00:00Z').getTime();
+  return new Date(records[0].date + 'T00:00:00Z').getTime();
 }
 
 export function assessGoals(records: DayRecord[], profile: UserProfile): GoalAssessment[] {

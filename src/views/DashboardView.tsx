@@ -24,9 +24,12 @@ export function DashboardView({ records, result, profile }: Props) {
   const today = records[records.length - 1];
   const avg = (f: (r: DayRecord) => number) => last30.reduce((a, r) => a + f(r), 0) / last30.length;
 
-  const monthLabels = [last30[0], last30[14], last30[29]].map((r) =>
+  // Short histories (fresh users) have fewer than 30 records.
+  const li = (frac: number) => last30[Math.min(last30.length - 1, Math.round(frac * (last30.length - 1)))];
+  const monthLabels = [li(0), li(0.5), li(1)].map((r) =>
     new Date(r.date + 'T00:00:00Z').toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
   );
+  const fresh = records.length <= 21;
 
   const spend7 = records.slice(-7).reduce((a, r) => a + r.discretionarySpend, 0);
   const savingsGoal = profile.goals.find((g) => g.metric === 'savingsBalance');
@@ -39,8 +42,14 @@ export function DashboardView({ records, result, profile }: Props) {
         <p className="muted">Everything LifeOS is tracking, in one place.</p>
       </header>
 
+      {fresh && (
+        <div className="demo-banner">
+          Showing your reported baseline — these charts come alive as real days replace the estimates.
+        </div>
+      )}
+
       <section className="card">
-        <h2>Life Score — last 30 days</h2>
+        <h2>{fresh ? 'Life Score — your starting line' : 'Life Score — last 30 days'}</h2>
         <TrendChart
           series={[{ values: result.history.slice(-30), color: 'var(--accent)', label: 'Life Score', fill: true }]}
           xLabels={monthLabels}

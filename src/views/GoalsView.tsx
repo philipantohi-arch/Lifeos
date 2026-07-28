@@ -10,6 +10,7 @@ interface Props {
   profile: UserProfile;
   assessments: GoalAssessment[];
   onChangeGoal: (goalId: string, patch: Partial<Goal>) => void;
+  fresh?: boolean;
 }
 
 const FEAS_LABEL = {
@@ -30,7 +31,7 @@ function OddsBadge({ p }: { p: number }) {
   return <span className={`odds-badge ${cls}`}>{pct}% odds</span>;
 }
 
-export function GoalsView({ records, profile, assessments, onChangeGoal }: Props) {
+export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }: Props) {
   const forecasts = useMemo(
     () => new Map(profile.goals.map((g) => [g.id, forecastGoal(g, records, profile, { runs: 800 })])),
     [profile, records],
@@ -46,6 +47,12 @@ export function GoalsView({ records, profile, assessments, onChangeGoal }: Props
           pace your capacity can actually sustain. Odds come from {(800).toLocaleString()} simulated futures built from
           your real day-to-day variability — not wishful straight lines.
         </p>
+        {fresh && (
+          <p className="muted small">
+            Day 1: goals start on pace, and until your real days accumulate, the simulations use typical human
+            day-to-day variability around your reported baseline.
+          </p>
+        )}
       </header>
 
       {assessments.map((a) => {
@@ -151,7 +158,11 @@ export function GoalsView({ records, profile, assessments, onChangeGoal }: Props
       <section className="card">
         <div className="section-head">
           <h2>This week's micro-targets</h2>
-          <span className="muted small">Auto-tuned to your recent hit rate — hard enough to matter, close enough to win</span>
+          <span className="muted small">
+            {fresh
+              ? 'Starting values from your baseline — they auto-tune weekly once real days come in'
+              : 'Auto-tuned to your recent hit rate — hard enough to matter, close enough to win'}
+          </span>
         </div>
         <div className="micro-grid">
           {micro.map((m) => (

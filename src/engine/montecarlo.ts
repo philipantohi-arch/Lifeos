@@ -60,6 +60,23 @@ function gaussian(rand: () => number, mean: number, sd: number): number {
   return mean + sd * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
 }
 
+function stdev(arr: number[]): number {
+  if (arr.length < 2) return 0;
+  const m = arr.reduce((a, b) => a + b, 0) / arr.length;
+  return Math.sqrt(arr.reduce((a, b) => a + (b - m) * (b - m), 0) / (arr.length - 1));
+}
+
+/**
+ * Fresh users have a flat self-reported baseline — zero measured
+ * variance would make every forecast a fake-certain single line. Until
+ * real data accumulates, inject typical human day-to-day variability
+ * around THEIR mean (labeled as such in the UI). Once their history has
+ * real spread, the empirical distribution takes over untouched.
+ */
+function varianceFloor(samples: number[], floor: number, defaultSd: number): number {
+  return stdev(samples) < floor ? defaultSd : 0;
+}
+
 // ── Empirical samplers per metric ─────────────────────────────────────────
 
 /**
@@ -121,6 +138,10 @@ export function forecastGoal(
   const start = isWeight
     ? records[records.length - 1].weightLbs
     : profile.savingsBalance;
+  const meanAbs = Math.abs(samples.reduce((a, b) => a + b, 0) / samples.length);
+  const extraSd = isWeight
+    ? varianceFloor(samples, 0.15, 0.55) // typical scale-weight weekly noise, lb
+    : varianceFloor(samples, Math.max(15, meanAbs * 0.1), Math.max(30, meanAbs * 0.35));
 
   // Interventions shift each sampled week.
   const weeklyShift = isWeight ? (iv.weightDriftShift ?? 0) : (iv.extraWeeklySavings ?? 0);
@@ -137,6 +158,7 @@ export function forecastGoal(
     const traj: number[] = [];
     for (let w = 1; w <= horizonWeeks; w++) {
       let step = pick(samples, rand) + weeklyShift + spendRelief;
+      if (extraSd > 0) step += gaussian(rand, 0, extraSd);
       if (!isWeight) {
         // Market movement on invested balance: ~6%/yr nominal, ~13%/yr vol.
         step += v * gaussian(rand, 0.06 / 52, 0.13 / Math.sqrt(52));
@@ -230,6 +252,24 @@ function forecastSustain(
   const weeklyGoal = goal.metric === 'deepWorkWeekly' || goal.metric === 'workoutsWeekly';
   const target = goal.target;
 
+  // Typical daily variability per metric, applied only when the pool is
+  // flat (fresh users) — see varianceFloor.
+  const poolMean = pool.reduce((a, b) => a + b, 0) / Math.max(pool.length, 1);
+  const extraSd = (() => {
+    switch (goal.metric) {
+      case 'sleepAvg':
+        return varianceFloor(pool, 0.25, 0.85);
+      case 'stepsAvg':
+        return varianceFloor(pool, 400, Math.max(800, poolMean * 0.28));
+      case 'deepWorkWeekly':
+        return varianceFloor(pool, 0.3, poolMean * 0.45 + 0.3);
+      case 'workoutsWeekly':
+        return varianceFloor(pool, 0.12, 0.28);
+      default:
+        return 0;
+    }
+  })();
+
   // Block bootstrap: sample four CONTIGUOUS 7-day blocks instead of 28
   // i.i.d. days. Real weeks are autocorrelated (a bad stretch is a bad
   // stretch); i.i.d. sampling collapses the variance and makes odds look
@@ -241,7 +281,11 @@ function forecastSustain(
     let sum = 0;
     for (let b = 0; b < 4; b++) {
       const start = Math.floor(rand() * maxBlockStart);
-      for (let d = 0; d < 7; d++) sum += pool[Math.min(start + d, pool.length - 1)];
+      for (let d = 0; d < 7; d++) {
+        let v = pool[Math.min(start + d, pool.length - 1)];
+        if (extraSd > 0) v += gaussian(rand, 0, extraSd);
+        sum += v;
+      }
     }
     const avg = weeklyGoal ? sum / 4 : sum / 28; // per-week or per-day average
     outcomes.push(avg);

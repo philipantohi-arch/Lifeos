@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Goal, UserProfile } from './engine/types';
-import { generateHistory } from './data/generator';
+import { generateBaselineHistory, generateHistory, isFreshStart } from './data/generator';
 import { PERSONAS, getPersona } from './data/personas';
 import { computeLifeScore } from './engine/lifeScore';
 import { composeBriefing } from './engine/briefing';
@@ -107,17 +107,25 @@ export default function App() {
 
   const seed = mode === 'custom' && customProfile ? seedFor(customProfile) : persona.seed;
 
-  // In production this is the sync + scoring pipeline. For a fresh user it
-  // models their life from their self-reported baseline until live
-  // connector data accumulates; demo mode uses persona datasets.
-  const records = useMemo(() => generateHistory(profile, seed), [profile, seed]);
+  // In production this is the sync + scoring pipeline. A fresh user gets
+  // ONLY a deterministic baseline window built from their own inputs — no
+  // invented past. Demo mode uses full persona datasets.
+  const records = useMemo(
+    () => (mode === 'custom' ? generateBaselineHistory(profile) : generateHistory(profile, seed)),
+    [mode, profile, seed],
+  );
+  const fresh = isFreshStart(records);
   const scoreResult = useMemo(() => computeLifeScore(records, profile), [records, profile]);
   const briefing = useMemo(() => composeBriefing(records, profile), [records, profile]);
   const insights = useMemo(() => discoverInsights(records), [records]);
   const assessments = useMemo(() => assessGoals(records, profile), [records, profile]);
   const momentum = useMemo(() => computeMomentum(records, profile), [records, profile]);
-  const accomplishments = useMemo(() => detectAccomplishments(records, profile), [records, profile]);
-  const gaps = useMemo(() => potentialGaps(records, profile), [records, profile]);
+  // Fresh users have no lived history — never fabricate wins from it.
+  const accomplishments = useMemo(
+    () => (fresh ? [] : detectAccomplishments(records, profile)),
+    [fresh, records, profile],
+  );
+  const gaps = useMemo(() => (fresh ? [] : potentialGaps(records, profile)), [fresh, records, profile]);
   const review = useMemo(
     () => buildWeeklyReview(records, profile, assessments, scoreResult.history),
     [records, profile, assessments, scoreResult],
@@ -224,16 +232,16 @@ export default function App() {
             )}
           </div>
         )}
-        {tab === 'today' && <TodayView briefing={briefing} assessments={assessments} momentum={momentum} />}
+        {tab === 'today' && <TodayView briefing={briefing} assessments={assessments} momentum={momentum} fresh={fresh} />}
         {tab === 'goals' && (
-          <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} />
+          <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} fresh={fresh} />
         )}
         {tab === 'journey' && (
-          <JourneyView accomplishments={accomplishments} momentum={momentum} gaps={gaps} review={review} />
+          <JourneyView accomplishments={accomplishments} momentum={momentum} gaps={gaps} review={review} fresh={fresh} />
         )}
         {tab === 'dashboard' && <DashboardView records={records} result={scoreResult} profile={profile} />}
         {tab === 'simulator' && <SimulatorView records={records} profile={profile} />}
-        {tab === 'insights' && <InsightsView insights={insights} />}
+        {tab === 'insights' && <InsightsView insights={insights} fresh={fresh} />}
         {tab === 'profile' && (
           <ProfileView
             personaId={mode === 'demo' ? personaId : ''}

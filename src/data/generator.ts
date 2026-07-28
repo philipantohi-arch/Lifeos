@@ -18,8 +18,129 @@
  * the numbers, exactly as it would against live wearable/finance data.
  */
 
-import type { DayRecord, UserProfile } from '../engine/types';
+import type { BaselineHabits, DayRecord, UserProfile } from '../engine/types';
 import { deriveTargets } from '../engine/personalize';
+
+/**
+ * A fresh (non-demo) user has only a baseline window, no lived history.
+ * Views use this to show honest day-one states instead of fabricated
+ * streaks, trends, and records.
+ */
+export const BASELINE_WINDOW_DAYS = 14;
+
+export function isFreshStart(records: DayRecord[]): boolean {
+  return records.length <= BASELINE_WINDOW_DAYS + 7;
+}
+
+/**
+ * Deterministic baseline history for a fresh user: every day is exactly
+ * the typical week they reported — no random noise, no invented trends,
+ * no fake accomplishments. Today's numbers ARE their entered numbers
+ * (weight shows the weight they typed, sleep the sleep they reported).
+ * This seeds the rolling windows the engines need until live connector
+ * data replaces it, and it is labeled as such in the UI.
+ */
+export function generateBaselineHistory(profile: UserProfile, days = BASELINE_WINDOW_DAYS): DayRecord[] {
+  const b: BaselineHabits = profile.baseline ?? {
+    typicalSleepHours: 7,
+    typicalBedtime: 23,
+    typicalSteps: 6000,
+    workoutsPerWeek: 1,
+    deepWorkHoursPerDay: 2,
+    takeoutMealsPerWeek: 3,
+    drinksPerWeek: 0,
+    mealPreps: false,
+  };
+  const records: DayRecord[] = [];
+  const today = new Date('2026-07-28T00:00:00Z');
+
+  // Deterministic weekly placement: workouts Mon/Thu/Sat/Tue/Fri/Wed/Sun,
+  // takeout Fri/Sat/Wed/Tue/Thu/Mon/Sun, drinks split Fri/Sat.
+  const WORKOUT_ORDER = [1, 4, 6, 2, 5, 3, 0];
+  const TAKEOUT_ORDER = [5, 6, 3, 2, 4, 1, 0];
+  const workoutDays = new Set(WORKOUT_ORDER.slice(0, Math.min(7, Math.round(b.workoutsPerWeek))));
+  const takeoutDays = new Set(TAKEOUT_ORDER.slice(0, Math.min(7, Math.round(b.takeoutMealsPerWeek))));
+  const friDrinks = Math.ceil(b.drinksPerWeek / 2);
+  const satDrinks = Math.max(0, Math.round(b.drinksPerWeek) - friDrinks);
+
+  const dailyWants = (profile.monthlyIncome * 0.3) / 30;
+  const weeklyTransfer = Math.round((profile.monthlyInvestment * 12) / 52);
+  const weekendMatters = profile.workPattern === 'standard' || profile.workPattern === 'flexible';
+  const alignedTime: DayRecord['workoutTime'] = profile.chronotype === 'evening' ? 'evening' : 'morning';
+  const ageHrvOffset = Math.max(0, (profile.age - 30) * 0.45);
+
+  let prevAlcohol = 0;
+  const clampN = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - i);
+    const dow = d.getUTCDay();
+    const isWeekend = dow === 0 || dow === 6;
+
+    const sleepHours = b.typicalSleepHours;
+    const sleepQuality = Math.round(clampN(55 + (sleepHours - 6.5) * 11 - prevAlcohol * 9, 22, 98));
+    const recoveryScore = Math.round(
+      clampN(0.55 * sleepQuality + 0.25 * (sleepHours * 10) - prevAlcohol * 6 + 9, 20, 99),
+    );
+    const hrv = Math.round(clampN(30 + recoveryScore * 0.45 - ageHrvOffset, 14, 95));
+    const restingHR = Math.round(
+      clampN(68 - recoveryScore * 0.12 + prevAlcohol * 2 + (profile.sex === 'female' ? 2.5 : 0), 46, 82),
+    );
+
+    const didWorkout = workoutDays.has(dow);
+    const ateTakeout = takeoutDays.has(dow);
+    const mealPrepped = b.mealPreps && dow >= 1 && dow <= 4;
+    const alcoholDrinks = dow === 5 ? friDrinks : dow === 6 ? satDrinks : 0;
+    const nutritionScore = Math.round(clampN(58 + (mealPrepped ? 14 : 0) - (ateTakeout ? 12 : 0), 20, 98));
+
+    const offDay = weekendMatters ? isWeekend : false;
+    const aligned = didWorkout; // baseline users log at their natural time
+    let focusScore = clampN(
+      50 + (sleepHours > 7.5 ? 16 : sleepHours < 6.5 ? -12 : 0) + (aligned ? 6 : 0) - prevAlcohol * 5,
+      15,
+      99,
+    );
+    if (offDay) focusScore = clampN(focusScore - 15, 10, 99);
+    const deepWorkHours = Math.round((offDay ? b.deepWorkHoursPerDay * 0.3 : b.deepWorkHoursPerDay) * 10) / 10;
+    const tasksPlanned = offDay ? 3 : 7;
+    const tasksCompleted = Math.round(clampN(tasksPlanned * (0.35 + (focusScore / 100) * 0.55), 0, tasksPlanned));
+
+    const discretionarySpend =
+      Math.round((dailyWants * 0.72 + (ateTakeout ? Math.min(26, dailyWants * 0.35) : 0)) * 100) / 100;
+
+    records.push({
+      date: d.toISOString().slice(0, 10),
+      dayOfWeek: dow,
+      sleepHours,
+      sleepQuality,
+      bedtime: b.typicalBedtime,
+      recoveryScore,
+      hrv,
+      restingHR,
+      steps: b.typicalSteps,
+      activeMinutes: didWorkout ? 50 : 15,
+      didWorkout,
+      workoutTime: didWorkout ? alignedTime : null,
+      nutritionScore,
+      ateTakeout,
+      alcoholDrinks,
+      mealPrepped,
+      discretionarySpend,
+      savedToday: dow === 5 ? weeklyTransfer : 0,
+      deepWorkHours,
+      tasksCompleted,
+      tasksPlanned,
+      focusScore: Math.round(focusScore),
+      weightLbs: profile.weightLbs,
+      mood: clampN(Math.round(4 + (3 + sleepQuality / 20 + recoveryScore / 40) * 0.5), 1, 10),
+      energy: clampN(Math.round(3 + sleepQuality / 20 + recoveryScore / 40), 1, 10),
+    });
+
+    prevAlcohol = alcoholDrinks;
+  }
+  return records;
+}
 
 /** Deterministic PRNG (mulberry32) so each persona is stable across reloads. */
 function mulberry32(seed: number): () => number {

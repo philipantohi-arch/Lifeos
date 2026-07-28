@@ -254,7 +254,8 @@ export function OnboardingView({ onComplete, onExploreDemo }: Props) {
       name: about.name.trim() || 'You',
       ...money,
       priorities: { health: 4, wealth: 3, productivity: 3 },
-      goals,
+      // Goals start TODAY: day one is "on pace", never "already behind".
+      goals: goals.map((g) => ({ ...g, startDate: TODAY.toISOString().slice(0, 10) })),
       baseline: week,
     });
   };

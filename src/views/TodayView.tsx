@@ -13,9 +13,10 @@ interface TodayProps {
   briefing: Briefing;
   assessments: GoalAssessment[];
   momentum: Momentum;
+  fresh?: boolean;
 }
 
-export function TodayView({ briefing, assessments, momentum }: TodayProps) {
+export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps) {
   const topOdds = briefing.actions.find((a) => a.goalOdds)?.goalOdds;
   return (
     <div className="view">
@@ -73,9 +74,13 @@ export function TodayView({ briefing, assessments, momentum }: TodayProps) {
       <section className="card">
         <div className="section-head">
           <h2>Your goals at a glance</h2>
-          <span className={`momentum-chip ${momentum.direction}`}>
-            {MOMENTUM_ICON[momentum.direction]} momentum {momentum.direction}
-          </span>
+          {fresh ? (
+            <span className="momentum-chip">🌱 day 1 — momentum starts today</span>
+          ) : (
+            <span className={`momentum-chip ${momentum.direction}`}>
+              {MOMENTUM_ICON[momentum.direction]} momentum {momentum.direction}
+            </span>
+          )}
         </div>
         <div className="goal-strip">
           {assessments.map((a) => (
@@ -90,7 +95,9 @@ export function TodayView({ briefing, assessments, momentum }: TodayProps) {
               </div>
               <div className="goal-mini-pace muted small">
                 {a.goal.kind === 'reach'
-                  ? `${Math.round(a.paceRatio * 100)}% of pace`
+                  ? fresh
+                    ? 'just set — on pace'
+                    : `${Math.round(a.paceRatio * 100)}% of pace`
                   : `${Math.round(a.paceRatio * 100)}% of target`}
               </div>
             </div>

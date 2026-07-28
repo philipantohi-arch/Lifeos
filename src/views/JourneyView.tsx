@@ -5,11 +5,44 @@ interface Props {
   momentum: Momentum;
   gaps: PotentialGap[];
   review: WeeklyReview;
+  fresh: boolean;
 }
 
 const MOMENTUM_ICON = { rising: '📈', steady: '➡️', falling: '📉' } as const;
 
-export function JourneyView({ accomplishments, momentum, gaps, review }: Props) {
+export function JourneyView({ accomplishments, momentum, gaps, review, fresh }: Props) {
+  if (fresh) {
+    return (
+      <div className="view">
+        <header>
+          <h1>Your Journey</h1>
+          <p className="muted">Day 1. Your story starts now — nothing here is invented.</p>
+        </header>
+        <section className="card momentum-card">
+          <div className="momentum-head">
+            <span className="momentum-icon">🌱</span>
+            <div>
+              <h2>This page fills itself as you live it</h2>
+              <p className="muted small">Everything below unlocks from real days, never fabricated ones.</p>
+            </div>
+          </div>
+          <div className="unlock-list">
+            <div className="unlock-row"><span className="unlock-when">After ~3 days</span> Momentum — whether your daily execution is rising or slipping.</div>
+            <div className="unlock-row"><span className="unlock-when">After 7 days</span> Your first weekly review, and your first streaks and records.</div>
+            <div className="unlock-row"><span className="unlock-when">After ~2–3 weeks</span> Personal patterns — the cause-and-effect LifeOS statistically discovers in YOUR data.</div>
+            <div className="unlock-row"><span className="unlock-when">Always</span> Comebacks count double here. Miss a day, come back, get celebrated — never guilted.</div>
+          </div>
+        </section>
+        <section className="card">
+          <h2>Meanwhile: today is the only day that matters</h2>
+          <p className="muted">
+            The Today tab already ranks your highest-leverage actions, and the Goals tab shows your odds. Do one thing
+            today; the Journey writes itself.
+          </p>
+        </section>
+      </div>
+    );
+  }
   return (
     <div className="view">
       <header>

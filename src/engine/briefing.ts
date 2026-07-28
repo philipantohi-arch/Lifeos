@@ -7,6 +7,7 @@
 
 import type { Briefing, DayRecord, LifeScoreResult, UserProfile } from './types';
 import { computeLifeScore } from './lifeScore';
+import { isFreshStart } from '../data/generator';
 import { discoverInsights } from './insights';
 import { recommendActions } from './recommendations';
 
@@ -74,6 +75,7 @@ export function composeBriefing(records: DayRecord[], profile: UserProfile): Bri
   const today = records[records.length - 1];
   const insights = discoverInsights(records);
   const actions = recommendActions(records, profile);
+  const fresh = isFreshStart(records);
 
   const date = new Date(today.date + 'T00:00:00Z');
   const dateLabel = date.toLocaleDateString('en-US', {
@@ -88,7 +90,9 @@ export function composeBriefing(records: DayRecord[], profile: UserProfile): Bri
     greeting: greeting(profile.name),
     score: result.score,
     delta: result.delta,
-    scoreNarrative: scoreNarrative(result, today),
+    scoreNarrative: fresh
+      ? `${result.score} is your starting Life Score — your reported baseline measured against your personalized targets. It isn't a grade; it's a starting line. From here, every point up is real, and today's actions below are where points come from.`
+      : scoreNarrative(result, today),
     situationNote: situationNote(profile),
     pillars: result.pillars,
     actions,
