@@ -1,4 +1,5 @@
 import type { DayRecord, LifeScoreResult, UserProfile } from '../engine/types';
+import { deriveTargets } from '../engine/personalize';
 import { TrendChart } from '../components/TrendChart';
 
 interface Props {
@@ -18,6 +19,7 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
 }
 
 export function DashboardView({ records, result, profile }: Props) {
+  const t = deriveTargets(profile);
   const last30 = records.slice(-30);
   const today = records[records.length - 1];
   const avg = (f: (r: DayRecord) => number) => last30.reduce((a, r) => a + f(r), 0) / last30.length;
@@ -47,11 +49,19 @@ export function DashboardView({ records, result, profile }: Props) {
       </section>
 
       <div className="stat-grid">
-        <Stat label="Sleep (30d avg)" value={`${avg((r) => r.sleepHours).toFixed(1)}h`} sub={`Last night: ${today.sleepHours}h`} />
+        <Stat
+          label="Sleep (30d avg)"
+          value={`${avg((r) => r.sleepHours).toFixed(1)}h`}
+          sub={`Your range: ${t.sleepRange[0]}–${t.sleepRange[1]}h`}
+        />
         <Stat label="Recovery today" value={String(today.recoveryScore)} sub={`HRV ${today.hrv}ms · RHR ${today.restingHR}`} />
-        <Stat label="Steps (30d avg)" value={Math.round(avg((r) => r.steps)).toLocaleString()} sub={`Today: ${today.steps.toLocaleString()}`} />
+        <Stat
+          label="Steps (30d avg)"
+          value={Math.round(avg((r) => r.steps)).toLocaleString()}
+          sub={`Target: ${t.stepsTarget.toLocaleString()}/day`}
+        />
         <Stat label="Deep work (30d avg)" value={`${avg((r) => r.deepWorkHours).toFixed(1)}h`} sub={`Focus score ${today.focusScore}`} />
-        <Stat label="Spend this week" value={`$${Math.round(spend7)}`} sub="Budget: $525/wk" />
+        <Stat label="Spend this week" value={`$${Math.round(spend7)}`} sub={`Budget: $${t.weeklyDiscretionary}/wk`} />
         <Stat
           label={profile.savingsGoalLabel}
           value={`${goalPct}%`}

@@ -53,6 +53,9 @@ export interface DayRecord {
   focusScore: number;
 
   // ── Relationships & self-report ────────────────────────────────────────
+  /** True on days a shift worker worked a night/rotating shift */
+  workedShift?: boolean;
+
   /** Meaningful social touchpoints (calls, meals, time together) */
   socialTouchpoints: number;
   /** Days since last contact with family as of this day */
@@ -92,16 +95,80 @@ export interface LifeScoreResult {
   history: number[];
 }
 
+// ── Personalization model ─────────────────────────────────────────────────
+// Everything the engines adapt to. Each dimension is grounded in the
+// research knowledge base (src/engine/researchBase.ts).
+
+export type Sex = 'male' | 'female' | 'other';
+/** Morningness–eveningness, per MEQ/MCTQ chronotype research */
+export type Chronotype = 'morning' | 'intermediate' | 'evening';
+export type WorkPattern = 'standard' | 'flexible' | 'shift' | 'not-working';
+export type LifeStage =
+  | 'student'
+  | 'early-career'
+  | 'parent-young-kids'
+  | 'midlife'
+  | 'pre-retirement'
+  | 'retired';
+export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced';
+/** Temporary contexts that change what good coaching looks like today */
+export type Situation = 'normal' | 'sick' | 'travel' | 'crunch' | 'new-baby' | 'injury';
+
 export interface UserProfile {
   name: string;
   age: number;
+  sex: Sex;
   weightLbs: number;
+  chronotype: Chronotype;
+  lifeStage: LifeStage;
+  workPattern: WorkPattern;
+  fitnessLevel: FitnessLevel;
+  situation: Situation;
+  /** Income is variable/irregular (gig, commission, freelance) */
+  variableIncome: boolean;
   savingsBalance: number;
   monthlyIncome: number;
   monthlyInvestment: number;
   savingsGoal: number;
   savingsGoalLabel: string;
+  /** 1–5 importance per pillar; personalizes Life Score weights */
+  priorities: Record<PillarKey, number>;
   goals: string[];
+}
+
+/**
+ * Personal targets derived from the research base + profile.
+ * Every number here traces to citations in researchBase.ts.
+ */
+export interface PersonalTargets {
+  /** Recommended nightly sleep range in hours for this age band */
+  sleepRange: [number, number];
+  /** Ideal in-bed time (decimal hour) given chronotype + work pattern */
+  bedtimeIdeal: number;
+  /** Daily step target adjusted for age (mortality-benefit plateau) */
+  stepsTarget: number;
+  /** Weekly moderate-intensity aerobic minutes (WHO/HHS) */
+  activeMinutesWeekly: number;
+  /** Weekly muscle-strengthening sessions (WHO/HHS; higher priority 65+) */
+  strengthSessionsWeekly: number;
+  /** Weekly discretionary budget derived from income (50/30/20) */
+  weeklyDiscretionary: number;
+  /** Target savings rate as a share of gross income */
+  savingsRateTarget: number;
+  /** Emergency fund size in months of expenses */
+  emergencyFundMonths: number;
+  /** Weekly low-risk alcohol ceiling (drinks), sex-specific */
+  maxDrinksWeekly: number;
+  /** Safe sustained weight-loss band, lb/week */
+  weightLossLbPerWeek: [number, number];
+  /** Days between meaningful family/close-tie contact before nudging */
+  familyContactCadenceDays: number;
+  /** Best deep-work window [startHour, endHour) from chronotype synchrony */
+  deepWorkWindow: [number, number];
+  /** Max NEW habits to push simultaneously (behavior-change research) */
+  simultaneousHabitLimit: number;
+  /** Life Score pillar weights after applying user priorities */
+  weights: Record<PillarKey, number>;
 }
 
 export interface Insight {
@@ -136,6 +203,8 @@ export interface Briefing {
   delta: number;
   /** Explanation of why the score moved */
   scoreNarrative: string;
+  /** Banner text when a non-normal situation reshapes today's coaching */
+  situationNote?: string;
   pillars: PillarScore[];
   actions: RecommendedAction[];
   insights: Insight[];

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { DayRecord, UserProfile } from '../engine/types';
-import { SCENARIOS, simulate } from '../engine/simulator';
+import { getScenarios, simulate } from '../engine/simulator';
 import { TrendChart } from '../components/TrendChart';
 
 interface Props {
@@ -16,15 +16,23 @@ const HORIZONS = [
 ];
 
 export function SimulatorView({ records, profile }: Props) {
-  const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
+  const scenarios = useMemo(() => getScenarios(profile, records), [profile, records]);
+  const [scenarioId, setScenarioId] = useState(scenarios[0].id);
   const [horizon, setHorizon] = useState(24);
 
+  // Scenario list is personalized; if a profile change removed the selected
+  // one (e.g. quit-alcohol for a non-drinker), fall back to the first.
+  useEffect(() => {
+    if (!scenarios.some((s) => s.id === scenarioId)) setScenarioId(scenarios[0].id);
+  }, [scenarios, scenarioId]);
+
+  const activeId = scenarios.some((s) => s.id === scenarioId) ? scenarioId : scenarios[0].id;
   const result = useMemo(
-    () => simulate(scenarioId, records, profile, horizon),
-    [scenarioId, records, profile, horizon],
+    () => simulate(activeId, records, profile, horizon),
+    [activeId, records, profile, horizon],
   );
 
-  const showDollars = scenarioId === 'invest-500' || scenarioId === 'quit-alcohol';
+  const showDollars = activeId === 'invest-extra' || activeId === 'quit-alcohol' || activeId === 'meal-prep';
   const xLabels = ['Now', `${Math.round(horizon / 2)} mo`, `${horizon} mo`];
   const endSim = result.simulated[result.simulated.length - 1];
   const endBase = result.baseline[result.baseline.length - 1];
@@ -39,10 +47,10 @@ export function SimulatorView({ records, profile }: Props) {
       </header>
 
       <div className="scenario-grid">
-        {SCENARIOS.map((s) => (
+        {scenarios.map((s) => (
           <button
             key={s.id}
-            className={`scenario-btn ${s.id === scenarioId ? 'active' : ''}`}
+            className={`scenario-btn ${s.id === activeId ? 'active' : ''}`}
             onClick={() => setScenarioId(s.id)}
           >
             <span className="scenario-emoji">{s.emoji}</span>

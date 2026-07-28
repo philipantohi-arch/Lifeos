@@ -1,24 +1,27 @@
 /**
- * Synthetic life-data generator.
+ * Synthetic life-data generator, parameterized by user profile.
  *
- * Produces a deterministic, realistic 120-day history for the demo user.
- * Crucially, it embeds real causal structure — the same kinds of patterns
- * LifeOS is designed to discover in real user data:
+ * Produces a deterministic, realistic 120-day history whose *shape* follows
+ * the profile: chronotype sets bedtime center of mass, shift work creates
+ * rotating sleep blocks, a new baby fragments sleep, fitness level drives
+ * training frequency, income scales money flows, and life stage shapes the
+ * week's rhythm. It also embeds real causal structure — the same kinds of
+ * patterns LifeOS discovers in real user data:
  *
- *   • Sleeping > 7.5h lifts next-day focus and deep work.
- *   • Sleeping < 6.5h inflates same-day discretionary spending (~40%).
- *   • Morning workouts lift same-day focus.
- *   • Sunday meal prep improves nutrition and cuts takeout Mon–Thu.
- *   • Alcohol tonight degrades tonight's sleep quality and tomorrow's recovery.
+ *   • More sleep → better next-day focus.
+ *   • Short sleep → inflated impulse spending.
+ *   • Chronotype-aligned workouts → higher focus.
+ *   • Meal prep → better nutrition, less takeout.
+ *   • Alcohol tonight → degraded sleep quality and tomorrow's recovery.
  *
- * The insights engine does NOT know about these rules — it rediscovers them
- * from the numbers via correlation analysis, which is exactly the pipeline
- * that runs against real wearable/finance data in production.
+ * The insights engine does NOT know these rules — it rediscovers them from
+ * the numbers, exactly as it would against live wearable/finance data.
  */
 
 import type { DayRecord, UserProfile } from '../engine/types';
+import { deriveTargets } from '../engine/personalize';
 
-/** Deterministic PRNG (mulberry32) so the demo is stable across reloads. */
+/** Deterministic PRNG (mulberry32) so each persona is stable across reloads. */
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
@@ -32,25 +35,99 @@ function mulberry32(seed: number): () => number {
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
 
-export const DEMO_PROFILE: UserProfile = {
-  name: 'Philip',
-  age: 34,
-  weightLbs: 192,
-  savingsBalance: 28400,
-  monthlyIncome: 7800,
-  monthlyInvestment: 800,
-  savingsGoal: 40000,
-  savingsGoalLabel: 'House down payment',
-  goals: [
-    'Reach 175 lbs by next summer',
-    'Save $40k for a house down payment',
-    'Ship the side project',
-    'Call parents at least weekly',
-  ],
-};
+interface GenParams {
+  bedtimeBase: number;
+  bedtimeJitter: number;
+  lateNightProb: (isWeekend: boolean) => number;
+  sleepInterruption: number; // hours randomly lost (new baby, on-call)
+  workoutProb: number;
+  morningWorkoutBias: number; // 0..1 chance a workout lands in the morning
+  stepsBase: number;
+  stepsShiftBonus: number;
+  deepWorkBase: number; // typical productive-hours scale
+  weekendMatters: boolean; // weekday/weekend rhythm exists
+  takeoutProb: number;
+  mealPrepProb: number;
+  alcoholWeekendProb: number;
+  alcoholWeekdayProb: number;
+  dailyWantsBudget: number;
+  weeklyTransfer: number;
+  socialBase: number; // typical touchpoints/day
+  shiftPattern: boolean;
+}
 
-export function generateHistory(days = 120, seed = 20260728): DayRecord[] {
+function paramsFor(profile: UserProfile): GenParams {
+  const t = deriveTargets(profile);
+  const dailyWants = (profile.monthlyIncome * 0.3) / 30;
+
+  const p: GenParams = {
+    bedtimeBase: Math.min(t.bedtimeIdeal + 0.4, 25.5),
+    bedtimeJitter: 0.9,
+    lateNightProb: (w) => (w ? 0.45 : 0.2),
+    sleepInterruption: 0,
+    workoutProb:
+      profile.fitnessLevel === 'beginner' ? 0.25 : profile.fitnessLevel === 'advanced' ? 0.6 : 0.45,
+    morningWorkoutBias:
+      profile.chronotype === 'morning' ? 0.8 : profile.chronotype === 'evening' ? 0.2 : 0.5,
+    stepsBase: 4200,
+    stepsShiftBonus: 0,
+    deepWorkBase: 1.2,
+    weekendMatters: profile.workPattern === 'standard' || profile.workPattern === 'flexible',
+    takeoutProb: 0.38,
+    mealPrepProb: 0.55,
+    alcoholWeekendProb: 0.5,
+    alcoholWeekdayProb: 0.12,
+    dailyWantsBudget: dailyWants,
+    weeklyTransfer: Math.round((profile.monthlyInvestment * 12) / 52),
+    socialBase: 0.5,
+    shiftPattern: profile.workPattern === 'shift',
+  };
+
+  switch (profile.lifeStage) {
+    case 'student':
+      p.bedtimeJitter = 1.5;
+      p.lateNightProb = (w) => (w ? 0.7 : 0.45);
+      p.takeoutProb = 0.55;
+      p.mealPrepProb = 0.2;
+      p.stepsBase = 7000; // campus walking
+      p.deepWorkBase = 1.6;
+      p.socialBase = 1.2;
+      break;
+    case 'parent-young-kids':
+      p.lateNightProb = () => 0.15; // in bed early, just not asleep long
+      p.alcoholWeekendProb = 0.2;
+      p.alcoholWeekdayProb = 0.05;
+      p.takeoutProb = 0.5; // survival mode
+      p.mealPrepProb = 0.25;
+      p.socialBase = 0.9; // partner + baby count
+      p.deepWorkBase = 0.9;
+      break;
+    case 'retired':
+      p.stepsBase = 6200;
+      p.deepWorkBase = 1.4; // hobbies, volunteering, gardening
+      p.takeoutProb = 0.18;
+      p.mealPrepProb = 0.75;
+      p.alcoholWeekendProb = 0.25;
+      p.socialBase = 1.4;
+      p.lateNightProb = () => 0.08;
+      break;
+    default:
+      break;
+  }
+
+  if (profile.situation === 'new-baby') p.sleepInterruption = 1.4;
+  if (profile.workPattern === 'shift') {
+    p.stepsShiftBonus = 5500; // on your feet all shift
+    p.bedtimeJitter = 0.7;
+  }
+
+  return p;
+}
+
+export function generateHistory(profile: UserProfile, seed: number, days = 120): DayRecord[] {
   const rand = mulberry32(seed);
+  const P = paramsFor(profile);
+  const targets = deriveTargets(profile);
   const records: DayRecord[] = [];
 
   const today = new Date('2026-07-28T00:00:00Z');
@@ -64,87 +141,141 @@ export function generateHistory(days = 120, seed = 20260728): DayRecord[] {
     d.setUTCDate(d.getUTCDate() - i);
     const dow = d.getUTCDay();
     const isWeekend = dow === 0 || dow === 6;
+    const dayIndex = days - 1 - i;
+
+    // Shift workers rotate: 3 nights on, 3 off (ignores weekday rhythm).
+    const onShift = P.shiftPattern && dayIndex % 6 < 3;
 
     // ── Sleep ──────────────────────────────────────────────────────────
-    // Weekends: later bedtime. Alcohol last night: worse quality tonight.
-    const lateNight = rand() < (isWeekend ? 0.45 : 0.2);
-    const bedtime = 22.5 + (lateNight ? 1.5 + rand() * 1.5 : rand() * 0.9);
-    const sleepHours = clamp(8.7 - (bedtime - 22.5) * 0.85 + (rand() - 0.5) * 1.6, 4.8, 9.3);
+    const lateNight = rand() < P.lateNightProb(isWeekend);
+    let bedtime: number;
+    if (onShift) {
+      // Day sleep after a night shift: "bedtime" ~8:30 AM (32.5 in prev-day hours).
+      bedtime = 8.2 + rand() * 1.2;
+    } else {
+      bedtime = P.bedtimeBase - 0.4 + (lateNight ? 1.3 + rand() * 1.5 : rand() * P.bedtimeJitter);
+    }
+    let sleepHours = clamp(
+      (onShift ? 6.6 : 8.7 - (bedtime - 22.5) * 0.85) + (rand() - 0.5) * 1.6,
+      4.2,
+      9.3,
+    );
+    // Fragmentation (new baby, on-call): lose a random chunk most nights.
+    if (P.sleepInterruption > 0 && rand() < 0.75) {
+      sleepHours = clamp(sleepHours - rand() * P.sleepInterruption * 1.6, 3.8, 9);
+    }
+    const daySleepPenalty = onShift ? 12 : 0; // circadian-misaligned sleep is lighter
+    const fragmentationPenalty = P.sleepInterruption > 0 ? 10 : 0;
     const sleepQuality = clamp(
-      55 + (sleepHours - 6.5) * 11 - prevAlcohol * 9 + (rand() - 0.5) * 14,
-      25,
+      55 + (sleepHours - 6.5) * 11 - prevAlcohol * 9 - daySleepPenalty - fragmentationPenalty + (rand() - 0.5) * 14,
+      22,
       98,
     );
 
     // ── Recovery ───────────────────────────────────────────────────────
+    // Age drags maximal HRV down (hrv-individual); trends stay personal.
+    const ageHrvOffset = Math.max(0, (profile.age - 30) * 0.45);
     const recoveryScore = clamp(
       0.55 * sleepQuality + 0.25 * (prevSleepHours * 10) - prevAlcohol * 6 + rand() * 18,
       20,
       99,
     );
-    const hrv = Math.round(clamp(30 + recoveryScore * 0.45 + (rand() - 0.5) * 10, 22, 95));
-    const restingHR = Math.round(clamp(68 - recoveryScore * 0.12 + prevAlcohol * 2 + (rand() - 0.5) * 4, 48, 74));
+    const hrv = Math.round(clamp(30 + recoveryScore * 0.45 - ageHrvOffset + (rand() - 0.5) * 10, 14, 95));
+    const restingHR = Math.round(
+      clamp(
+        68 - recoveryScore * 0.12 + prevAlcohol * 2 + (profile.sex === 'female' ? 2.5 : 0) + (rand() - 0.5) * 4,
+        46,
+        82,
+      ),
+    );
 
     // ── Movement ───────────────────────────────────────────────────────
-    const didWorkout = rand() < (recoveryScore > 60 ? 0.55 : 0.3);
+    const didWorkout = !onShift && rand() < (recoveryScore > 60 ? P.workoutProb + 0.1 : P.workoutProb * 0.6);
     const workoutTime: DayRecord['workoutTime'] = didWorkout
-      ? rand() < 0.5
+      ? rand() < P.morningWorkoutBias
         ? 'morning'
         : 'evening'
       : null;
     const steps = Math.round(
-      clamp(4200 + (didWorkout ? 3500 : 0) + (isWeekend ? 1200 : 0) + rand() * 4500, 1800, 18000),
+      clamp(
+        P.stepsBase +
+          (onShift ? P.stepsShiftBonus : 0) +
+          (didWorkout ? 3500 : 0) +
+          (isWeekend && P.weekendMatters ? 1200 : 0) +
+          rand() * 4500,
+        1500,
+        22000,
+      ),
     );
-    const activeMinutes = Math.round(clamp((didWorkout ? 45 : 8) + rand() * 30, 0, 130));
+    const activeMinutes = Math.round(clamp((didWorkout ? 45 : onShift ? 25 : 8) + rand() * 30, 0, 130));
 
     // ── Nutrition & substances ─────────────────────────────────────────
-    if (dow === 0) mealPrepActive = rand() < 0.55; // Sunday meal prep decision
+    if (dow === 0) mealPrepActive = rand() < P.mealPrepProb;
     const mealPrepped = mealPrepActive && dow >= 1 && dow <= 4;
-    const ateTakeout = rand() < (mealPrepped ? 0.12 : isWeekend ? 0.55 : 0.38);
+    const ateTakeout = rand() < (mealPrepped ? 0.12 : isWeekend ? P.takeoutProb + 0.15 : P.takeoutProb);
     const nutritionScore = clamp(
       58 + (mealPrepped ? 18 : 0) - (ateTakeout ? 14 : 0) + (rand() - 0.5) * 16,
       20,
       98,
     );
-    const alcoholDrinks = isWeekend && rand() < 0.5 ? Math.ceil(rand() * 3) : rand() < 0.12 ? 1 : 0;
+    // Weekends, plus the first off-day after a shift block (post-block unwind).
+    const drinkDay = isWeekend || (P.shiftPattern && !onShift && dayIndex % 6 === 3);
+    const alcoholDrinks =
+      drinkDay && rand() < P.alcoholWeekendProb
+        ? Math.ceil(rand() * 3)
+        : rand() < P.alcoholWeekdayProb
+          ? 1
+          : 0;
 
     // ── Finances ───────────────────────────────────────────────────────
     // Embedded pattern: the shorter the sleep, the more impulse spending
     // (≈ +45% per hour under 7.2h — tired brains reach for the card).
     let discretionarySpend =
-      28 + (ateTakeout ? 26 : 0) + (isWeekend ? 30 : 0) + rand() * 40;
+      P.dailyWantsBudget * (0.45 + rand() * 0.75) +
+      (ateTakeout ? Math.min(26, P.dailyWantsBudget * 0.35) : 0) +
+      (isWeekend && P.weekendMatters ? P.dailyWantsBudget * 0.3 : 0);
     discretionarySpend *= 1 + Math.max(0, 7.2 - sleepHours) * 0.45;
     discretionarySpend = Math.round(discretionarySpend * 100) / 100;
-    const savedToday = dow === 5 ? 200 : 0; // weekly auto-transfer
+    const savedToday = dow === 5 ? P.weeklyTransfer : 0;
 
     // ── Productivity ───────────────────────────────────────────────────
-    // Embedded patterns: >7.5h sleep and morning workouts lift focus.
+    // Embedded patterns: sleep and chronotype-aligned workouts lift focus.
     const wellRested = sleepHours > 7.5;
+    const alignedWorkout =
+      (profile.chronotype === 'evening' && workoutTime === 'evening') ||
+      (profile.chronotype !== 'evening' && workoutTime === 'morning');
     let focusScore = clamp(
       50 +
         (wellRested ? 16 : sleepHours < 6.5 ? -12 : 0) +
-        (workoutTime === 'morning' ? 10 : 0) -
-        prevAlcohol * 5 +
+        (alignedWorkout ? 10 : 0) -
+        prevAlcohol * 5 -
+        (onShift ? 14 : 0) +
         (rand() - 0.5) * 18,
       15,
       99,
     );
-    if (isWeekend) focusScore = clamp(focusScore - 15, 10, 99);
-    const deepWorkHours = isWeekend
+    if (isWeekend && P.weekendMatters) focusScore = clamp(focusScore - 15, 10, 99);
+    const offDay = P.weekendMatters ? isWeekend : onShift;
+    const deepWorkHours = offDay
       ? Math.round(rand() * 15) / 10
-      : Math.round(clamp(1.2 + (focusScore - 50) * 0.045 + rand() * 1.4, 0, 6.5) * 10) / 10;
-    const tasksPlanned = isWeekend ? 3 : 6 + Math.round(rand() * 3);
+      : Math.round(clamp(P.deepWorkBase + (focusScore - 50) * 0.045 + rand() * 1.4, 0, 7) * 10) / 10;
+    const tasksPlanned = offDay ? 3 : 6 + Math.round(rand() * 3);
     const tasksCompleted = Math.round(
       clamp(tasksPlanned * (0.35 + (focusScore / 100) * 0.6 + (rand() - 0.5) * 0.15), 0, tasksPlanned),
     );
 
     // ── Relationships & self-report ────────────────────────────────────
-    const calledFamily = rand() < (daysSinceFamilyContact >= 6 ? 0.4 : 0.12);
+    const cadence = targets.familyContactCadenceDays;
+    const calledFamily = rand() < (daysSinceFamilyContact >= cadence - 1 ? 0.4 : 0.12);
     daysSinceFamilyContact = calledFamily ? 0 : daysSinceFamilyContact + 1;
-    const socialTouchpoints = (calledFamily ? 1 : 0) + (isWeekend ? Math.round(rand() * 3) : rand() < 0.35 ? 1 : 0);
+    const socialTouchpoints =
+      (calledFamily ? 1 : 0) +
+      (rand() < P.socialBase * (isWeekend ? 0.9 : 0.45) ? 1 + Math.round(rand() * 2) : 0);
     const energy = clamp(Math.round(3 + sleepQuality / 20 + recoveryScore / 40 + (rand() - 0.5) * 2), 1, 10);
     const mood = clamp(
-      Math.round(4 + energy * 0.35 + socialTouchpoints * 0.5 - (daysSinceFamilyContact > 10 ? 1 : 0) + (rand() - 0.5) * 2),
+      Math.round(
+        4 + energy * 0.35 + socialTouchpoints * 0.5 - (daysSinceFamilyContact > cadence + 3 ? 1 : 0) + (rand() - 0.5) * 2,
+      ),
       1,
       10,
     );
@@ -172,6 +303,7 @@ export function generateHistory(days = 120, seed = 20260728): DayRecord[] {
       tasksCompleted,
       tasksPlanned,
       focusScore: Math.round(focusScore),
+      workedShift: P.shiftPattern ? onShift : undefined,
       socialTouchpoints,
       daysSinceFamilyContact,
       mood,
@@ -182,24 +314,60 @@ export function generateHistory(days = 120, seed = 20260728): DayRecord[] {
     prevSleepHours = sleepHours;
   }
 
-  // Make "today" a compelling demo day: excellent recovery, good sleep,
-  // family contact overdue — so the briefing has a clear story to tell.
-  const t = records[records.length - 1];
-  t.sleepHours = 7.9;
-  t.sleepQuality = 88;
-  t.bedtime = 22.5;
-  t.recoveryScore = 91;
-  t.hrv = 72;
-  t.restingHR = 52;
-  t.alcoholDrinks = 0;
-  t.didWorkout = false;
-  t.workoutTime = null;
+  shapeDemoDay(records, profile, targets.familyContactCadenceDays);
+  return records;
+}
 
-  // Family contact drifted for the last 9 days (gradually, so the
-  // relationships pillar declines rather than cliff-dropping today).
-  for (let k = 0; k <= 9 && k < records.length; k++) {
-    records[records.length - 1 - k].daysSinceFamilyContact = 9 - k;
+/**
+ * Make "today" a compelling demo day per situation, so each persona's
+ * briefing has a clear story: green-light recovery for a healthy day,
+ * honest fatigue for a new parent, crunch-mode sleep debt for finals.
+ */
+function shapeDemoDay(records: DayRecord[], profile: UserProfile, cadence: number): void {
+  const t = records[records.length - 1];
+
+  switch (profile.situation) {
+    case 'new-baby':
+      t.sleepHours = 5.6;
+      t.sleepQuality = 48;
+      t.recoveryScore = 41;
+      t.hrv = 38;
+      t.alcoholDrinks = 0;
+      t.didWorkout = false;
+      t.workoutTime = null;
+      break;
+    case 'crunch':
+      t.sleepHours = 6.1;
+      t.sleepQuality = 61;
+      t.recoveryScore = 54;
+      t.deepWorkHours = 5.5;
+      t.didWorkout = false;
+      t.workoutTime = null;
+      break;
+    case 'sick':
+      t.sleepHours = 8.4;
+      t.recoveryScore = 35;
+      t.restingHR += 7;
+      t.didWorkout = false;
+      t.workoutTime = null;
+      break;
+    default:
+      t.sleepHours = 7.9;
+      t.sleepQuality = 88;
+      t.bedtime = t.workedShift ? t.bedtime : 22.5;
+      t.recoveryScore = 91;
+      t.hrv = Math.max(t.hrv, Math.round(72 - Math.max(0, (profile.age - 30) * 0.45)));
+      t.restingHR = Math.min(t.restingHR, profile.sex === 'female' ? 56 : 52);
+      t.alcoholDrinks = 0;
+      t.didWorkout = false;
+      t.workoutTime = null;
+      break;
   }
 
-  return records;
+  // Family contact drifted past this persona's cadence (gradually, so the
+  // relationships pillar declines rather than cliff-dropping today).
+  const overdue = cadence + 2;
+  for (let k = 0; k <= overdue && k < records.length; k++) {
+    records[records.length - 1 - k].daysSinceFamilyContact = overdue - k;
+  }
 }

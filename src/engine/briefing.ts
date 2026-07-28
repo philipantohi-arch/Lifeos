@@ -47,6 +47,28 @@ function greeting(name: string, hourUTC = 13): string {
   return `Good evening, ${name}`;
 }
 
+/**
+ * When life isn't normal, say so up front — coaching that ignores a sick
+ * day or a newborn reads as tone-deaf and erodes trust (sdt-motivation:
+ * autonomy-supportive coaching acknowledges context).
+ */
+function situationNote(profile: UserProfile): string | undefined {
+  switch (profile.situation) {
+    case 'sick':
+      return 'Sick mode: targets are paused. Today is about recovery, not optimization.';
+    case 'new-baby':
+      return 'New-baby mode: expectations recalibrated. Harm reduction beats perfection right now.';
+    case 'crunch':
+      return 'Crunch mode: protecting your sleep floor and peak focus hours; everything else can wait.';
+    case 'travel':
+      return 'Travel mode: anchoring your routine to local time; streaks are graded on effort, not perfection.';
+    case 'injury':
+      return 'Injury mode: training targets swapped for pain-free movement until you\'re cleared.';
+    default:
+      return undefined;
+  }
+}
+
 export function composeBriefing(records: DayRecord[], profile: UserProfile): Briefing {
   const result = computeLifeScore(records, profile);
   const today = records[records.length - 1];
@@ -67,6 +89,7 @@ export function composeBriefing(records: DayRecord[], profile: UserProfile): Bri
     score: result.score,
     delta: result.delta,
     scoreNarrative: scoreNarrative(result, today),
+    situationNote: situationNote(profile),
     pillars: result.pillars,
     actions,
     insights: insights.slice(0, 3),

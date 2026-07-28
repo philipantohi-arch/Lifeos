@@ -19,6 +19,8 @@ export function TodayView({ briefing }: { briefing: Briefing }) {
         </div>
       </header>
 
+      {briefing.situationNote && <div className="situation-banner">{briefing.situationNote}</div>}
+
       <div className="today-grid">
         <section className="card score-card">
           <ScoreRing score={briefing.score} delta={briefing.delta} />
