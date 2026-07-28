@@ -91,7 +91,12 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
                 </span>
               </div>
               <div className="goal-badges">
-                {fc && plan && <OddsPair now={fc.pHit} plan={plan.pHit} />}
+                {fc && plan && a.notStarted && (
+                  <span className="odds-badge good" title="Simulated odds if you follow the daily plan">
+                    {fmtPct(plan.pHit)} with the plan
+                  </span>
+                )}
+                {fc && plan && !a.notStarted && <OddsPair now={fc.pHit} plan={plan.pHit} />}
                 <span className={`feas-badge ${feas.cls}`}>{feas.text}</span>
               </div>
             </div>
@@ -99,12 +104,26 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
             <div className="goal-progress">
               <div className="goal-progress-labels">
                 <span>
-                  Now: <strong>{fmtMetric(g, a.current)}</strong>
+                  {a.notStarted
+                    ? 'Starts at'
+                    : (g.metric === 'deepWorkWeekly' || g.metric === 'workoutsWeekly') &&
+                        a.basisDays !== undefined &&
+                        a.basisDays < 7
+                      ? 'Weekly pace'
+                      : 'Now'}
+                  : <strong>{fmtMetric(g, a.current)}</strong>
+                  {a.basisDays ? (
+                    <span className="muted small"> · from your last {a.basisDays} logged day{a.basisDays === 1 ? '' : 's'}</span>
+                  ) : a.notStarted ? (
+                    <span className="muted small"> · your reported typical</span>
+                  ) : null}
                 </span>
                 <span className={a.paceRatio >= 0.95 ? 'pace good' : a.paceRatio >= 0.7 ? 'pace warn' : 'pace bad'}>
                   {g.kind === 'reach'
                     ? `${Math.round(a.paceRatio * 100)}% of expected pace`
-                    : `${Math.round(a.paceRatio * 100)}% of target level`}
+                    : a.notStarted
+                      ? 'no days logged yet'
+                      : `${Math.round(a.paceRatio * 100)}% of target level`}
                 </span>
               </div>
               <div className="bar-track tall">
@@ -128,7 +147,13 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
             </div>
 
             {a.suggestion && <div className="suggestion-box">🎯 {a.suggestion}</div>}
-            {!a.suggestion && fc && plan && fc.pHit < 0.35 && a.feasibility === 'comfortable' && (
+            {a.notStarted && plan && (
+              <div className="suggestion-box">
+                ✍️ No real days yet — this number becomes yours the first night you check in. Follow the daily plan
+                and your odds are {fmtPct(plan.pHit)}.
+              </div>
+            )}
+            {!a.notStarted && !a.suggestion && fc && plan && fc.pHit < 0.35 && a.feasibility === 'comfortable' && (
               <div className="suggestion-box">
                 💡 {fmtPct(fc.pHit)} is what happens if nothing changes — do the daily plan and your odds are{' '}
                 {fmtPct(plan.pHit)}. The Today tab ranks exactly those actions.

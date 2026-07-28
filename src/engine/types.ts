@@ -231,6 +231,10 @@ export interface GoalAssessment {
   feasibility: Feasibility;
   /** When infeasible/stretch: an honest alternative target or deadline */
   suggestion?: string;
+  /** Sustain goal with zero REAL (logged) days yet — progress unknown */
+  notStarted?: boolean;
+  /** How many real logged days the current value is computed from */
+  basisDays?: number;
 }
 
 /** What this user can realistically output, derived from profile + research. */

@@ -1,5 +1,12 @@
 import type { Briefing, GoalAssessment, Momentum } from '../engine/types';
+import { METRIC_META } from '../engine/goals';
 import { ScoreRing } from '../components/ScoreRing';
+
+function fmtGoalValue(a: GoalAssessment, v: number): string {
+  const meta = METRIC_META[a.goal.metric];
+  const num = meta.decimals === 0 ? Math.round(v).toLocaleString() : v.toFixed(meta.decimals);
+  return meta.unit === '$' ? `$${num}` : num;
+}
 
 const PILLAR_ICONS: Record<string, string> = {
   health: '💪',
@@ -115,7 +122,15 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
                   ? fresh
                     ? 'just set — on pace'
                     : `${Math.round(a.paceRatio * 100)}% of pace`
-                  : `${Math.round(a.paceRatio * 100)}% of target`}
+                  : a.notStarted
+                    ? 'starts here — log today'
+                    : (a.goal.metric === 'deepWorkWeekly' || a.goal.metric === 'workoutsWeekly') &&
+                        a.basisDays !== undefined &&
+                        a.basisDays < 7
+                      ? `weekly pace ${fmtGoalValue(a, a.current)} vs ${fmtGoalValue(a, a.goal.target)} · ${a.basisDays} day${a.basisDays === 1 ? '' : 's'} logged`
+                      : `${fmtGoalValue(a, a.current)} / ${fmtGoalValue(a, a.goal.target)}${
+                          a.basisDays ? ` · ${a.basisDays} day${a.basisDays === 1 ? '' : 's'} logged` : ''
+                        }`}
               </div>
             </div>
           ))}

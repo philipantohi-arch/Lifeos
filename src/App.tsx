@@ -92,6 +92,7 @@ export default function App() {
   const [overrides, setOverrides] = useState<Partial<UserProfile>>(initial.overrides);
   const [customProfile, setCustomProfile] = useState<UserProfile | undefined>(initial.customProfile);
   const [loggedDays, setLoggedDays] = useState<LoggedDay[]>(initial.loggedDays ?? []);
+  const [saveToast, setSaveToast] = useState<{ before: number; after?: number } | null>(null);
 
   useEffect(() => {
     try {
@@ -100,6 +101,7 @@ export default function App() {
       // storage unavailable (private mode) — persistence is best-effort
     }
   }, [mode, personaId, overrides, customProfile, loggedDays]);
+
 
   const persona = getPersona(personaId);
   const profile: UserProfile = useMemo(() => {
@@ -128,6 +130,11 @@ export default function App() {
   const realCount = mode === 'custom' ? realDays(records).length : records.length;
   const realRecords = useMemo(() => (mode === 'custom' ? realDays(records) : records), [mode, records]);
   const scoreResult = useMemo(() => computeLifeScore(records, profile), [records, profile]);
+
+  // Complete the save toast once the score has recomputed from the new log.
+  useEffect(() => {
+    setSaveToast((t) => (t && t.after === undefined ? { ...t, after: scoreResult.score } : t));
+  }, [scoreResult.score]);
   const briefing = useMemo(() => composeBriefing(records, profile), [records, profile]);
   // Patterns come only from REAL days, and need ~3 weeks of them.
   const insights = useMemo(
@@ -198,6 +205,8 @@ export default function App() {
 
   const saveCheckIn = (input: CheckInInput) => {
     const date = todayISO();
+    setSaveToast({ before: scoreResult.score });
+    setTab('today');
     setLoggedDays((prev) => [...prev.filter((l) => l.date !== date), { date, input }]);
     if (mode === 'custom' && customProfile) {
       const prevSaved = loggedDays.find((l) => l.date === date)?.input.saved ?? 0;
@@ -269,6 +278,15 @@ export default function App() {
 
         {tab === 'today' && (
           <>
+            {saveToast?.after !== undefined && (
+              <div className="save-toast" onClick={() => setSaveToast(null)}>
+                ✓ Day logged — Life Score{' '}
+                {saveToast.after === saveToast.before
+                  ? `steady at ${saveToast.after}`
+                  : `${saveToast.before} → ${saveToast.after}`}
+                . Every number below just updated from your real day.
+              </div>
+            )}
             {mode === 'custom' && !loggedDays.some((l) => l.date === todayISO()) && (
               <div className="checkin-nudge" onClick={() => setTab('checkin')}>
                 ✍️ 30 seconds keeps your data real — <strong>check in →</strong>

@@ -57,14 +57,21 @@ export function deriveCapacity(profile: UserProfile): Capacity {
   };
 }
 
-/** Current value of a goal metric from the unified history. */
+/**
+ * Current value of a goal metric. REAL (logged) days always win: once any
+ * exist, estimates are excluded so progress is never fabricated. With
+ * fewer than a week of real days, weekly metrics extrapolate from the
+ * logged average (labeled in the UI via basisDays).
+ */
 export function currentMetric(metric: MetricKey, records: DayRecord[], profile: UserProfile): number {
-  const last14 = records.slice(-14);
-  const last7 = records.slice(-7);
+  const real = records.filter((r) => !r.estimated);
+  const use = real.length > 0 ? real : records;
+  const last14 = use.slice(-14);
+  const last7 = use.slice(-7);
   const mean = (v: number[]) => (v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0);
   switch (metric) {
     case 'weightLbs':
-      // Smoothed: mean of last 7 daily readings beats a single noisy weigh-in.
+      // Smoothed: mean of recent readings beats a single noisy weigh-in.
       return Math.round(mean(last7.map((r) => r.weightLbs)) * 10) / 10;
     case 'savingsBalance':
       return profile.savingsBalance;
@@ -73,10 +80,16 @@ export function currentMetric(metric: MetricKey, records: DayRecord[], profile: 
     case 'stepsAvg':
       return Math.round(mean(last14.map((r) => r.steps)));
     case 'deepWorkWeekly':
-      return Math.round(last7.reduce((a, r) => a + r.deepWorkHours, 0) * 10) / 10;
+      // Weekly total; with <7 days of data, extrapolate the daily average.
+      return Math.round(mean(last7.map((r) => r.deepWorkHours)) * 7 * 10) / 10;
     case 'workoutsWeekly':
-      return last7.filter((r) => r.didWorkout).length;
+      return Math.round(mean(last7.map((r) => (r.didWorkout ? 1 : 0))) * 7 * 10) / 10;
   }
+}
+
+/** Real logged days available for a metric's rolling window. */
+export function metricBasisDays(records: DayRecord[]): number {
+  return Math.min(records.filter((r) => !r.estimated).length, 14);
 }
 
 /** Max sustainable weekly rate toward a reach goal, from capacity. */
@@ -116,6 +129,27 @@ export function assessGoal(
   const today = new Date(records[records.length - 1].date + 'T00:00:00Z').getTime();
 
   if (goal.kind === 'sustain') {
+    // Zero REAL days (fresh custom user): progress is unknown, not 86%
+    // of anything. Neutral pace score so the Life Score isn't juiced by
+    // estimates; UI shows "starts here — log today".
+    const basisDays = metricBasisDays(records);
+    const hasEstimates = records.some((r) => r.estimated);
+    if (hasEstimates && basisDays === 0) {
+      return {
+        goal,
+        current,
+        progressPct: 0,
+        expectedPct: 1,
+        paceRatio: 1,
+        paceScore: 75,
+        requiredWeeklyRate: Math.max(0, goal.target - current),
+        capacityWeeklyRate: Infinity,
+        feasibility: feasibilitySustain(goal, cap),
+        suggestion: suggestionSustain(goal, cap),
+        notStarted: true,
+        basisDays: 0,
+      };
+    }
     // Sustain goals: how close is the current level to the target level,
     // and how far have you come from your baseline?
     const covered = (current - goal.baseline) / (goal.target - goal.baseline || 1);
@@ -132,6 +166,7 @@ export function assessGoal(
       capacityWeeklyRate: Infinity,
       feasibility: feasibilitySustain(goal, cap),
       suggestion: suggestionSustain(goal, cap),
+      basisDays: hasEstimates ? basisDays : undefined,
     };
   }
 
