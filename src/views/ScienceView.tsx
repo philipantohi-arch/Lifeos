@@ -8,7 +8,7 @@ const DOMAIN_ICONS: Record<string, string> = {
   'Behavior change': '🧩',
   'Chronotype & work': '🕐',
   'Nutrition & substances': '🥗',
-  'Relationships & wellbeing': '🤝',
+  'Goals & motivation': '🏁',
 };
 
 const STRENGTH_LABEL: Record<string, string> = {

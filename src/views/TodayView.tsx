@@ -1,15 +1,22 @@
-import type { Briefing } from '../engine/types';
+import type { Briefing, GoalAssessment, Momentum } from '../engine/types';
 import { ScoreRing } from '../components/ScoreRing';
 
 const PILLAR_ICONS: Record<string, string> = {
   health: '💪',
   wealth: '💰',
   productivity: '🎯',
-  relationships: '🤝',
-  habits: '🔁',
 };
 
-export function TodayView({ briefing }: { briefing: Briefing }) {
+const MOMENTUM_ICON = { rising: '📈', steady: '➡️', falling: '📉' } as const;
+
+interface TodayProps {
+  briefing: Briefing;
+  assessments: GoalAssessment[];
+  momentum: Momentum;
+}
+
+export function TodayView({ briefing, assessments, momentum }: TodayProps) {
+  const topOdds = briefing.actions.find((a) => a.goalOdds)?.goalOdds;
   return (
     <div className="view">
       <header className="today-header">
@@ -20,6 +27,14 @@ export function TodayView({ briefing }: { briefing: Briefing }) {
       </header>
 
       {briefing.situationNote && <div className="situation-banner">{briefing.situationNote}</div>}
+
+      {topOdds && (
+        <div className="forecast-banner">
+          🔮 Today's #1 action moves your odds on "{topOdds.goalLabel}" from{' '}
+          <strong>{Math.round(topOdds.from * 100)}%</strong> to <strong>{Math.round(topOdds.to * 100)}%</strong> — the
+          single highest-leverage move available to you today.
+        </div>
+      )}
 
       <div className="today-grid">
         <section className="card score-card">
@@ -57,6 +72,34 @@ export function TodayView({ briefing }: { briefing: Briefing }) {
 
       <section className="card">
         <div className="section-head">
+          <h2>Your goals at a glance</h2>
+          <span className={`momentum-chip ${momentum.direction}`}>
+            {MOMENTUM_ICON[momentum.direction]} momentum {momentum.direction}
+          </span>
+        </div>
+        <div className="goal-strip">
+          {assessments.map((a) => (
+            <div key={a.goal.id} className="goal-mini">
+              <div className="goal-mini-label">{a.goal.label}</div>
+              <div className="bar-track">
+                <div
+                  className="bar-fill"
+                  style={{ width: `${Math.round(a.progressPct * 100)}%` }}
+                  data-level={a.paceRatio >= 0.95 ? 'good' : a.paceRatio >= 0.7 ? 'ok' : 'low'}
+                />
+              </div>
+              <div className="goal-mini-pace muted small">
+                {a.goal.kind === 'reach'
+                  ? `${Math.round(a.paceRatio * 100)}% of pace`
+                  : `${Math.round(a.paceRatio * 100)}% of target`}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <div className="section-head">
           <h2>Do these today</h2>
           <span className="muted small">Ranked by predicted Life Score impact</span>
         </div>
@@ -68,6 +111,12 @@ export function TodayView({ briefing }: { briefing: Briefing }) {
                 <div className="action-title">{a.title}</div>
                 <p className="action-detail">{a.detail}</p>
                 <p className="action-prediction">🔮 {a.prediction}</p>
+                {a.goalOdds && (
+                  <p className="action-odds">
+                    "{a.goalOdds.goalLabel}": {Math.round(a.goalOdds.from * 100)}% →{' '}
+                    <strong>{Math.round(a.goalOdds.to * 100)}%</strong> odds if this becomes your default
+                  </p>
+                )}
                 <p className="action-because">Why now: {a.because}</p>
               </div>
               <div className="action-impact">

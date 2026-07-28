@@ -109,7 +109,7 @@ const PROBES: PatternProbe[] = [
   },
   {
     id: 'mealprep-nutrition',
-    pillars: ['habits', 'health'],
+    pillars: ['health', 'wealth'],
     sign: 1,
     x: (rs) => rs.map((r) => (r.mealPrepped ? 1 : 0)),
     y: (rs) => rs.map((r) => r.nutritionScore),
@@ -142,6 +142,28 @@ const PROBES: PatternProbe[] = [
     },
   },
   {
+    id: 'nutrition-weight',
+    pillars: ['health'],
+    sign: -1,
+    // Diet quality today vs the weight trend over the following week.
+    x: (rs) => rs.slice(0, -7).map((r) => r.nutritionScore),
+    y: (rs) => rs.slice(0, -7).map((_, i) => rs[i + 7].weightLbs - rs[i].weightLbs),
+    build: (r, rs) => {
+      const pairs = rs.slice(0, -7).map((d, i) => ({
+        good: d.nutritionScore >= 70,
+        delta: rs[i + 7].weightLbs - rs[i].weightLbs,
+      }));
+      const good = pairs.filter((p) => p.good).map((p) => p.delta);
+      const poor = pairs.filter((p) => !p.good).map((p) => p.delta);
+      if (good.length < 7 || poor.length < 7) return null;
+      const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
+      return {
+        title: 'Your weight follows your plate by about a week',
+        detail: `Weeks that start with high-quality eating trend ${mean(good).toFixed(1)} lbs vs ${mean(poor) >= 0 ? '+' : ''}${mean(poor).toFixed(1)} lbs after low-quality days — the scale lags the fork by ~7 days (r = ${r.toFixed(2)}).`,
+      };
+    },
+  },
+  {
     id: 'bedtime-energy',
     pillars: ['health', 'productivity'],
     sign: -1,
@@ -158,21 +180,6 @@ const PROBES: PatternProbe[] = [
       return {
         title: 'Your energy is made the night before',
         detail: `Bedtimes before 10:45 PM give you ${mean(early).toFixed(1)}/10 energy the next day vs ${mean(late).toFixed(1)}/10 after nights past 11:30 PM (r = ${r.toFixed(2)}).`,
-      };
-    },
-  },
-  {
-    id: 'social-mood',
-    pillars: ['relationships'],
-    sign: 1,
-    x: (rs) => rs.map((r) => r.socialTouchpoints),
-    y: (rs) => rs.map((r) => r.mood),
-    build: (r, rs) => {
-      const s = splitMeans(rs, (d) => d.socialTouchpoints > 0, (d) => d.mood);
-      if (s.nYes < 5) return null;
-      return {
-        title: 'Connection is your mood multiplier',
-        detail: `Days with at least one meaningful social touchpoint average ${s.yes.toFixed(1)}/10 mood vs ${s.no.toFixed(1)}/10 without (r = ${r.toFixed(2)}).`,
       };
     },
   },

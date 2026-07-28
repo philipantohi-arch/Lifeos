@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { DayRecord, UserProfile } from '../engine/types';
 import { getScenarios, simulate } from '../engine/simulator';
+import { METRIC_META, currentMetric } from '../engine/goals';
 import { TrendChart } from '../components/TrendChart';
+import { FanChart } from '../components/FanChart';
 
 interface Props {
   records: DayRecord[];
@@ -33,6 +35,7 @@ export function SimulatorView({ records, profile }: Props) {
   );
 
   const showDollars = activeId === 'invest-extra' || activeId === 'quit-alcohol' || activeId === 'meal-prep';
+  const fan = result.goalFan;
   const xLabels = ['Now', `${Math.round(horizon / 2)} mo`, `${horizon} mo`];
   const endSim = result.simulated[result.simulated.length - 1];
   const endBase = result.baseline[result.baseline.length - 1];
@@ -102,6 +105,43 @@ export function SimulatorView({ records, profile }: Props) {
               <div className="stat-label">Difference</div>
               <div className="stat-value green">+${(endSim.dollars - endBase.dollars).toLocaleString()}</div>
             </div>
+          </div>
+        )}
+
+        {result.goalOdds.length > 0 && (
+          <div className="odds-panel">
+            <h3>What this does to YOUR goal odds</h3>
+            <p className="muted small">Monte Carlo on your own history — 500 simulated futures per goal.</p>
+            {result.goalOdds.map((o) => (
+              <div key={o.goalLabel} className="odds-row">
+                <span className="odds-goal">{o.goalLabel}</span>
+                <div className="odds-bars">
+                  <div className="odds-bar-track">
+                    <div className="odds-bar base" style={{ width: `${Math.round(o.from * 100)}%` }} />
+                  </div>
+                  <div className="odds-bar-track">
+                    <div className="odds-bar boosted" style={{ width: `${Math.round(o.to * 100)}%` }} />
+                  </div>
+                </div>
+                <span className="odds-numbers">
+                  {Math.round(o.from * 100)}% → <strong>{Math.round(o.to * 100)}%</strong>
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {fan && (
+          <div className="fan-section">
+            <h3>
+              "{fan.goal.label}" — {fan.forecast.runs.toLocaleString()} futures with this change
+            </h3>
+            <FanChart
+              forecast={fan.forecast}
+              startValue={currentMetric(fan.goal.metric, records, profile)}
+              target={fan.goal.target}
+              unit={METRIC_META[fan.goal.metric].unit}
+            />
           </div>
         )}
 

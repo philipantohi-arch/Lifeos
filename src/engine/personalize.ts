@@ -10,11 +10,9 @@
 import type { PersonalTargets, PillarKey, UserProfile } from './types';
 
 const BASE_WEIGHTS: Record<PillarKey, number> = {
-  health: 0.3,
-  wealth: 0.2,
-  productivity: 0.2,
-  relationships: 0.15,
-  habits: 0.15,
+  health: 0.4,
+  wealth: 0.3,
+  productivity: 0.3,
 };
 
 /** Sleep need range by age band — NSF consensus (nsf-sleep-duration). */
@@ -121,18 +119,6 @@ function weightLossBand(profile: UserProfile): [number, number] {
   return [1, 2];
 }
 
-/**
- * Family/close-tie contact cadence. Socioemotional selectivity
- * (socioemotional-selectivity): close ties matter more with age, and
- * loneliness risks are highest for older adults
- * (surgeon-general-loneliness) — so the nudge cadence tightens.
- */
-function familyCadence(profile: UserProfile): number {
-  if (profile.age >= 65) return 3;
-  if (profile.lifeStage === 'parent-young-kids') return 10; // grace, not neglect
-  return 7;
-}
-
 /** Personalized pillar weights: base × user priority (1–5), normalized. */
 function personalWeights(profile: UserProfile): Record<PillarKey, number> {
   const keys = Object.keys(BASE_WEIGHTS) as PillarKey[];
@@ -161,7 +147,6 @@ export function deriveTargets(profile: UserProfile): PersonalTargets {
     emergencyFundMonths: emergencyFundMonths(profile),
     maxDrinksWeekly: maxDrinksWeekly(profile),
     weightLossLbPerWeek: weightLossBand(profile),
-    familyContactCadenceDays: familyCadence(profile),
     deepWorkWindow: deepWorkWindow(profile),
     // one-habit-at-a-time: cap concurrent NEW habit pushes.
     simultaneousHabitLimit: profile.situation === 'normal' ? 2 : 1,

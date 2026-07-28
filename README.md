@@ -2,61 +2,58 @@
 
 **One score. One coach. One intelligent system helping you become the best version of yourself every single day.**
 
-LifeOS unifies every major aspect of your life — health, wealth, productivity, relationships, and habits — into one intelligent platform that answers a single question every morning:
+LifeOS unifies your health, your finances, and your schedule into one intelligent platform that answers a single question every morning:
 
 > **"What should I do next to improve my life the most?"**
 
-And it answers that question *for you specifically*: every target, recommendation, and simulation adapts to your age, sex, chronotype, life stage, work pattern, fitness level, income, priorities, and what's happening in your life right now — grounded in an auditable research base of official guidelines, meta-analyses, and landmark studies.
+And it answers that question *for you specifically*: your Life Score is anchored to **your own goals, your starting baseline, and your real capacity** — income, time, chronotype, age, situation — not to universal standards or other people. Every number traces to an auditable research base of official guidelines, meta-analyses, and landmark studies, gathered by a multi-agent web research sweep and adversarially fact-checked (90/91 claims confirmed).
 
 ## What's in this MVP
 
-A fully working web app (React + TypeScript + Vite, zero runtime dependencies beyond React) with real engines behind every feature — not mocked screens. It ships with a deterministic 120-day demo dataset that flows through the exact pipelines a production deployment would run against live wearable and financial data.
+A fully working web app (React + TypeScript + Vite, zero runtime dependencies beyond React) with real engines behind every feature — not mocked screens. It ships with deterministic per-persona demo datasets that flow through the exact pipelines a production deployment would run against live wearable and financial data.
+
+### 🏁 The individualized Life Score (the core algorithm)
+Three pillars — **Health · Wealth · Productivity** — each blending:
+
+- **Process (55%)**: did you do the controllable daily behaviors, measured against *your* personalized targets (sleep range for your age, chronotype-consistent bedtime, income-derived 50/30/20 budget, age-banded steps)? Process dominates because it's what you control today — and visible progress on controllables is the strongest known daily motivator (Amabile's progress principle).
+- **Outcome (45%)**: are you on pace toward *your* goals from *your* baseline? Each goal (reach $40k · hit 175 lbs · sustain 15h/week deep work) is scored by pace along your own baseline→deadline line — never against anyone else (mastery-feedback research).
+
+Pillar weights come from your stated priorities. Change a goal, a deadline, or a priority and the entire score recalibrates.
+
+**Capacity & feasibility**: every reach goal is checked against what you can actually output — safe weight-loss bands (CDC, age-adjusted), sustainable savings rates (income − essentials, with slack), deep-work ceilings by work pattern and situation. When the math doesn't work, LifeOS says so and proposes the honest alternative (move the deadline or right-size the target) instead of letting you silently fail — because goals only motivate while they stay accepted and attainable (Locke & Latham).
+
+### 🎲 Probability engine (Monte Carlo on YOUR data)
+The most realistic simulation approach available without lying:
+
+- **Bootstrap resampling of your own history** — your real week-to-week variability, not smooth average lines. This is an outside-view forecast by construction (the planning-fallacy antidote).
+- **Reach goals**: hundreds of simulated futures → probability of hitting the goal by deadline, median completion date, and a 10th–90th percentile **fan chart**. Savings runs include realistic market volatility (~13%/yr around a 6% nominal drift).
+- **Sustain goals**: block bootstrap (contiguous weeks, preserving autocorrelation) → odds your next 4-week average holds the target.
+- **Cause and effect**: every recommendation and scenario maps to an intervention (bedtime discipline lifts short nights; meal prep cuts spend and shifts weight drift) that re-shapes the sampled distributions — so the app shows *"this action moves your odds on this goal from 46% → 68%."*
 
 ### ☀️ Morning Briefing (`Today`)
-- Current **Life Score** (0–100) with today's delta
-- A plain-language narrative of **why the score moved**, decomposed by pillar
-- The **highest-impact actions** for today, ranked by predicted Life Score points, each with a forward-looking prediction and the data-grounded reason it was chosen ("Recovery score 91 is in your top decile")
+Life Score + delta and why it moved · a forecast banner ("today's #1 action moves your odds on 'College fund' from 46% to 68%") · goals-at-a-glance with pace bars · momentum chip · the day's actions ranked by simulated goal-odds impact, each with its reason and prediction.
 
-### 🧮 Life Score engine
-- Five weighted pillars: Health (30%), Wealth (20%), Productivity (20%), Relationships (15%), Habits & Goals (15%)
-- Recency-weighted rolling windows, weekday-aware productivity scoring, budget-pace and goal-progress wealth scoring
+### 🧭 Journey (built for years, not weeks)
+The retention layer, built on what actually keeps people engaged long-term:
+
+- **Auto-detected accomplishments** — streaks, personal records, milestones, and **comebacks** (a rough week followed by a strong one gets celebrated, never shamed — rewarding the return beat 53 other interventions in the largest exercise study ever run, Milkman et al., *Nature* 2021)
+- **Streak repair tokens** — miss a day, spend a token, streak lives
+- **Momentum** — execution trend vs two weeks ago, because direction beats level
+- **Your proven potential** — your own best weeks on record vs now ("your best week averaged 7.9h — that wasn't luck")
+- **Weekly review** — what happened, best day, and next week's 2–3 focuses
+- **Adaptive micro-targets** — weekly bars auto-tune to your recent hit rate so they stay hard enough to matter, close enough to win
 
 ### 🧠 Pattern discovery (`Your Patterns`)
-The "learns your personal cause-and-effect" layer. Correlation probes — including **time-lagged** ones (last night's alcohol → today's recovery) — run across the unified history. Nothing is hard-coded advice: every insight shows its Pearson *r* and sample size, with confidence tiers (emerging → moderate → strong). The demo data embeds realistic causal structure, and the engine **rediscovers it statistically**:
-- You perform better after 7.5+ hours of sleep
-- You overspend after poor sleep
-- Morning workouts lead to your most productive days
-- Sunday meal prep transforms your week
-- Alcohol quietly taxes your next day
+Correlation probes — including time-lagged ones — run across your unified history and rediscover *your* cause-and-effect statistically (each with Pearson r + sample size): you perform better after 7.5h+ sleep · you overspend after short sleep · meal prep transforms your week · alcohol taxes tomorrow's recovery · your weight follows your plate by about a week.
 
 ### 🔮 Future Simulator
-Ask "what if" and get a projected trajectory vs. your current path over 6 months to 5 years:
-- *What happens if I lose 20 pounds?*
-- *What if I invest an extra $500 every month?* (real compound-growth math, goal-arrival acceleration)
-- *What if I stop drinking alcohol?*
-- *What if I sleep eight hours every night?*
-- *What if I walk 10,000 steps every day?*
+Personalized what-if scenarios (commit to the cut · invest more · quit alcohol · sleep your range · hit your step target · meal prep) — each showing the Life Score trajectory *and* the Monte Carlo odds shift on your actual goals, with a fan chart for the primary affected goal.
 
-Models include habit ramp-up curves, diminishing returns near pillar ceilings, and compounding dollar trajectories.
-
-### 👤 Personalization engine (`Profile`)
-The core answer to "different people, different situations":
-
-- **Who you are** — age, sex, chronotype (lark/owl), life stage (student → retired), work pattern (9–5 / flexible / shift / not working), fitness level, income stability, and per-pillar priorities that reweight the Life Score itself.
-- **Personal targets, not universal ones** — sleep range by NSF age band; step targets at the age-dependent mortality-benefit plateau (Paluch 2022 — 10,000 is *not* universal); bedtime and deep-work windows from chronotype synchrony research; strength + balance emphasis for 65+ (WHO); budgets from 50/30/20 on actual income; savings rates by life stage; sex-specific alcohol ceilings; emergency-fund sizing for variable income.
-- **Situations** — sick, traveling, crunch week, new baby, injured. Each mode reshapes the day's coaching: the "neck check" rule replaces training targets when sick; anchor-sleep harm reduction replaces optimization for new parents; sleep floors and if-then peak-window plans for crunch weeks.
-- **Shift-work aware** — regularity is scored against personal anchor-sleep clusters, not clock bedtimes; recommendations follow AASM shift-work strategies.
-- **Behavior-change guardrails** — max 1–2 *new* habits pushed at once (multiple-behavior-change research), if-then phrasing (implementation intentions, d=0.65), autonomy-supportive tone (self-determination theory).
-- **Five demo personas** — a 34-year-old tech worker, a 29-year-old ICU nurse on rotating nights, a 38-year-old new dad, a 67-year-old retired teacher, and a 21-year-old student in finals crunch — switch live and watch every screen recalibrate.
+### 👤 Personalization (`Profile`)
+Age, sex, chronotype, life stage, work pattern, fitness level, income, situation (sick / travel / crunch / new baby / injury — each reshapes the whole day's coaching), pillar priorities — plus five demo personas (tech worker, ICU night nurse, new dad, retired teacher, student in finals) that exercise every adaptation live.
 
 ### 🔬 The Science
-Every number in the engine traces to a citation registry (`src/engine/researchBase.ts`) rendered in-app: claim, exact figures, population, source, year, evidence strength (guideline / meta-analysis / RCT / cohort / expert), and *how LifeOS uses it* — plus an honest-limits statement. No invented numbers.
-
-### 📊 Dashboard
-30-day Life Score trend, sleep-vs-focus overlay, spending trend, and the key stats across all connected sources — each annotated with *your* target, not a generic one.
-
-### 🔌 Integrations
-Connector registry covering the production integration surface: Oura, Apple Health, Whoop, Garmin, Fitbit, Plaid (banks/cards), brokerages, Google Calendar, Todoist, Screen Time, MyFitnessPal — all normalized into one `DayRecord` schema so sleep, money, tasks, and relationships can finally talk to each other.
+~50 citations rendered in-app: claim, exact figures, population, source, year, evidence strength, and how LifeOS uses each — plus an honest-limits statement. No invented numbers.
 
 ## Run it
 
@@ -70,40 +67,44 @@ npm run build      # typecheck + production bundle
 
 ```
 src/
-├── engine/            # Pure TypeScript, UI-independent — the product core
-│   ├── types.ts       # Unified DayRecord schema, UserProfile, PersonalTargets
-│   ├── researchBase.ts# Citation registry: every number's source + how it's used
-│   ├── personalize.ts # Profile + research → personal targets & pillar weights
-│   ├── lifeScore.ts   # Target-driven pillar scorers → weighted composite
-│   ├── insights.ts    # Correlation probes → personal pattern discovery
-│   ├── recommendations.ts  # State + targets + situation → ranked actions
-│   ├── briefing.ts    # Composes the morning narrative (situation-aware)
-│   └── simulator.ts   # Personalized what-if projections (ramps, compounding)
+├── engine/              # Pure TypeScript, UI-independent — the product core
+│   ├── types.ts         # DayRecord, UserProfile, Goal, PersonalTargets, forecasts
+│   ├── researchBase.ts  # Citation registry: every number's source + usage
+│   ├── personalize.ts   # Profile + research → personal targets & weights
+│   ├── goals.ts         # Pace vs baseline→deadline, capacity, feasibility
+│   ├── montecarlo.ts    # Bootstrap futures, fan charts, intervention odds
+│   ├── lifeScore.ts     # Process (55%) + goal-pace outcome (45%) per pillar
+│   ├── insights.ts      # Correlation probes → personal pattern discovery
+│   ├── recommendations.ts # State + situation + goal-odds → ranked actions
+│   ├── journey.ts       # Accomplishments, momentum, adaptive micro-targets
+│   ├── briefing.ts      # Morning narrative (situation-aware)
+│   └── simulator.ts     # Scenarios → trajectories + goal-odds + fan charts
 ├── data/
-│   ├── generator.ts   # Profile-parameterized demo data w/ causal structure
-│   ├── personas.ts    # Five demo lives exercising different adaptations
-│   └── connectors.ts  # Integration registry
-├── components/        # ScoreRing, TrendChart (hand-rolled SVG, no chart deps)
-└── views/             # Today, Dashboard, Simulator, Patterns, Profile,
-                       # Science, Integrations
+│   ├── generator.ts     # Profile-parameterized demo data w/ causal structure
+│   ├── personas.ts      # Five demo lives with typed goals
+│   └── connectors.ts    # Integration registry
+├── components/          # ScoreRing, TrendChart, FanChart (hand-rolled SVG)
+└── views/               # Today, Goals, Journey, Dashboard, Simulator,
+                         # Patterns, Profile, Science, Integrations
 ```
 
-The engine layer is deliberately pure and UI-free: swap `generateHistory()` for a real sync pipeline and everything downstream — scoring, insights, recommendations, simulations — works unchanged. The flow is one-directional:
+The engine layer is pure and UI-free: swap `generateHistory()` for a real sync pipeline and everything downstream works unchanged.
 
 ```
-UserProfile ──► personalize.ts ──► PersonalTargets ──► every engine
-     ▲                │
-     │                └── every rule cites researchBase.ts
-     └── edited live in the Profile view (or a future onboarding flow)
+UserProfile + Goals ──► personalize/goals ──► targets, capacity, pace
+        │                                        │
+        │              montecarlo ◄── your history (bootstrap)
+        │                   │
+        └──► every screen shows: score · odds · next best action
 ```
 
 ## Roadmap
 
 - [ ] Live OAuth connectors (Oura, Plaid, Google Calendar) replacing the demo generator
 - [ ] LLM-composed briefings and conversational coaching on top of the deterministic engines
-- [ ] Per-user learned weights (personalized pillar importance)
-- [ ] Causal inference upgrade (beyond correlation: lagged regression, propensity matching)
-- [ ] Push/email delivery of the morning briefing
+- [ ] Causal inference upgrade (lagged regression, propensity matching) feeding better intervention effect sizes
+- [ ] Goal templates + onboarding wizard (baseline capture from first 14 days)
+- [ ] Push/email morning briefing delivery
 - [ ] Mobile app shell
 
 *Projections and insights are decision-support tools, not medical or financial advice.*

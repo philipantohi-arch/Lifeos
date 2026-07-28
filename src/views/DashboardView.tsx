@@ -29,7 +29,8 @@ export function DashboardView({ records, result, profile }: Props) {
   );
 
   const spend7 = records.slice(-7).reduce((a, r) => a + r.discretionarySpend, 0);
-  const goalPct = Math.round((profile.savingsBalance / profile.savingsGoal) * 100);
+  const savingsGoal = profile.goals.find((g) => g.metric === 'savingsBalance');
+  const goalPct = savingsGoal ? Math.round((profile.savingsBalance / savingsGoal.target) * 100) : 100;
 
   return (
     <div className="view">
@@ -63,9 +64,9 @@ export function DashboardView({ records, result, profile }: Props) {
         <Stat label="Deep work (30d avg)" value={`${avg((r) => r.deepWorkHours).toFixed(1)}h`} sub={`Focus score ${today.focusScore}`} />
         <Stat label="Spend this week" value={`$${Math.round(spend7)}`} sub={`Budget: $${t.weeklyDiscretionary}/wk`} />
         <Stat
-          label={profile.savingsGoalLabel}
-          value={`${goalPct}%`}
-          sub={`$${profile.savingsBalance.toLocaleString()} of $${profile.savingsGoal.toLocaleString()}`}
+          label={savingsGoal ? savingsGoal.label : 'Savings'}
+          value={savingsGoal ? `${goalPct}%` : `$${profile.savingsBalance.toLocaleString()}`}
+          sub={savingsGoal ? `$${profile.savingsBalance.toLocaleString()} of $${savingsGoal.target.toLocaleString()}` : 'No savings goal set'}
         />
       </div>
 

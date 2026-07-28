@@ -1,15 +1,26 @@
 /**
- * Life Score engine.
+ * Life Score engine v2 — individualized, goal-anchored.
  *
- * Each pillar is scored 0–100 from a rolling window of DayRecords, then
- * combined into a single weighted composite. Every threshold comes from
- * the user's PersonalTargets (derived from the research base + profile),
- * and pillar weights reflect the user's stated priorities. Recent days
- * matter more (exponential recency weighting inside each window).
+ * Your score is not a comparison to anyone else. Each pillar blends:
+ *
+ *   • PROCESS (55%): did you do the controllable daily behaviors, scored
+ *     against YOUR personalized targets (sleep range for your age,
+ *     chronotype-consistent bedtime, income-derived budget, …)? Process
+ *     dominates because it's what you control today, and visible progress
+ *     on controllables is the strongest motivator (progress-principle).
+ *
+ *   • OUTCOME (45%): are you on pace toward YOUR goals from YOUR baseline
+ *     (goal engine paceScore)? On-pace = 75, ahead climbs toward 100,
+ *     behind decays — measured against your own baseline→target line,
+ *     never a universal standard (baseline-relative-scoring).
+ *
+ * Pillar weights come from the user's stated priorities. Three pillars:
+ * Health · Wealth · Productivity.
  */
 
 import type {
   DayRecord,
+  GoalAssessment,
   LifeScoreResult,
   PersonalTargets,
   PillarKey,
@@ -17,14 +28,16 @@ import type {
   UserProfile,
 } from './types';
 import { deriveTargets } from './personalize';
+import { assessGoals } from './goals';
 
 const PILLAR_LABELS: Record<PillarKey, string> = {
   health: 'Health',
   wealth: 'Wealth',
   productivity: 'Productivity',
-  relationships: 'Relationships',
-  habits: 'Habits & Goals',
 };
+
+const PROCESS_WEIGHT = 0.55;
+const OUTCOME_WEIGHT = 0.45;
 
 const clamp = (v: number, lo = 0, hi = 100) => Math.min(hi, Math.max(lo, v));
 
@@ -48,19 +61,19 @@ function window(records: DayRecord[], endIndex: number, size: number): DayRecord
 
 /**
  * Sleep-duration score against the personal range: 100 inside the
- * recommended band (nsf-sleep-duration), tapering ~18 pts/hour outside.
+ * recommended band (nsf-sleep-duration), tapering outside — short sleep
+ * costs more than long sleep.
  */
 function sleepDurationScore(hours: number, [lo, hi]: [number, number]): number {
   if (hours >= lo && hours <= hi) return 100;
   const dist = hours < lo ? lo - hours : hours - hi;
-  return clamp(100 - dist * (hours < lo ? 22 : 12)); // short sleep costs more
+  return clamp(100 - dist * (hours < lo ? 22 : 12));
 }
 
 /**
- * Sleep regularity: deviation from the person's own median bedtime.
- * Regularity predicts outcomes beyond duration (sleep-regularity-mortality,
- * social-jetlag). Shift workers are scored against their two anchor
- * clusters (night sleeps vs day sleeps) rather than a single median.
+ * Sleep regularity: deviation from the person's own median bedtime
+ * (sleep-regularity-mortality, social-jetlag). Shift workers are scored
+ * against their two anchor clusters (night sleeps vs day sleeps).
  */
 function regularityScore(win: DayRecord[]): number {
   const groups = new Map<string, number[]>();
@@ -81,45 +94,43 @@ function regularityScore(win: DayRecord[]): number {
     }
   }
   if (!n) return 70;
-  const meanDev = totalDev / n; // hours from personal median
-  return clamp(100 - meanDev * 38);
+  return clamp(100 - (totalDev / n) * 38);
 }
 
-// ── Pillar scorers ────────────────────────────────────────────────────────
+// ── Process scorers (controllable daily behavior vs personal targets) ────
 
-function healthScore(win: DayRecord[], t: PersonalTargets): number {
+function healthProcess(win: DayRecord[], t: PersonalTargets): number {
   const sleep = recencyMean(win.map((r) => sleepDurationScore(r.sleepHours, t.sleepRange)));
   const quality = recencyMean(win.map((r) => r.sleepQuality));
   const recovery = recencyMean(win.map((r) => r.recoveryScore));
   const movement = recencyMean(win.map((r) => clamp((r.steps / t.stepsTarget) * 100)));
   const nutrition = recencyMean(win.map((r) => r.nutritionScore));
-  // Weekly drinks vs the personal (sex-specific) ceiling.
+  const regularity = regularityScore(win);
   const drinks7 = win.slice(-7).reduce((a, r) => a + r.alcoholDrinks, 0);
   const alcoholPenalty = Math.max(0, drinks7 - t.maxDrinksWeekly) * 4 + drinks7 * 1.2;
   return clamp(
-    0.24 * sleep + 0.16 * quality + 0.22 * recovery + 0.2 * movement + 0.18 * nutrition - alcoholPenalty,
+    0.2 * sleep +
+      0.13 * quality +
+      0.19 * recovery +
+      0.18 * movement +
+      0.15 * nutrition +
+      0.15 * regularity -
+      alcoholPenalty,
   );
 }
 
-function wealthScore(win: DayRecord[], profile: UserProfile, t: PersonalTargets): number {
+function wealthProcess(win: DayRecord[], profile: UserProfile, t: PersonalTargets): number {
   const dailyBudget = t.weeklyDiscretionary / 7;
   const spendDiscipline = recencyMean(
     win.map((r) => clamp(100 - ((r.discretionarySpend - dailyBudget) / Math.max(dailyBudget, 1)) * 100, 0, 100)),
   );
-  if (profile.lifeStage === 'retired') {
-    // Drawdown phase: discipline + nest-egg preservation, not savings rate.
-    const preservation = clamp((profile.savingsBalance / profile.savingsGoal) * 100);
-    return clamp(0.55 * spendDiscipline + 0.45 * preservation);
-  }
+  if (profile.lifeStage === 'retired') return spendDiscipline;
   const actualRate = profile.monthlyIncome > 0 ? profile.monthlyInvestment / profile.monthlyIncome : 0;
-  const savingsRate = t.savingsRateTarget > 0 ? clamp((actualRate / t.savingsRateTarget) * 100) : 100;
-  const goalProgress = clamp((profile.savingsBalance / profile.savingsGoal) * 100);
-  return clamp(0.45 * spendDiscipline + 0.3 * savingsRate + 0.25 * goalProgress);
+  const savingsExecution = t.savingsRateTarget > 0 ? clamp((actualRate / t.savingsRateTarget) * 100) : 100;
+  return clamp(0.6 * spendDiscipline + 0.4 * savingsExecution);
 }
 
-function productivityScore(win: DayRecord[], profile: UserProfile): number {
-  // Deep-work expectations differ: retirees' "engaged hours" target is
-  // lower; everyone else is scored against a 4h ceiling.
+function productivityProcess(win: DayRecord[], profile: UserProfile): number {
   const deepCeiling = profile.lifeStage === 'retired' ? 2.5 : 4;
   const weekendAware = profile.workPattern === 'standard' || profile.workPattern === 'flexible';
   let sum = 0;
@@ -137,30 +148,24 @@ function productivityScore(win: DayRecord[], profile: UserProfile): number {
   return clamp(wsum ? sum / wsum : 0);
 }
 
-function relationshipsScore(win: DayRecord[], t: PersonalTargets): number {
-  const touch = recencyMean(win.map((r) => clamp(r.socialTouchpoints * 40, 0, 100)));
-  const last = win[win.length - 1];
-  // Freshness decays over 3× the personal cadence (holt-lunstad,
-  // surgeon-general-loneliness justify never letting this silently decay).
-  const cadence = t.familyContactCadenceDays;
-  const familyFreshness = clamp(100 - (last.daysSinceFamilyContact / (cadence * 3)) * 100);
-  const moodSocial = recencyMean(win.map((r) => r.mood * 10));
-  return clamp(0.4 * touch + 0.35 * familyFreshness + 0.25 * moodSocial);
-}
+// ── Outcome: pace toward the user's own goals ─────────────────────────────
 
-function habitsScore(win: DayRecord[], t: PersonalTargets): number {
-  // Workouts vs the personal weekly structure (who-activity-2020).
-  const workouts7 = win.slice(-7).filter((r) => r.didWorkout).length;
-  const workoutTargetWeekly = Math.max(t.strengthSessionsWeekly, 3);
-  const workoutScore = clamp((workouts7 / workoutTargetWeekly) * 100);
-  const prep = recencyMean(win.map((r) => (r.mealPrepped ? 100 : 45)));
-  const regularity = regularityScore(win);
-  return clamp(0.35 * workoutScore + 0.25 * prep + 0.4 * regularity);
+function outcomeScore(pillar: PillarKey, assessments: GoalAssessment[]): number | null {
+  const relevant = assessments.filter((a) => a.goal.pillar === pillar);
+  if (!relevant.length) return null;
+  // Priority-weighted mean of pace scores.
+  let sum = 0;
+  let wsum = 0;
+  for (const a of relevant) {
+    sum += a.paceScore * a.goal.priority;
+    wsum += a.goal.priority;
+  }
+  return sum / wsum;
 }
 
 // ── Composite ─────────────────────────────────────────────────────────────
 
-function pillarScoresAt(
+function pillarProcessAt(
   records: DayRecord[],
   endIndex: number,
   profile: UserProfile,
@@ -169,67 +174,102 @@ function pillarScoresAt(
   const win7 = window(records, endIndex, 7);
   const win14 = window(records, endIndex, 14);
   return {
-    health: healthScore(win7, t),
-    wealth: wealthScore(win14, profile, t),
-    productivity: productivityScore(win7, profile),
-    relationships: relationshipsScore(win14, t),
-    habits: habitsScore(win14, t),
+    health: healthProcess(win7, t),
+    wealth: wealthProcess(win14, profile, t),
+    productivity: productivityProcess(win7, profile),
   };
+}
+
+function blend(process: number, outcome: number | null): number {
+  return outcome === null ? process : PROCESS_WEIGHT * process + OUTCOME_WEIGHT * outcome;
 }
 
 function composite(p: Record<PillarKey, number>, weights: Record<PillarKey, number>): number {
   return (Object.keys(weights) as PillarKey[]).reduce((acc, k) => acc + p[k] * weights[k], 0);
 }
 
-function pillarDriver(key: PillarKey, records: DayRecord[], t: PersonalTargets): string {
+function pillarDriver(
+  key: PillarKey,
+  records: DayRecord[],
+  t: PersonalTargets,
+  assessments: GoalAssessment[],
+): string {
   const today = records[records.length - 1];
+  const goals = assessments.filter((a) => a.goal.pillar === key);
+  const behind = goals.filter((a) => a.paceRatio < 0.9).sort((a, b) => a.paceRatio - b.paceRatio)[0];
+  const ahead = goals.filter((a) => a.paceRatio >= 1.05).sort((a, b) => b.paceRatio - a.paceRatio)[0];
+
   switch (key) {
     case 'health':
       if (today.recoveryScore >= 85) return `Recovery at ${today.recoveryScore} — best in weeks`;
       if (today.recoveryScore <= 45) return `Recovery low (${today.recoveryScore}) — rest matters today`;
-      if (today.sleepHours < t.sleepRange[0] - 0.5)
-        return `${today.sleepHours}h sleep vs your ${t.sleepRange[0]}–${t.sleepRange[1]}h target`;
+      if (behind) return `"${behind.goal.label}" is at ${Math.round(behind.paceRatio * 100)}% of pace`;
+      if (ahead) return `"${ahead.goal.label}" is ahead of pace`;
       return `${today.sleepHours}h sleep · recovery ${today.recoveryScore}`;
     case 'wealth': {
       const spend7 = records.slice(-7).reduce((a, r) => a + r.discretionarySpend, 0);
+      if (behind) return `"${behind.goal.label}" needs $${Math.round(behind.requiredWeeklyRate)}/wk from here`;
       return `$${Math.round(spend7)} of your $${t.weeklyDiscretionary} weekly budget`;
     }
     case 'productivity':
+      if (behind) return `"${behind.goal.label}" at ${Math.round(behind.paceRatio * 100)}% of target level`;
       return `${today.deepWorkHours}h deep work · ${today.tasksCompleted}/${today.tasksPlanned} tasks yesterday`;
-    case 'relationships':
-      return today.daysSinceFamilyContact > t.familyContactCadenceDays
-        ? `${today.daysSinceFamilyContact} days since close contact (your cadence: ${t.familyContactCadenceDays})`
-        : `Social contact steady this week`;
-    case 'habits': {
-      const workouts = records.slice(-7).filter((r) => r.didWorkout).length;
-      return `${workouts} workout${workouts === 1 ? '' : 's'} in the last 7 days`;
-    }
   }
 }
 
 export function computeLifeScore(records: DayRecord[], profile: UserProfile): LifeScoreResult {
   const targets = deriveTargets(profile);
   const w = targets.weights;
+  const assessments = assessGoals(records, profile);
 
-  const history: number[] = records.map((_, i) =>
-    composite(pillarScoresAt(records, Math.max(i, 6), profile, targets), w),
-  );
+  const outcomes: Record<PillarKey, number | null> = {
+    health: outcomeScore('health', assessments),
+    wealth: outcomeScore('wealth', assessments),
+    productivity: outcomeScore('productivity', assessments),
+  };
+
+  // History: process varies daily; outcome (goal pace) is evaluated at the
+  // end state — a simplification that keeps the 30-day trend meaningful.
+  const history: number[] = records.map((_, i) => {
+    const proc = pillarProcessAt(records, Math.max(i, 6), profile, targets);
+    const blended = {
+      health: blend(proc.health, outcomes.health),
+      wealth: blend(proc.wealth, outcomes.wealth),
+      productivity: blend(proc.productivity, outcomes.productivity),
+    };
+    return composite(blended, w);
+  });
 
   const todayIdx = records.length - 1;
-  const todayPillars = pillarScoresAt(records, todayIdx, profile, targets);
-  const yesterdayPillars = pillarScoresAt(records, todayIdx - 1, profile, targets);
+  const procToday = pillarProcessAt(records, todayIdx, profile, targets);
+  const procYesterday = pillarProcessAt(records, todayIdx - 1, profile, targets);
 
-  const pillars: PillarScore[] = (Object.keys(w) as PillarKey[]).map((key) => ({
-    key,
-    label: PILLAR_LABELS[key],
-    score: Math.round(todayPillars[key]),
-    delta: Math.round((todayPillars[key] - yesterdayPillars[key]) * 10) / 10,
-    weight: Math.round(w[key] * 1000) / 1000,
-    driver: pillarDriver(key, records, targets),
-  }));
+  const pillars: PillarScore[] = (Object.keys(w) as PillarKey[]).map((key) => {
+    const score = blend(procToday[key], outcomes[key]);
+    const yScore = blend(procYesterday[key], outcomes[key]);
+    return {
+      key,
+      label: PILLAR_LABELS[key],
+      score: Math.round(score),
+      delta: Math.round((score - yScore) * 10) / 10,
+      weight: Math.round(w[key] * 1000) / 1000,
+      driver: pillarDriver(key, records, targets, assessments),
+    };
+  });
 
-  const score = composite(todayPillars, w);
-  const delta = score - composite(yesterdayPillars, w);
+  const todayBlend = {
+    health: blend(procToday.health, outcomes.health),
+    wealth: blend(procToday.wealth, outcomes.wealth),
+    productivity: blend(procToday.productivity, outcomes.productivity),
+  };
+  const yesterdayBlend = {
+    health: blend(procYesterday.health, outcomes.health),
+    wealth: blend(procYesterday.wealth, outcomes.wealth),
+    productivity: blend(procYesterday.productivity, outcomes.productivity),
+  };
+
+  const score = composite(todayBlend, w);
+  const delta = score - composite(yesterdayBlend, w);
 
   return {
     score: Math.round(score),
@@ -237,4 +277,11 @@ export function computeLifeScore(records: DayRecord[], profile: UserProfile): Li
     pillars,
     history: history.map((h) => Math.round(h)),
   };
+}
+
+/** Pure process adherence (0–100) over a window — used by momentum. */
+export function processAdherence(records: DayRecord[], profile: UserProfile, endIndex: number): number {
+  const targets = deriveTargets(profile);
+  const p = pillarProcessAt(records, endIndex, profile, targets);
+  return composite(p, targets.weights);
 }

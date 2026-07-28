@@ -13,8 +13,6 @@ const PILLAR_LABELS: Record<PillarKey, string> = {
   health: 'Health',
   wealth: 'Wealth',
   productivity: 'Productivity',
-  relationships: 'Relationships',
-  habits: 'Habits & Goals',
 };
 
 function Select<T extends string>({
@@ -268,11 +266,6 @@ export function ProfileView({ personaId, profile, onSelectPersona, onChange }: P
               <span>Alcohol ceiling / week</span>
               <strong>{t.maxDrinksWeekly} drinks</strong>
               <span className="target-src">sex-specific guidelines</span>
-            </div>
-            <div className="target-row">
-              <span>Close-contact cadence</span>
-              <strong>every {t.familyContactCadenceDays} days</strong>
-              <span className="target-src">connection research</span>
             </div>
             <div className="target-row">
               <span>New habits at once</span>

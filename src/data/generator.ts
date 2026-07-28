@@ -52,7 +52,6 @@ interface GenParams {
   alcoholWeekdayProb: number;
   dailyWantsBudget: number;
   weeklyTransfer: number;
-  socialBase: number; // typical touchpoints/day
   shiftPattern: boolean;
 }
 
@@ -79,7 +78,6 @@ function paramsFor(profile: UserProfile): GenParams {
     alcoholWeekdayProb: 0.12,
     dailyWantsBudget: dailyWants,
     weeklyTransfer: Math.round((profile.monthlyInvestment * 12) / 52),
-    socialBase: 0.5,
     shiftPattern: profile.workPattern === 'shift',
   };
 
@@ -91,15 +89,13 @@ function paramsFor(profile: UserProfile): GenParams {
       p.mealPrepProb = 0.2;
       p.stepsBase = 7000; // campus walking
       p.deepWorkBase = 1.6;
-      p.socialBase = 1.2;
       break;
     case 'parent-young-kids':
       p.lateNightProb = () => 0.15; // in bed early, just not asleep long
       p.alcoholWeekendProb = 0.2;
       p.alcoholWeekdayProb = 0.05;
       p.takeoutProb = 0.5; // survival mode
-      p.mealPrepProb = 0.25;
-      p.socialBase = 0.9; // partner + baby count
+      p.mealPrepProb = 0.25; // partner + baby count
       p.deepWorkBase = 0.9;
       break;
     case 'retired':
@@ -108,7 +104,6 @@ function paramsFor(profile: UserProfile): GenParams {
       p.takeoutProb = 0.18;
       p.mealPrepProb = 0.75;
       p.alcoholWeekendProb = 0.25;
-      p.socialBase = 1.4;
       p.lateNightProb = () => 0.08;
       break;
     default:
@@ -127,14 +122,15 @@ function paramsFor(profile: UserProfile): GenParams {
 export function generateHistory(profile: UserProfile, seed: number, days = 120): DayRecord[] {
   const rand = mulberry32(seed);
   const P = paramsFor(profile);
-  const targets = deriveTargets(profile);
   const records: DayRecord[] = [];
 
   const today = new Date('2026-07-28T00:00:00Z');
-  let daysSinceFamilyContact = 2;
   let prevAlcohol = 0;
   let prevSleepHours = 7.4;
   let mealPrepActive = false;
+  // Weight series: random walk with a drift driven by nutrition + movement
+  // (embedded causal structure the pattern engine can rediscover).
+  let weight = profile.weightLbs + 2.5;
 
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(today);
@@ -264,21 +260,17 @@ export function generateHistory(profile: UserProfile, seed: number, days = 120):
       clamp(tasksPlanned * (0.35 + (focusScore / 100) * 0.6 + (rand() - 0.5) * 0.15), 0, tasksPlanned),
     );
 
-    // ── Relationships & self-report ────────────────────────────────────
-    const cadence = targets.familyContactCadenceDays;
-    const calledFamily = rand() < (daysSinceFamilyContact >= cadence - 1 ? 0.4 : 0.12);
-    daysSinceFamilyContact = calledFamily ? 0 : daysSinceFamilyContact + 1;
-    const socialTouchpoints =
-      (calledFamily ? 1 : 0) +
-      (rand() < P.socialBase * (isWeekend ? 0.9 : 0.45) ? 1 + Math.round(rand() * 2) : 0);
+    // ── Body & self-report ─────────────────────────────────────────────
+    // Daily weight drift: better nutrition and more movement pull it down,
+    // takeout/short-sleep push it up — plus scale noise.
+    const drift =
+      (58 - nutritionScore) * 0.0022 +
+      (7500 - Math.min(steps, 14000)) * 0.000012 +
+      (ateTakeout ? 0.03 : 0) +
+      (sleepHours < 6.5 ? 0.02 : 0);
+    weight = clamp(weight + drift + (rand() - 0.5) * 0.5, profile.weightLbs - 30, profile.weightLbs + 15);
     const energy = clamp(Math.round(3 + sleepQuality / 20 + recoveryScore / 40 + (rand() - 0.5) * 2), 1, 10);
-    const mood = clamp(
-      Math.round(
-        4 + energy * 0.35 + socialTouchpoints * 0.5 - (daysSinceFamilyContact > cadence + 3 ? 1 : 0) + (rand() - 0.5) * 2,
-      ),
-      1,
-      10,
-    );
+    const mood = clamp(Math.round(4 + energy * 0.5 + (rand() - 0.5) * 2), 1, 10);
 
     records.push({
       date: d.toISOString().slice(0, 10),
@@ -304,8 +296,7 @@ export function generateHistory(profile: UserProfile, seed: number, days = 120):
       tasksPlanned,
       focusScore: Math.round(focusScore),
       workedShift: P.shiftPattern ? onShift : undefined,
-      socialTouchpoints,
-      daysSinceFamilyContact,
+      weightLbs: Math.round(weight * 10) / 10,
       mood,
       energy,
     });
@@ -314,7 +305,7 @@ export function generateHistory(profile: UserProfile, seed: number, days = 120):
     prevSleepHours = sleepHours;
   }
 
-  shapeDemoDay(records, profile, targets.familyContactCadenceDays);
+  shapeDemoDay(records, profile);
   return records;
 }
 
@@ -323,7 +314,7 @@ export function generateHistory(profile: UserProfile, seed: number, days = 120):
  * briefing has a clear story: green-light recovery for a healthy day,
  * honest fatigue for a new parent, crunch-mode sleep debt for finals.
  */
-function shapeDemoDay(records: DayRecord[], profile: UserProfile, cadence: number): void {
+function shapeDemoDay(records: DayRecord[], profile: UserProfile): void {
   const t = records[records.length - 1];
 
   switch (profile.situation) {
@@ -364,10 +355,4 @@ function shapeDemoDay(records: DayRecord[], profile: UserProfile, cadence: numbe
       break;
   }
 
-  // Family contact drifted past this persona's cadence (gradually, so the
-  // relationships pillar declines rather than cliff-dropping today).
-  const overdue = cadence + 2;
-  for (let k = 0; k <= overdue && k < records.length; k++) {
-    records[records.length - 1 - k].daysSinceFamilyContact = overdue - k;
-  }
 }

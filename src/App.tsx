@@ -1,11 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import type { UserProfile } from './engine/types';
+import type { Goal, UserProfile } from './engine/types';
 import { generateHistory } from './data/generator';
 import { PERSONAS, getPersona } from './data/personas';
 import { computeLifeScore } from './engine/lifeScore';
 import { composeBriefing } from './engine/briefing';
 import { discoverInsights } from './engine/insights';
+import { assessGoals } from './engine/goals';
+import { buildWeeklyReview, computeMomentum, detectAccomplishments, potentialGaps } from './engine/journey';
 import { TodayView } from './views/TodayView';
+import { GoalsView } from './views/GoalsView';
+import { JourneyView } from './views/JourneyView';
 import { DashboardView } from './views/DashboardView';
 import { SimulatorView } from './views/SimulatorView';
 import { InsightsView } from './views/InsightsView';
@@ -13,10 +17,21 @@ import { IntegrationsView } from './views/IntegrationsView';
 import { ProfileView } from './views/ProfileView';
 import { ScienceView } from './views/ScienceView';
 
-type Tab = 'today' | 'dashboard' | 'simulator' | 'insights' | 'profile' | 'science' | 'integrations';
+type Tab =
+  | 'today'
+  | 'goals'
+  | 'journey'
+  | 'dashboard'
+  | 'simulator'
+  | 'insights'
+  | 'profile'
+  | 'science'
+  | 'integrations';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: '☀️' },
+  { id: 'goals', label: 'Goals', icon: '🏁' },
+  { id: 'journey', label: 'Journey', icon: '🧭' },
   { id: 'dashboard', label: 'Dashboard', icon: '📊' },
   { id: 'simulator', label: 'Future Simulator', icon: '🔮' },
   { id: 'insights', label: 'Your Patterns', icon: '🧠' },
@@ -28,7 +43,7 @@ const TABS: { id: Tab; label: string; icon: string }[] = [
 /** Restore persona + profile edits across reloads. */
 function loadSaved(): { personaId: string; overrides: Partial<UserProfile> } {
   try {
-    const raw = localStorage.getItem('lifeos-profile');
+    const raw = localStorage.getItem('lifeos-profile-v2');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (PERSONAS.some((p) => p.id === parsed.personaId)) return parsed;
@@ -47,7 +62,7 @@ export default function App() {
 
   useEffect(() => {
     try {
-      localStorage.setItem('lifeos-profile', JSON.stringify({ personaId, overrides }));
+      localStorage.setItem('lifeos-profile-v2', JSON.stringify({ personaId, overrides }));
     } catch {
       // storage unavailable (private mode) — persistence is best-effort
     }
@@ -55,17 +70,29 @@ export default function App() {
 
   const persona = getPersona(personaId);
   const profile: UserProfile = useMemo(
-    () => ({ ...persona.profile, ...overrides, priorities: { ...persona.profile.priorities, ...(overrides.priorities ?? {}) } }),
+    () => ({
+      ...persona.profile,
+      ...overrides,
+      priorities: { ...persona.profile.priorities, ...(overrides.priorities ?? {}) },
+      goals: overrides.goals ?? persona.profile.goals,
+    }),
     [persona, overrides],
   );
 
   // In production this is the sync + scoring pipeline; here each persona's
-  // demo dataset flows through the exact same engines. History regenerates
-  // when profile changes that shape behavior (work pattern, situation, …).
+  // demo dataset flows through the exact same engines.
   const records = useMemo(() => generateHistory(profile, persona.seed), [profile, persona.seed]);
   const scoreResult = useMemo(() => computeLifeScore(records, profile), [records, profile]);
   const briefing = useMemo(() => composeBriefing(records, profile), [records, profile]);
   const insights = useMemo(() => discoverInsights(records), [records]);
+  const assessments = useMemo(() => assessGoals(records, profile), [records, profile]);
+  const momentum = useMemo(() => computeMomentum(records, profile), [records, profile]);
+  const accomplishments = useMemo(() => detectAccomplishments(records, profile), [records, profile]);
+  const gaps = useMemo(() => potentialGaps(records, profile), [records, profile]);
+  const review = useMemo(
+    () => buildWeeklyReview(records, profile, assessments, scoreResult.history),
+    [records, profile, assessments, scoreResult],
+  );
 
   const selectPersona = (id: string) => {
     setPersonaId(id);
@@ -73,7 +100,16 @@ export default function App() {
   };
 
   const patchProfile = (patch: Partial<UserProfile>) =>
-    setOverrides((prev) => ({ ...prev, ...patch, priorities: { ...(prev.priorities ?? {}), ...(patch.priorities ?? {}) } as UserProfile['priorities'] }));
+    setOverrides((prev) => ({
+      ...prev,
+      ...patch,
+      priorities: { ...(prev.priorities ?? {}), ...(patch.priorities ?? {}) } as UserProfile['priorities'],
+    }));
+
+  const patchGoal = (goalId: string, patch: Partial<Goal>) => {
+    const nextGoals = profile.goals.map((g) => (g.id === goalId ? { ...g, ...patch } : g));
+    setOverrides((prev) => ({ ...prev, goals: nextGoals }));
+  };
 
   return (
     <div className="app">
@@ -105,7 +141,13 @@ export default function App() {
       </aside>
 
       <main className="main">
-        {tab === 'today' && <TodayView briefing={briefing} />}
+        {tab === 'today' && <TodayView briefing={briefing} assessments={assessments} momentum={momentum} />}
+        {tab === 'goals' && (
+          <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} />
+        )}
+        {tab === 'journey' && (
+          <JourneyView accomplishments={accomplishments} momentum={momentum} gaps={gaps} review={review} />
+        )}
         {tab === 'dashboard' && <DashboardView records={records} result={scoreResult} profile={profile} />}
         {tab === 'simulator' && <SimulatorView records={records} profile={profile} />}
         {tab === 'insights' && <InsightsView insights={insights} />}
