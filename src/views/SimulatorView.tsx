@@ -1,0 +1,116 @@
+import { useMemo, useState } from 'react';
+import type { DayRecord, UserProfile } from '../engine/types';
+import { SCENARIOS, simulate } from '../engine/simulator';
+import { TrendChart } from '../components/TrendChart';
+
+interface Props {
+  records: DayRecord[];
+  profile: UserProfile;
+}
+
+const HORIZONS = [
+  { months: 6, label: '6 months' },
+  { months: 12, label: '1 year' },
+  { months: 24, label: '2 years' },
+  { months: 60, label: '5 years' },
+];
+
+export function SimulatorView({ records, profile }: Props) {
+  const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
+  const [horizon, setHorizon] = useState(24);
+
+  const result = useMemo(
+    () => simulate(scenarioId, records, profile, horizon),
+    [scenarioId, records, profile, horizon],
+  );
+
+  const showDollars = scenarioId === 'invest-500' || scenarioId === 'quit-alcohol';
+  const xLabels = ['Now', `${Math.round(horizon / 2)} mo`, `${horizon} mo`];
+  const endSim = result.simulated[result.simulated.length - 1];
+  const endBase = result.baseline[result.baseline.length - 1];
+
+  return (
+    <div className="view">
+      <header>
+        <h1>Future Simulator</h1>
+        <p className="muted">
+          Ask "what if" — LifeOS projects the compounding effect of a decision across your whole life, not just one app's metric.
+        </p>
+      </header>
+
+      <div className="scenario-grid">
+        {SCENARIOS.map((s) => (
+          <button
+            key={s.id}
+            className={`scenario-btn ${s.id === scenarioId ? 'active' : ''}`}
+            onClick={() => setScenarioId(s.id)}
+          >
+            <span className="scenario-emoji">{s.emoji}</span>
+            <span className="scenario-q">{s.question}</span>
+            <span className="scenario-desc">{s.description}</span>
+          </button>
+        ))}
+      </div>
+
+      <section className="card">
+        <div className="section-head">
+          <h2>{result.title}</h2>
+          <div className="horizon-picker">
+            {HORIZONS.map((h) => (
+              <button
+                key={h.months}
+                className={`chip ${horizon === h.months ? 'active' : ''}`}
+                onClick={() => setHorizon(h.months)}
+              >
+                {h.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <p className="sim-summary">{result.summary}</p>
+
+        <TrendChart
+          series={[
+            { values: result.baseline.map((p) => p.lifeScore), color: 'var(--muted-line)', label: 'Current path' },
+            { values: result.simulated.map((p) => p.lifeScore), color: 'var(--accent)', label: 'With this change', fill: true },
+          ]}
+          xLabels={xLabels}
+          min={Math.min(...result.baseline.map((p) => p.lifeScore)) - 4}
+          max={Math.max(...result.simulated.map((p) => p.lifeScore)) + 4}
+        />
+
+        {showDollars && endSim.dollars !== undefined && endBase.dollars !== undefined && (
+          <div className="dollars-strip">
+            <div>
+              <div className="stat-label">Savings on current path</div>
+              <div className="stat-value">${endBase.dollars.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="stat-label">Savings with this change</div>
+              <div className="stat-value accent">${endSim.dollars.toLocaleString()}</div>
+            </div>
+            <div>
+              <div className="stat-label">Difference</div>
+              <div className="stat-value green">+${(endSim.dollars - endBase.dollars).toLocaleString()}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="highlights">
+          {result.highlights.map((h, i) => (
+            <div key={i} className="highlight-row">
+              <span className="highlight-bullet">→</span>
+              {h}
+            </div>
+          ))}
+        </div>
+
+        <p className="disclaimer">
+          Projections are directional models based on your history and published behavioral research — for decision support, not
+          medical or financial advice.
+        </p>
+      </section>
+    </div>
+  );
+}
