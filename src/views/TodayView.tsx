@@ -21,78 +21,84 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
   return (
     <div className="view">
       <header className="today-header">
-        <div>
-          <h1>{briefing.greeting}</h1>
-          <p className="muted">{briefing.dateLabel} · Morning Briefing</p>
-        </div>
+        <h1>{briefing.greeting}</h1>
+        <p className="muted">{briefing.dateLabel}</p>
       </header>
 
       {briefing.situationNote && <div className="situation-banner">{briefing.situationNote}</div>}
 
+      <section className="hero-card card">
+        <ScoreRing score={briefing.score} delta={briefing.delta} />
+        <p className="score-narrative">{briefing.scoreNarrative}</p>
+        <div className="pillar-tiles">
+          {briefing.pillars.map((p) => (
+            <div key={p.key} className="pillar-tile">
+              <span className="pillar-tile-icon">{PILLAR_ICONS[p.key]}</span>
+              <span className="pillar-tile-score">{p.score}</span>
+              <span className={`pillar-tile-delta ${p.delta >= 0 ? 'up' : 'down'}`}>
+                {p.delta >= 0 ? '▲' : '▼'} {Math.abs(p.delta)}
+              </span>
+              <span className="pillar-tile-label">{p.label}</span>
+              {p.process !== undefined && (
+                <span className="pillar-tile-sub">
+                  habits {p.process}
+                  {p.outcome !== undefined ? ` · pace ${p.outcome}` : ''}
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
       {topOdds && (
         <div className="forecast-banner">
-          🔮 Today's #1 action moves your odds on "{topOdds.goalLabel}" from{' '}
-          <strong>{Math.round(topOdds.from * 100)}%</strong> to <strong>{Math.round(topOdds.to * 100)}%</strong> — the
-          single highest-leverage move available to you today.
+          Today's #1 action: "{topOdds.goalLabel}" odds {Math.round(topOdds.from * 100)}% →{' '}
+          <strong>{Math.round(topOdds.to * 100)}%</strong>
         </div>
       )}
 
-      <div className="today-grid">
-        <section className="card score-card">
-          <ScoreRing score={briefing.score} delta={briefing.delta} />
-          <p className="score-narrative">{briefing.scoreNarrative}</p>
-        </section>
-
-        <section className="card">
-          <h2>Pillars</h2>
-          <p className="muted small" style={{ marginBottom: 10 }}>
-            Each pillar = 55% daily habits (vs your personal targets) + 45% pace on your goals.
-          </p>
-          <div className="pillar-list">
-            {briefing.pillars.map((p) => (
-              <div key={p.key} className="pillar-row">
-                <span className="pillar-icon">{PILLAR_ICONS[p.key]}</span>
-                <div className="pillar-info">
-                  <div className="pillar-top">
-                    <span className="pillar-name">{p.label}</span>
-                    <span className="pillar-score">
-                      {p.score}
-                      <span className={`pillar-delta ${p.delta >= 0 ? 'up' : 'down'}`}>
-                        {p.delta >= 0 ? '+' : ''}
-                        {p.delta}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="bar-track">
-                    <div className="bar-fill" style={{ width: `${p.score}%` }} data-level={p.score >= 75 ? 'good' : p.score >= 55 ? 'ok' : 'low'} />
-                  </div>
-                  <div className="pillar-driver">
-                    {p.driver}
-                    {p.process !== undefined && (
-                      <span className="pillar-breakdown">
-                        {' '}· habits {p.process}
-                        {p.outcome !== undefined ? ` · goal pace ${p.outcome}` : ''}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
       <section className="card">
         <div className="section-head">
-          <h2>Your goals at a glance</h2>
+          <h2>Do these today</h2>
           {fresh ? (
-            <span className="momentum-chip">🌱 day 1 — momentum starts today</span>
+            <span className="momentum-chip">🌱 day 1</span>
           ) : (
             <span className={`momentum-chip ${momentum.direction}`}>
-              {MOMENTUM_ICON[momentum.direction]} momentum {momentum.direction}
+              {MOMENTUM_ICON[momentum.direction]} {momentum.direction}
             </span>
           )}
         </div>
+        <div className="action-list">
+          {briefing.actions.slice(0, 4).map((a, i) => (
+            <div key={a.id} className="action-card">
+              <div className="action-top">
+                <div className="action-rank">{i + 1}</div>
+                <div className="action-main">
+                  <div className="action-title">{a.title}</div>
+                  {a.goalOdds && (
+                    <div className="action-odds">
+                      {a.goalOdds.goalLabel}: {Math.round(a.goalOdds.from * 100)}% →{' '}
+                      <strong>{Math.round(a.goalOdds.to * 100)}%</strong>
+                    </div>
+                  )}
+                </div>
+                <div className="action-impact">
+                  <span className="impact-value">+{a.impactPoints.toFixed(1)}</span>
+                </div>
+              </div>
+              <details className="action-details">
+                <summary>Why this, why now</summary>
+                <p className="action-detail">{a.detail}</p>
+                <p className="action-prediction">🔮 {a.prediction}</p>
+                <p className="action-because">{a.because}</p>
+              </details>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="card">
+        <h2>Goals</h2>
         <div className="goal-strip">
           {assessments.map((a) => (
             <div key={a.goal.id} className="goal-mini">
@@ -100,7 +106,7 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
               <div className="bar-track">
                 <div
                   className="bar-fill"
-                  style={{ width: `${Math.round(a.progressPct * 100)}%` }}
+                  style={{ width: `${Math.max(4, Math.round(a.progressPct * 100))}%` }}
                   data-level={a.paceRatio >= 0.95 ? 'good' : a.paceRatio >= 0.7 ? 'ok' : 'low'}
                 />
               </div>
@@ -116,42 +122,9 @@ export function TodayView({ briefing, assessments, momentum, fresh }: TodayProps
         </div>
       </section>
 
-      <section className="card">
-        <div className="section-head">
-          <h2>Do these today</h2>
-          <span className="muted small">Ranked by predicted Life Score impact</span>
-        </div>
-        <div className="action-list">
-          {briefing.actions.map((a, i) => (
-            <div key={a.id} className="action-card">
-              <div className="action-rank">#{i + 1}</div>
-              <div className="action-body">
-                <div className="action-title">{a.title}</div>
-                <p className="action-detail">{a.detail}</p>
-                <p className="action-prediction">🔮 {a.prediction}</p>
-                {a.goalOdds && (
-                  <p className="action-odds">
-                    "{a.goalOdds.goalLabel}": {Math.round(a.goalOdds.from * 100)}% →{' '}
-                    <strong>{Math.round(a.goalOdds.to * 100)}%</strong> odds if this becomes your default
-                  </p>
-                )}
-                <p className="action-because">Why now: {a.because}</p>
-              </div>
-              <div className="action-impact">
-                <span className="impact-value">+{a.impactPoints.toFixed(1)}</span>
-                <span className="impact-label">pts</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {briefing.insights.length > 0 && (
         <section className="card">
-          <div className="section-head">
-            <h2>Patterns LifeOS has learned about you</h2>
-            <span className="muted small">From your own data — not generic advice</span>
-          </div>
+          <h2>Patterns in your data</h2>
           <div className="insight-strip">
             {briefing.insights.map((ins) => (
               <div key={ins.id} className="insight-mini">

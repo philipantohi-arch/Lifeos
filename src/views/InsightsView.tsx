@@ -11,11 +11,7 @@ export function InsightsView({ insights, fresh }: { insights: Insight[]; fresh?:
     return (
       <div className="view">
         <header>
-          <h1>Your Patterns</h1>
-          <p className="muted">
-            LifeOS mines your history for personal cause-and-effect — statistically, from your own days, never from
-            generic advice.
-          </p>
+          <p className="muted small">Personal cause-and-effect, mined statistically from your own days.</p>
         </header>
         <section className="card note-card">
           <h2>🔓 Unlocks after ~2–3 weeks of data</h2>
@@ -32,10 +28,8 @@ export function InsightsView({ insights, fresh }: { insights: Insight[]; fresh?:
   return (
     <div className="view">
       <header>
-        <h1>Your Patterns</h1>
-        <p className="muted">
-          LifeOS continuously mines your unified history for personal cause-and-effect. Every insight below was discovered
-          statistically from your data — the correlation and sample size are shown so you can judge the evidence yourself.
+        <p className="muted small">
+          Discovered statistically from your data — correlation and sample size shown so you can judge the evidence.
         </p>
       </header>
 

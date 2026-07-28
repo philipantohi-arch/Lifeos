@@ -6,10 +6,7 @@ export function IntegrationsView() {
   return (
     <div className="view">
       <header>
-        <h1>Integrations</h1>
-        <p className="muted">
-          LifeOS unifies every source into one schema, so sleep, money, tasks, and relationships can finally talk to each other.
-        </p>
+        <p className="muted small">One schema for every source — sleep, money, and time finally talk to each other.</p>
       </header>
 
       {categories.map((cat) => (

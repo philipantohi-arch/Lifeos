@@ -23,6 +23,7 @@ import type {
 } from './types';
 import { deriveTargets, fmtHour } from './personalize';
 import { oddsDelta } from './montecarlo';
+import { currentMetric } from './goals';
 
 interface Candidate extends RecommendedAction {
   /** New-habit asks are capped; state-response actions are not */
@@ -389,6 +390,109 @@ export function recommendActions(
       intervention: { sleepFloorLift: 0.3, spendMult: 0.97 },
       affects: ['sleepAvg', 'savingsBalance'],
     });
+  }
+
+  // ── Goal-gap fallback: on quiet days, your goals ARE the agenda ──────
+  // A flat baseline day trips no alarms, but a goal below target always
+  // deserves a move. Add one action per uncovered top-priority goal.
+  const covered = new Set(candidates.flatMap((c) => c.affects ?? []));
+  const byPriority = [...profile.goals].sort((a, b) => b.priority - a.priority);
+  for (const g of byPriority) {
+    if (covered.has(g.metric)) continue;
+    const current = currentMetric(g.metric, records, profile);
+    if (g.kind === 'sustain' && current >= g.target) continue;
+
+    switch (g.metric) {
+      case 'sleepAvg':
+        candidates.push({
+          id: `gap-${g.id}`,
+          title: `Be in bed by ${fmtHour(t.bedtimeIdeal)} tonight`,
+          detail: `You're averaging ${current.toFixed(1)}h against your ${g.target}h goal. Tonight's bedtime is the only lever that moves a sleep average.`,
+          impactPoints: 2.8,
+          pillar: 'health',
+          prediction: `Consistent ${fmtHour(t.bedtimeIdeal)} nights make ${g.target}h your default, not your exception.`,
+          because: `"${g.label}" sits below target; bedtime fits your ${profile.chronotype} chronotype.`,
+          intervention: { sleepFloorLift: Math.max(0.4, g.target - current + 0.3) },
+          affects: ['sleepAvg', 'deepWorkWeekly'],
+        });
+        break;
+      case 'stepsAvg':
+        candidates.push({
+          id: `gap-${g.id}`,
+          title: 'Add a 25–30 minute walk today',
+          detail: `You're averaging ${Math.round(current).toLocaleString()} steps against your ${g.target.toLocaleString()} goal — one walk covers most of the gap.`,
+          impactPoints: 2.2,
+          pillar: 'health',
+          prediction: 'A daily walk at the same trigger (after lunch, after work) becomes automatic in weeks.',
+          because: `"${g.label}" sits below target.`,
+          intervention: { stepsBoost: Math.max(500, Math.round(g.target - current + 400)) },
+          affects: ['stepsAvg', 'weightLbs'],
+        });
+        break;
+      case 'deepWorkWeekly':
+        candidates.push({
+          id: `gap-${g.id}`,
+          title: `Protect ${fmtHour(t.deepWorkWindow[0])}–${fmtHour(t.deepWorkWindow[1])} for deep work`,
+          detail: `${current.toFixed(1)}h this week vs your ${g.target}h goal. Your ${profile.chronotype}-chronotype peak window is where hard work costs least.`,
+          impactPoints: 2.4,
+          pillar: 'productivity',
+          prediction: 'One protected block daily closes the weekly gap on its own.',
+          because: `"${g.label}" sits below target (synchrony effect).`,
+          intervention: { deepWorkBoost: Math.max(0.3, (g.target - current) / 5 + 0.2) },
+          affects: ['deepWorkWeekly'],
+        });
+        break;
+      case 'workoutsWeekly':
+        if (!situationBlocksTraining) {
+          candidates.push({
+            id: `gap-${g.id}`,
+            title: `Train today — ${Math.round(current)}/${g.target} sessions this week`,
+            detail: 'Any session counts: full-body basics, a brisk hill walk, a home circuit. Consistency beats intensity for building the habit.',
+            impactPoints: 2.3,
+            pillar: 'health',
+            prediction: 'Hitting your weekly number is the single strongest driver of your training goal odds.',
+            because: `"${g.label}" sits below target (ACSM progression).`,
+            intervention: { workoutsBoost: 1 },
+            affects: ['workoutsWeekly'],
+          });
+        }
+        break;
+      case 'savingsBalance': {
+        const todayTs = new Date(records[records.length - 1].date + 'T00:00:00Z').getTime();
+        const deadlineTs = g.deadline ? new Date(g.deadline + 'T00:00:00Z').getTime() : NaN;
+        const weeksLeft = Number.isFinite(deadlineTs)
+          ? Math.max(4, (deadlineTs - todayTs) / (7 * 86_400_000))
+          : 52;
+        const weekly = Math.max(15, Math.round((g.target - current) / weeksLeft / 5) * 5);
+        candidates.push({
+          id: `gap-${g.id}`,
+          title: `Auto-transfer $${weekly} to savings this week`,
+          detail: `"${g.label}" moves only when money moves. Automatic transfers beat willpower — set it once, let it run.`,
+          impactPoints: 2.0,
+          pillar: 'wealth',
+          isNewHabit: true,
+          prediction: 'Automated saving is the highest-adherence wealth habit in the literature.',
+          because: `"${g.label}" needs steady weekly flow.`,
+          intervention: { extraWeeklySavings: weekly },
+          affects: ['savingsBalance'],
+        });
+        break;
+      }
+      case 'weightLbs':
+        candidates.push({
+          id: `gap-${g.id}`,
+          title: 'Cook tonight, protein first',
+          detail: `"${g.label}" is won at the plate: home-cooked, protein-forward dinners are the highest-leverage daily move.`,
+          impactPoints: 2.0,
+          pillar: 'health',
+          prediction: 'Home cooking cuts ~500 kcal vs ultra-processed meals in controlled studies.',
+          because: `"${g.label}" (Hall 2019 RCT; home-cooking cohort data).`,
+          intervention: { weightDriftShift: -0.4, spendMult: 0.97 },
+          affects: ['weightLbs', 'savingsBalance'],
+        });
+        break;
+    }
+    covered.add(g.metric);
   }
 
   // ── Rank: goal-odds delta first, generic impact second ───────────────

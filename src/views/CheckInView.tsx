@@ -64,8 +64,8 @@ export function CheckInView({ profile, todayISO, existing, realDayCount, onSave 
   return (
     <div className="view">
       <header>
-        <h1>Daily check-in</h1>
-        <p className="muted">
+        <h1>Check in</h1>
+        <p className="muted small">
           {dateLabel} · ~30 seconds. Every day you log is a real data point — {realDayCount} logged so far
           {realDayCount < 7 ? `, ${7 - realDayCount} until your first weekly review` : ''}
           {realDayCount >= 7 && realDayCount < 21 ? `, ${21 - realDayCount} until pattern discovery unlocks` : ''}.

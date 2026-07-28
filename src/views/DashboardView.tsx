@@ -38,8 +38,7 @@ export function DashboardView({ records, result, profile }: Props) {
   return (
     <div className="view">
       <header>
-        <h1>Dashboard</h1>
-        <p className="muted">Everything LifeOS is tracking, in one place.</p>
+        <p className="muted small">Everything LifeOS is tracking, in one place.</p>
       </header>
 
       {fresh && (

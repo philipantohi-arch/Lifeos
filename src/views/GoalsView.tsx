@@ -66,18 +66,10 @@ export function GoalsView({ records, profile, assessments, onChangeGoal, fresh }
   return (
     <div className="view">
       <header>
-        <h1>Your Goals</h1>
-        <p className="muted">
-          Your Life Score is anchored here: progress is measured from your own baseline toward your own targets, at a
-          pace your capacity can actually sustain. Odds come from {(800).toLocaleString()} simulated futures built from
-          your real day-to-day variability — not wishful straight lines.
+        <p className="muted small">
+          Measured from your baseline, at your capacity. Odds = 800 simulated futures from your own variability.
+          {fresh ? ' Day 1: goals start on pace.' : ''}
         </p>
-        {fresh && (
-          <p className="muted small">
-            Day 1: goals start on pace, and until your real days accumulate, the simulations use typical human
-            day-to-day variability around your reported baseline.
-          </p>
-        )}
       </header>
 
       {assessments.map((a) => {

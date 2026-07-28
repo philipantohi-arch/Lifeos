@@ -15,8 +15,7 @@ export function JourneyView({ accomplishments, momentum, gaps, review, fresh }: 
     return (
       <div className="view">
         <header>
-          <h1>Your Journey</h1>
-          <p className="muted">Day 1. Your story starts now — nothing here is invented.</p>
+          <p className="muted small">Day 1. Your story starts now — nothing here is invented.</p>
         </header>
         <section className="card momentum-card">
           <div className="momentum-head">
@@ -46,11 +45,7 @@ export function JourneyView({ accomplishments, momentum, gaps, review, fresh }: 
   return (
     <div className="view">
       <header>
-        <h1>Your Journey</h1>
-        <p className="muted">
-          Long-term change is made of small wins, comebacks, and momentum — so LifeOS keeps the receipts. Everything
-          here is compared to one person only: past you.
-        </p>
+        <p className="muted small">Small wins, comebacks, momentum — compared to one person only: past you.</p>
       </header>
 
       <section className={`card momentum-card ${momentum.direction}`}>

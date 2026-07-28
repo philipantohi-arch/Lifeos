@@ -25,11 +25,8 @@ export function ScienceView() {
   return (
     <div className="view">
       <header>
-        <h1>The Science</h1>
-        <p className="muted">
-          Every personalized target and recommendation in LifeOS traces to a source below — official guidelines,
-          meta-analyses, and landmark studies. No number in the engine is made up, and each entry says exactly how it's
-          used. Evidence changes; so does LifeOS.
+        <p className="muted small">
+          Every number traces to a source — guidelines, meta-analyses, landmark studies — with how it's used.
         </p>
       </header>
 

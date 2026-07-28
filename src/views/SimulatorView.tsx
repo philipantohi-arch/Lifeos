@@ -43,10 +43,7 @@ export function SimulatorView({ records, profile }: Props) {
   return (
     <div className="view">
       <header>
-        <h1>Future Simulator</h1>
-        <p className="muted">
-          Ask "what if" — LifeOS projects the compounding effect of a decision across your whole life, not just one app's metric.
-        </p>
+        <p className="muted small">Pick a change — see your trajectory and your real goal odds move.</p>
       </header>
 
       <div className="scenario-grid">

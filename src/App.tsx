@@ -9,6 +9,7 @@ import { assessGoals } from './engine/goals';
 import { buildWeeklyReview, computeMomentum, detectAccomplishments, potentialGaps } from './engine/journey';
 import { OnboardingView } from './views/OnboardingView';
 import { CheckInView } from './views/CheckInView';
+import { Segments } from './components/Segments';
 import { TodayView } from './views/TodayView';
 import { GoalsView } from './views/GoalsView';
 import { JourneyView } from './views/JourneyView';
@@ -19,29 +20,17 @@ import { IntegrationsView } from './views/IntegrationsView';
 import { ProfileView } from './views/ProfileView';
 import { ScienceView } from './views/ScienceView';
 
-type Tab =
-  | 'today'
-  | 'checkin'
-  | 'goals'
-  | 'journey'
-  | 'dashboard'
-  | 'simulator'
-  | 'insights'
-  | 'profile'
-  | 'science'
-  | 'integrations';
+type Tab = 'today' | 'checkin' | 'goals' | 'journey' | 'me';
+type GoalsSeg = 'goals' | 'future';
+type JourneySeg = 'journey' | 'patterns';
+type MeSeg = 'profile' | 'dashboard' | 'science' | 'connect';
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: 'today', label: 'Today', icon: '☀️' },
-  { id: 'checkin', label: 'Check in', icon: '✍️' },
-  { id: 'goals', label: 'Goals', icon: '🏁' },
+  { id: 'goals', label: 'Goals', icon: '🎯' },
+  { id: 'checkin', label: 'Check in', icon: '＋' },
   { id: 'journey', label: 'Journey', icon: '🧭' },
-  { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-  { id: 'simulator', label: 'Future Simulator', icon: '🔮' },
-  { id: 'insights', label: 'Your Patterns', icon: '🧠' },
-  { id: 'profile', label: 'Profile', icon: '👤' },
-  { id: 'science', label: 'The Science', icon: '🔬' },
-  { id: 'integrations', label: 'Integrations', icon: '🔌' },
+  { id: 'me', label: 'Me', icon: '👤' },
 ];
 
 type Mode = 'onboarding' | 'custom' | 'demo';
@@ -95,6 +84,9 @@ function seedFor(profile: UserProfile): number {
 export default function App() {
   const initial = useMemo(loadSaved, []);
   const [tab, setTab] = useState<Tab>('today');
+  const [goalsSeg, setGoalsSeg] = useState<GoalsSeg>('goals');
+  const [journeySeg, setJourneySeg] = useState<JourneySeg>('journey');
+  const [meSeg, setMeSeg] = useState<MeSeg>('profile');
   const [mode, setMode] = useState<Mode>(initial.mode);
   const [personaId, setPersonaId] = useState(initial.personaId);
   const [overrides, setOverrides] = useState<Partial<UserProfile>>(initial.overrides);
@@ -248,21 +240,21 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="sidebar-persona">
-          <span className="persona-chip" onClick={() => setTab('profile')}>
-            {mode === 'demo' ? `Demo: ${profile.name}` : profile.name} · {profile.age}
-          </span>
-        </div>
         <div className="sidebar-score">
           <div className="sidebar-score-value">{scoreResult.score}</div>
           <div className="sidebar-score-label">Life Score</div>
         </div>
       </aside>
 
+      <header className="appbar">
+        <span className="appbar-brand">◉ LifeOS</span>
+        <span className="appbar-score">{scoreResult.score}</span>
+      </header>
+
       <main className="main">
         {mode === 'demo' && (
           <div className="demo-banner">
-            You're exploring a demo life ({profile.name}).{' '}
+            Exploring a demo life ({profile.name}).{' '}
             {customProfile ? (
               <button className="link-btn" onClick={() => setMode('custom')}>
                 Back to my LifeOS
@@ -274,16 +266,18 @@ export default function App() {
             )}
           </div>
         )}
+
         {tab === 'today' && (
           <>
             {mode === 'custom' && !loggedDays.some((l) => l.date === todayISO()) && (
               <div className="checkin-nudge" onClick={() => setTab('checkin')}>
-                ✍️ You haven't logged today yet — 30 seconds keeps your data real. <strong>Check in →</strong>
+                ✍️ 30 seconds keeps your data real — <strong>check in →</strong>
               </div>
             )}
             <TodayView briefing={briefing} assessments={assessments} momentum={momentum} fresh={fresh} />
           </>
         )}
+
         {tab === 'checkin' &&
           (mode === 'custom' ? (
             <CheckInView
@@ -297,34 +291,89 @@ export default function App() {
             <div className="view">
               <header>
                 <h1>Daily check-in</h1>
-                <p className="muted">
-                  Check-ins are for your own LifeOS — demo lives come with their data built in. Set up your own from
-                  the Profile tab.
-                </p>
+                <p className="muted">Check-ins are for your own LifeOS. Set yours up from the Me tab.</p>
               </header>
             </div>
           ))}
+
         {tab === 'goals' && (
-          <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} fresh={fresh} />
+          <div className="view">
+            <Segments<GoalsSeg>
+              options={[
+                { id: 'goals', label: 'My goals' },
+                { id: 'future', label: 'What if…' },
+              ]}
+              value={goalsSeg}
+              onChange={setGoalsSeg}
+            />
+            {goalsSeg === 'goals' ? (
+              <GoalsView records={records} profile={profile} assessments={assessments} onChangeGoal={patchGoal} fresh={fresh} />
+            ) : (
+              <SimulatorView records={records} profile={profile} />
+            )}
+          </div>
         )}
+
         {tab === 'journey' && (
-          <JourneyView accomplishments={accomplishments} momentum={momentum} gaps={gaps} review={review} fresh={fresh} />
+          <div className="view">
+            <Segments<JourneySeg>
+              options={[
+                { id: 'journey', label: 'Journey' },
+                { id: 'patterns', label: 'Patterns' },
+              ]}
+              value={journeySeg}
+              onChange={setJourneySeg}
+            />
+            {journeySeg === 'journey' ? (
+              <JourneyView accomplishments={accomplishments} momentum={momentum} gaps={gaps} review={review} fresh={fresh} />
+            ) : (
+              <InsightsView insights={insights} fresh={mode === 'custom' && realCount < 21} />
+            )}
+          </div>
         )}
-        {tab === 'dashboard' && <DashboardView records={records} result={scoreResult} profile={profile} />}
-        {tab === 'simulator' && <SimulatorView records={records} profile={profile} />}
-        {tab === 'insights' && <InsightsView insights={insights} fresh={fresh} />}
-        {tab === 'profile' && (
-          <ProfileView
-            personaId={mode === 'demo' ? personaId : ''}
-            profile={profile}
-            onSelectPersona={selectPersona}
-            onChange={patchProfile}
-            onReset={resetApp}
-          />
+
+        {tab === 'me' && (
+          <div className="view">
+            <Segments<MeSeg>
+              options={[
+                { id: 'profile', label: 'Profile' },
+                { id: 'dashboard', label: 'Stats' },
+                { id: 'science', label: 'Science' },
+                { id: 'connect', label: 'Connect' },
+              ]}
+              value={meSeg}
+              onChange={setMeSeg}
+            />
+            {meSeg === 'profile' && (
+              <ProfileView
+                personaId={mode === 'demo' ? personaId : ''}
+                profile={profile}
+                onSelectPersona={selectPersona}
+                onChange={patchProfile}
+                onReset={resetApp}
+              />
+            )}
+            {meSeg === 'dashboard' && <DashboardView records={records} result={scoreResult} profile={profile} />}
+            {meSeg === 'science' && <ScienceView />}
+            {meSeg === 'connect' && <IntegrationsView />}
+          </div>
         )}
-        {tab === 'science' && <ScienceView />}
-        {tab === 'integrations' && <IntegrationsView />}
       </main>
+
+      <nav className="bottom-nav">
+        {TABS.map((t) =>
+          t.id === 'checkin' ? (
+            <button key={t.id} className="bn-checkin" onClick={() => setTab('checkin')} aria-label="Check in">
+              ＋
+            </button>
+          ) : (
+            <button key={t.id} className={`bn-item ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>
+              <span className="bn-icon">{t.icon}</span>
+              <span className="bn-label">{t.label}</span>
+            </button>
+          ),
+        )}
+      </nav>
     </div>
   );
 }

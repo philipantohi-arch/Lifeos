@@ -72,11 +72,7 @@ export function ProfileView({ personaId, profile, onSelectPersona, onChange, onR
   return (
     <div className="view">
       <header>
-        <h1>Profile & Personalization</h1>
-        <p className="muted">
-          LifeOS adapts every target, recommendation, and simulation to who you are and what's happening in your life
-          right now. Change anything below — the whole system recalibrates instantly.
-        </p>
+        <p className="muted small">Change anything — the whole system recalibrates instantly.</p>
       </header>
 
       <div className="two-col">
