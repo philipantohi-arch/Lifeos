@@ -1,0 +1,726 @@
+<title>BDCR-26 — The Debt Cycle Meets the AI Bubble: A 5-Year Map</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f2f1ec;
+    --ink: #16181c;
+    --ink-2: #4c4f55;
+    --ink-3: #85878d;
+    --hairline: #e3e2db;
+    --accent: #a8851b;
+    --accent-strong: #8a6d12;
+    --accent-wash: rgba(168, 133, 27, 0.09);
+    --good: #0ca30c;      --good-text: #006300;
+    --warn: #fab219;      --warn-text: #7a5600;
+    --serious: #ec835a;   --serious-text: #9c3f1c;
+    --critical: #d03b3b;  --critical-text: #a52222;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --s6: #008300;
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --bg: #101318;
+      --surface: #171b21;
+      --surface-2: #1d222a;
+      --ink: #eceef1;
+      --ink-2: #b3b7bf;
+      --ink-3: #7d8189;
+      --hairline: #272c34;
+      --accent: #d9b23c;
+      --accent-strong: #e8c65e;
+      --accent-wash: rgba(217, 178, 60, 0.10);
+      --good: #0ca30c;      --good-text: #4cc24c;
+      --warn: #fab219;      --warn-text: #fab219;
+      --serious: #ec835a;   --serious-text: #ec835a;
+      --critical: #d03b3b;  --critical-text: #e66767;
+      --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #101318;
+    --surface: #171b21;
+    --surface-2: #1d222a;
+    --ink: #eceef1;
+    --ink-2: #b3b7bf;
+    --ink-3: #7d8189;
+    --hairline: #272c34;
+    --accent: #d9b23c;
+    --accent-strong: #e8c65e;
+    --accent-wash: rgba(217, 178, 60, 0.10);
+    --good: #0ca30c;      --good-text: #4cc24c;
+    --warn: #fab219;      --warn-text: #fab219;
+    --serious: #ec835a;   --serious-text: #ec835a;
+    --critical: #d03b3b;  --critical-text: #e66767;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --s6: #008300;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px 96px; }
+  section { margin-top: 72px; }
+
+  h1, h2, h3 { font-family: var(--serif); text-wrap: balance; line-height: 1.15; }
+  h2 { font-size: 30px; margin: 0 0 6px; }
+  h3 { font-size: 20px; margin: 28px 0 8px; }
+  p { max-width: 72ch; }
+  .lede { font-size: 18px; color: var(--ink-2); max-width: 68ch; }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 10px;
+  }
+  .kicker { color: var(--ink-3); font-size: 14px; }
+
+  /* ---------- masthead ---------- */
+  header.masthead { padding: 56px 0 0; border-bottom: 1px solid var(--hairline); }
+  .masthead h1 { font-size: clamp(34px, 5vw, 52px); margin: 4px 0 10px; }
+  .masthead .sub { font-size: 18px; color: var(--ink-2); max-width: 74ch; }
+  .mastmeta {
+    display: flex; flex-wrap: wrap; gap: 8px 24px; margin: 26px 0 34px;
+    font-family: var(--mono); font-size: 12.5px; color: var(--ink-3);
+  }
+
+  /* ---------- gauge ---------- */
+  .gauge-card {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px;
+    padding: 28px 28px 24px; margin: 0 0 -1px;
+  }
+  .gauge-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px 22px; }
+  .gauge-num { font-family: var(--serif); font-size: 64px; line-height: 1; }
+  .gauge-num small { font-size: 26px; color: var(--ink-3); }
+  .gauge-label { font-size: 17px; }
+  .gauge-label strong { color: var(--serious-text); }
+  .band { position: relative; margin: 26px 0 6px; }
+  .band-track { display: flex; height: 14px; border-radius: 7px; overflow: hidden; }
+  .band-track div { height: 100%; }
+  .band-needle {
+    position: absolute; top: -7px; width: 2px; height: 28px; background: var(--ink);
+  }
+  .band-needle::after {
+    content: "67.3"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink);
+  }
+  .band-ticks { display: flex; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
+  .band-ticks span { position: relative; }
+  .regime-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; font-size: 13px; color: var(--ink-2); }
+  .regime-legend b { font-family: var(--mono); font-weight: 700; font-size: 12px; }
+
+  /* ---------- stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(158px, 1fr)); gap: 10px; margin-top: 22px; }
+  .tile {
+    background: var(--surface); border: 1px solid var(--hairline); border-radius: 8px;
+    padding: 14px 16px 12px;
+  }
+  .tile .t-label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+  .tile .t-value { font-family: var(--serif); font-size: 26px; margin: 2px 0 0; }
+  .tile .t-note { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+
+  /* ---------- score chips + dashboard table ---------- */
+  .chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 22px; padding: 0 7px; border-radius: 11px;
+    font-family: var(--mono); font-size: 12px; font-weight: 700; color: #fff;
+  }
+  .chip.c0 { background: var(--good); }
+  .chip.c1 { background: var(--warn); color: #3d2c00; }
+  .chip.c2 { background: var(--serious); color: #3a1608; }
+  .chip.c3 { background: var(--critical); }
+
+  .scroll { overflow-x: auto; border: 1px solid var(--hairline); border-radius: 10px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  th, td { text-align: left; padding: 9px 14px; vertical-align: top; border-top: 1px solid var(--hairline); }
+  thead th {
+    border-top: none; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-3); font-weight: 600; background: var(--surface-2);
+  }
+  td.num, th.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  table.sp td.num { white-space: normal; font-size: 12.5px; }
+  table.sp td:first-child { min-width: 150px; }
+  tr.pillar-row td {
+    background: var(--accent-wash); font-family: var(--mono); font-size: 12px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); font-weight: 700;
+  }
+  td .reading { color: var(--ink-2); font-size: 12.5px; display: block; margin-top: 2px; }
+  td .thr { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); display: block; margin-top: 2px; }
+
+  /* ---------- stage stepper ---------- */
+  .stages { display: grid; grid-template-columns: repeat(9, minmax(96px, 1fr)); gap: 6px; overflow-x: auto; padding-bottom: 6px; }
+  .stage {
+    border: 1px solid var(--hairline); border-radius: 8px; background: var(--surface);
+    padding: 10px 10px 12px; font-size: 12px; color: var(--ink-2); min-width: 96px;
+  }
+  .stage b { display: block; font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-bottom: 4px; }
+  .stage.done { background: var(--surface-2); }
+  .stage.here { border-color: var(--accent); background: var(--accent-wash); }
+  .stage.here b { color: var(--accent-strong); }
+  .stage.partial { border-style: dashed; border-color: var(--accent); }
+
+  /* ---------- scenario map ---------- */
+  .prob-bar { display: flex; height: 40px; border-radius: 8px; overflow: hidden; margin: 20px 0 8px; }
+  .prob-bar div {
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-family: var(--mono); font-size: 13px; font-weight: 700;
+    border-right: 2px solid var(--bg);
+  }
+  .prob-bar div:last-child { border-right: none; }
+  .prob-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); margin-bottom: 26px; }
+  .swatch { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: baseline; }
+
+  .scenario {
+    border: 1px solid var(--hairline); border-left: 4px solid var(--sc, var(--accent));
+    border-radius: 10px; background: var(--surface); padding: 24px 26px 20px; margin-top: 22px;
+  }
+  .scenario h3 { margin: 0; font-size: 22px; }
+  .sc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; }
+  .sc-prob { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--ink-2); }
+  .sc-analog { font-size: 13px; color: var(--ink-3); margin: 4px 0 0; }
+  .sc-desc { color: var(--ink-2); font-size: 14.5px; }
+  .sc-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 12px; }
+  .sc-col h4 { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
+  .sc-col p, .sc-col li { font-size: 13.5px; color: var(--ink-2); margin: 0 0 6px; }
+  .sc-col ul { margin: 0; padding-left: 18px; }
+  .endpoints { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .ep {
+    background: var(--surface-2); border-radius: 6px; padding: 7px 11px;
+    font-size: 12.5px; color: var(--ink-2);
+  }
+  .ep b { font-family: var(--mono); font-size: 12.5px; color: var(--ink); display: block; }
+
+  /* ---------- range chart ---------- */
+  .range-chart { margin-top: 14px; }
+  .range-row { display: grid; grid-template-columns: 150px 1fr; align-items: center; gap: 12px; margin: 7px 0; }
+  .range-row .r-label { font-size: 13px; color: var(--ink-2); text-align: right; }
+  .range-track { position: relative; height: 22px; background: var(--surface-2); border-radius: 5px; }
+  .range-fill { position: absolute; top: 4px; bottom: 4px; border-radius: 4px; opacity: 0.9; }
+  .range-fill span {
+    position: absolute; top: -1px; font-family: var(--mono); font-size: 11px; color: var(--ink);
+    white-space: nowrap; line-height: 16px;
+  }
+  .axis-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; }
+  .axis-line { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 11px; color: var(--ink-3); padding-top: 4px; }
+
+  /* ---------- misc ---------- */
+  .callout {
+    border: 1px solid var(--hairline); border-left: 4px solid var(--accent);
+    background: var(--surface); border-radius: 8px; padding: 18px 22px; margin: 22px 0;
+  }
+  .callout p { margin: 6px 0; font-size: 14.5px; color: var(--ink-2); }
+  .callout p:first-child { margin-top: 0; }
+  .two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .footnote { font-size: 13px; color: var(--ink-3); max-width: 78ch; }
+  code { font-family: var(--mono); font-size: 0.9em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+  .formula {
+    font-family: var(--mono); font-size: 14px; background: var(--surface-2);
+    border-radius: 8px; padding: 14px 18px; overflow-x: auto;
+  }
+  pre.mermaid { background: var(--surface); border: 1px solid var(--hairline); border-radius: 10px; padding: 14px; overflow-x: auto; }
+  ul.tight { padding-left: 20px; } ul.tight li { margin: 5px 0; }
+  .disclaimer {
+    margin-top: 64px; border-top: 1px solid var(--hairline); padding-top: 20px;
+    font-size: 12.5px; color: var(--ink-3); max-width: 84ch;
+  }
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <p class="eyebrow">BDCR-26 · Regime Dashboard &amp; Five-Year Map</p>
+  <h1>The Debt Cycle Meets the AI&nbsp;Bubble</h1>
+  <p class="sub">A mechanical implementation of Ray Dalio's <em>How Countries Go Broke</em> and <em>The Changing World Order</em> — 31 indicators, 7 pillars, live July 2026 readings — plus a probability-weighted map of the US economy and markets through mid-2031.</p>
+  <div class="mastmeta">
+    <span>AS OF 2026-07-28</span>
+    <span>12 RESEARCH STREAMS · ~1.3M TOKENS</span>
+    <span>ADVERSARIALLY VERIFIED</span>
+    <span>NOT INVESTMENT ADVICE</span>
+  </div>
+</header>
+
+<!-- ================= GAUGE ================= -->
+<section>
+  <div class="gauge-card">
+    <div class="gauge-head">
+      <div class="gauge-num">67.3<small>/100</small></div>
+      <div class="gauge-label">
+        <strong>Regime 3 — Stagflationary Fragility / Pre-Crisis Squeeze</strong>, upper bound.<br>
+        <span class="kicker">Honest recalibrations span ~62–76, so the Regime-4 boundary sits inside the error band. What keeps the call at R3 is the <b>monetization gate</b>, which is decisively not met: the Warsh Fed is hike-biased, real rates are positive, and balance-sheet growth is bills-only.</span>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-track">
+        <div style="width:25%; background: var(--good);"></div>
+        <div style="width:20%; background: var(--warn);"></div>
+        <div style="width:25%; background: var(--serious);"></div>
+        <div style="width:15%; background: var(--critical); opacity:.75;"></div>
+        <div style="width:15%; background: var(--critical);"></div>
+      </div>
+      <div class="band-needle" style="left: calc(67.3% - 1px);"></div>
+    </div>
+    <div class="band-ticks">
+      <span style="width:25%">0</span><span style="width:20%">25</span><span style="width:25%">45</span><span style="width:15%">70</span><span style="width:15%">85</span><span>100</span>
+    </div>
+    <div class="regime-legend">
+      <span><b>R1</b> Stable Expansion</span>
+      <span><b>R2</b> Late-Cycle Buildup</span>
+      <span><b>R3</b> Stagflationary Fragility ← <b>current</b></span>
+      <span><b>R4</b> Financial Repression <span class="kicker">(needs monetization gate)</span></span>
+      <span><b>R5</b> Debt Crisis <span class="kicker">(needs crisis gate)</span></span>
+    </div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="t-label">Interest / revenue</div><div class="t-value">18.6%</div><div class="t-note">Record; &gt; defense &amp; Medicare</div></div>
+    <div class="tile"><div class="t-label">Debt held by public</div><div class="t-value">100.2%</div><div class="t-note">of GDP — crossed 100% Apr 2026</div></div>
+    <div class="tile"><div class="t-label">30Y Treasury</div><div class="t-value">5.16%</div><div class="t-note">Highest auction yields since 2007</div></div>
+    <div class="tile"><div class="t-label">Shiller CAPE</div><div class="t-value">40.9</div><div class="t-note">2nd-highest era since the 1870s</div></div>
+    <div class="tile"><div class="t-label">AI capex gap</div><div class="t-value">~$490B</div><div class="t-note">2026 capex vs AI end-market revenue</div></div>
+    <div class="tile"><div class="t-label">Card 90+ transitions</div><div class="t-value">~7.0%</div><div class="t-note">Highest since 2011 — plateaued</div></div>
+    <div class="tile"><div class="t-label">Gold</div><div class="t-value">$4,030</div><div class="t-note">27% of CB reserves — passed USTs</div></div>
+    <div class="tile"><div class="t-label">China FAI</div><div class="t-value">−5.7%</div><div class="t-note">y/y H1-26; property −14%</div></div>
+  </div>
+  <p class="footnote">The signature of mid-2026: <b>22 of 31 indicators score exactly 2 of 3</b> — amber everywhere, red almost nowhere. Nothing has broken; nothing has slack left. That configuration is itself the late-cycle tell.</p>
+</section>
+
+<!-- ================= TLDR ================= -->
+<section>
+  <p class="eyebrow">The Bottom Line</p>
+  <h2>Probability-weighted, the next five years are a repression-flavored nominal muddle — not a collapse</h2>
+  <div class="callout">
+    <p><b>≈43% of the probability mass lands on outcomes where policy is eventually forced</b> — financial repression, a post-bust QE endgame, or emergency yield caps — all of which engineer negative real returns for bondholders by 2031. (The pre-adversarial synthesis put this at 54%; the anti-doom review moved ~10 points toward the benign states, and the honest answer lives between them.) Worth knowing before that number alarms you: real T-bill returns were negative in roughly <b>40% of all years since 1946</b> — "repression-flavored" is far more normal than it sounds. Explicit US default gets ~0%: the US borrows in its own currency, so default is a choice inflation makes unnecessary.</p>
+    <p><b>Expected path across the distribution:</b> CPI averages ~3.3% (target is 2%), real GDP ~1.8%, the 10-year Treasury lives mostly in a 4–5.25% band (weighted 2031 midpoint ~4.5%), the S&amp;P 500 returns roughly +4–5%/yr nominal — <b>only ~1% real</b>, close to what a CAPE of 41 with record concentration has always predicted. <b>Gold is the single highest-conviction winner</b> (probability-weighted ~$6,000/oz midpoint, range $5,400–6,900 — it rises in five of six scenarios, because both erosion and crisis feed it). One honest caveat the adversarial review flagged: a distribution implying gold is ~30% cheap is itself evidence of residual doom-skew — treat gold's expected edge as ~3–5%/yr over cash, not 8%. The dollar erodes rather than breaks: reserve share drifts from 57% toward ~53–55%, and the displaced share goes to gold, not to any rival currency.</p>
+    <p><b>Dalio scores as a framework, not as a timer.</b> His mechanism is visibly underway — interest costs compounding, auctions price-elastic, gold displacing Treasuries in reserves, internal disorder at his Stage 5. But his acute "heart attack in ~3 years" timing is discounted against his 1982/2015/2018/2020 record and the 50-year failure rate of US-collapse calls. His fracture scenario gets 3%, not 50%.</p>
+    <p><b>AI is the hinge both ways.</b> AI capex has contributed roughly three-quarters of recent GDP growth on a contribution-accounting basis — a stall subtracts ~0.7–1.0pp of growth directly, with recession requiring the wealth-effect second order to fire — <em>and</em> AI is the only credible escape hatch (productivity lifting g above r bends the debt curve without a single hard vote; the true probability that AI meaningfully improves the fiscal denominator, counting the benign half of the base case, is ~30–35%). Its bubble anatomy reads railway/internet-type — real technology, equity-cushioned core, levered fringe — not 1929/2008. But a bust <em>widens</em> deficits to 9–10% of GDP and forces the Fed back into QE: <b>the bubble bursting feeds the debt cycle</b>.</p>
+  </div>
+</section>
+
+<!-- ================= DASHBOARD ================= -->
+<section>
+  <p class="eyebrow">Where We Are</p>
+  <h2>The 31-indicator dashboard</h2>
+  <p class="lede">Every indicator maps an observable series to a danger score of 0–3 against thresholds calibrated to the historical levels that actually preceded regime changes — 1991's interest-ratio record, 1929/2000 valuation peaks, Lucent's vendor-financing share, GFC delinquency transitions.</p>
+  <div class="scroll">
+    <table>
+      <thead><tr><th>Indicator · current reading</th><th class="num">Weight</th><th class="num">Score</th></tr></thead>
+      <tbody>
+        <tr class="pillar-row"><td colspan="3">Pillar 1 · Fiscal sustainability — 38/51 pts; home of the single worst indicator</td></tr>
+        <tr><td>Net interest / federal revenue<span class="reading">~18.6% FY26 — record; $857B net interest in nine months, +13% y/y. Interest now exceeds defense and Medicare.</span><span class="thr">0 &lt;10 · 1 10–14 · 2 14–18 · 3 ≥18 (1991 record ~18; UK-1976 &gt;20)</span></td><td class="num">6</td><td><span class="chip c3">3</span></td></tr>
+        <tr><td>Federal deficit % of GDP<span class="reading">5.8–6.1% — FY26 tracking $1.9–2.0T; the tariff-revenue offset was gutted by the Feb-2026 SCOTUS IEEPA ruling.</span><span class="thr">0 &lt;3 (Dalio's "3% solution") · 1 3–5 · 2 5–7 · 3 ≥7</span></td><td class="num">6</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Debt held by public % of GDP<span class="reading">100.2% — crossed 100% in April 2026; CBO path reaches 118% by 2035. Every prior crisis response began from a far lower base (2008: 35%; 2020: 79%).</span><span class="thr">0 &lt;75 · 1 75–90 · 2 90–105 · 3 ≥105 (1946 all-time peak: 106)</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>r-minus-g on the federal debt<span class="reading">−0.6 to −0.9pp: average coupon 3.41% vs ~4–4.3% nominal growth — but marginal 10Y issuance at 4.63% is 120bp above the portfolio average, and ~a third of the debt reprices within a year.</span><span class="thr">0 ≤−1.5 · 1 −1.5–0 · 2 0–+1 · 3 &gt;+1pp</span></td><td class="num">2</td><td><span class="chip c1">1</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 2 · Debt supply / demand — 32/48 pts</td></tr>
+        <tr><td>10Y term premium<span class="reading">0.73% (Kim-Wright, Jul 2026) — highest since 2014 after a decade pinned near zero. The restored price of supply outrunning price-insensitive demand.</span><span class="thr">0 &lt;0 · 1 0–0.5 · 2 0.5–1.0 · 3 ≥1.0%</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Auction stress composite<span class="reading">The 5-year note has tailed <b>14 consecutive auctions</b> (7/27: worst bid-to-cover since Sep-2022, weakest foreign takedown in a year) — yet July's 10Y/30Y were strong stop-throughs with record-adjacent indirect demand. Demand exists, but only at full-premium prices.</span><span class="thr">0 none · 1 occasional · 2 serial tails / dealer 2× norm · 3 tail ≥4bp + BTC &lt;2.2 at 10/30Y</span></td><td class="num">5</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Foreign official demand<span class="reading">Official accounts sold $39.9B in May 2026 alone while foreign private bought $172B; China down to $652B (−$113B y/y). The buyer base has rotated from owned (central banks) to rented (levered basis trades) — Dalio's Stage-4 marker.</span><span class="thr">0 buying &gt;$100B/y · 1 flat · 2 official selling, private offset · 3 broad selling &gt;$300B/y</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>30Y yield stress level<span class="reading">5.16%; the 7/9 auction stopped at 5.058% — the highest 30-year auction yield since 2007. The long end is where repression regimes break (US-1951, UK-1976, Japan now).</span><span class="thr">0 &lt;4.5 · 1 4.5–5.0 · 2 5.0–5.5 · 3 ≥5.5% (forced-intervention zone)</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 3 · Monetary / inflation — 24/39 pts</td></tr>
+        <tr><td>Core PCE inflation<span class="reading">3.4% y/y (May); headline PCE 4.1%, a three-year high. Tariff pass-through (+0.8pp per Dallas Fed) plus the Hormuz oil premium — the classic first wave of the 1965–82 pattern.</span><span class="thr">0 &lt;2.5 · 1 2.5–3.0 · 2 3.0–4.0 · 3 ≥4.0%</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Inflation expectations (survey vs market)<span class="reading">UMich 5–10yr at 3.3% (1-yr: 4.2%) while the 10Y breakeven sits anchored at 2.28% — a ~1pp gap. Households have de-anchored; the market hasn't. The breakeven following is <em>the</em> tell.</span><span class="thr">0 &lt;2.9 · 1 2.9–3.2 · 2 3.2–3.5 or gap &gt;1pp · 3 ≥3.5 or breakeven &gt;2.8</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Fed independence stress<span class="reading">The Cook removal attempt was blocked only 5–4 (with a due-process roadmap for future removals); first-ever criminal probe of a sitting Fed chair; Warsh confirmed 54–45, the most partisan ever — and yet the FOMC is hike-biased. The firewall held, by one vote.</span><span class="thr">0 none · 1 rhetoric · 2 attempted removals / probes / accord machinery · 3 commanded easing</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Monetization &amp; real-rate stance — <b>the Stage-5 gate</b><span class="reading">Real policy rate ≈ +0.2%; QT ended Dec-2025 but balance-sheet growth is bills-only reserve management (~$26.5B/mo); no yield-curve control, and the new chair wants a <em>smaller</em> balance sheet. Dalio's Stage 5 — printing to buy the government's debt under fiscal pressure — has demonstrably not begun. The algorithm's most important "not yet."</span><span class="thr">0 real ≥+1%, no buys · 1 0–1%, bills-only · 2 real &lt;0 with PCE &gt;3, or coupon QE · 3 YCC / real &lt;−1% + QE</span></td><td class="num">2</td><td><span class="chip c1">1</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 4 · Market fragility — 29/36 pts, the worst pillar in relative terms (89% of max)</td></tr>
+        <tr><td>Shiller CAPE<span class="reading">~40.9 (live reads 40.6–40.9) — above 1929's 32.6, second only to Dec-1999's 44.2; the Buffett indicator is a record 234% of GDP (dot-com peak: 172%). From CAPE 40+, the historical base rate is ~0%/yr real over ten years.</span><span class="thr">0 &lt;25 · 1 25–32 · 2 32–40 · 3 ≥40</span></td><td class="num">5</td><td><span class="chip c3">3</span></td></tr>
+        <tr><td>Equity risk premium<span class="reading">Straddles zero: 21–22× forward earnings (E/P 4.5–4.8%) against a 4.62% 10-year gives −0.13 to +0.17pp; the midpoint (~0) scores band 2 under the tiebreak convention. Bonds compete with stocks for the first time since before the GFC; there is no valuation cushion against a term-premium shock.</span><span class="thr">0 ≥+3pp · 1 +1–3 · 2 0–1 · 3 &lt;0 · range-straddling readings score at the midpoint</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Credit complacency / stress (two-sided)<span class="reading">High-yield spreads at 269bp — a level seen only ~5% of the time since 2000 — while the "true" private-credit default rate (including distressed exchanges and PIK amendments) runs ~5–8%. Priced for perfection over visible cracks.</span><span class="thr">0 HY 350–500 · 1 300–350 / 500–600 · 2 &lt;300 (complacency) or 600–800 · 3 &gt;800 or PC defaults &gt;6%</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 5 · Bubble dynamics (Kindleberger / Minsky) — 29/42 pts</td></tr>
+        <tr><td>Top-10 S&amp;P concentration<span class="reading">~38% of the index (top-5 ~30% — the most in 50+ years); AI-linked names account for ~75% of returns and ~80% of EPS growth since Nov-2022. Beyond 1929, 1973, and 2000.</span><span class="thr">0 &lt;22 · 1 22–27 (2000 peak) · 2 27–35 · 3 ≥35%</span></td><td class="num">2</td><td><span class="chip c3">3</span></td></tr>
+        <tr><td>AI capex-to-revenue gap<span class="reading">~$455–525B: big-4 2026 capex guidance of $725B (+77% y/y — confirmed: AMZN ~$200B, MSFT ~$190B, GOOGL $175–185B, META $115–135B) versus genAI end-market revenue of roughly $200–270B; the midpoint (~$490B) scores band 2 under the tiebreak convention. The capex-revenue divergence is ~46% — versus 32% at the 2001 telecom peak — and current AI revenue does not yet cover even the ~$110B/yr depreciation on the installed base.</span><span class="thr">0 &lt;$100B · 1 100–300 · 2 300–500 · 3 ≥$500B · basis: total big-4 capex vs disclosed AI run-rates + lab ARR</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Circular / vendor-financed revenue share<span class="reading">An estimated 20–35% of Nvidia's data-center revenue traces to entities Nvidia or its top customers help finance — a &gt;$800B circular web; OpenAI carries $1.15–1.4T of compute commitments against ~$25–30B ARR. Lucent's vendor financing peaked at 21% of revenue. This is that structure at 10× scale — mitigated by the funders' ~$475B/yr of genuine operating cash flow.</span><span class="thr">0 &lt;5 · 1 5–15 · 2 15–30 (Lucent zone) · 3 ≥30% or vendor debt guarantees at scale</span></td><td class="num">2</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Debt/SPV-financed share of AI capex<span class="reading">~25–35% in 2026 versus ~10% in 2024: ~$175B of hyperscaler bond issuance expected this year (5-yr norm: $30B), &gt;$200B of private-credit data-center loans, &gt;$120B moved into SPVs in 18 months. <b>The damage variable</b>: this decides whether an AI bust is 2001-shaped (equity pain, mild recession) or 1873/2008-shaped (credit event).</span><span class="thr">0 &lt;10 · 1 10–20 · 2 20–35 · 3 ≥35% (the Jordà-Schularick-Taylor regime flip)</span></td><td class="num">2</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Forensic first-credit-event tripwires<span class="reading">Warning proximity, no confirmations: Nvidia DSO ~53 days and rising; two customers = 39% of revenue; inventory +32% q/q; Oracle CDS &gt;125bp (worst since 2009) with negative free cash flow; semis in a bear market (&gt;$1T drawdown). But: no guidance cut, no SPV impairment, no AI credit default.</span><span class="thr">0 none · 1 proximity on ≥2 · 2 1–2 confirmed · 3 ≥3 confirmed or any AI-sector credit default</span></td><td class="num">3</td><td><span class="chip c1">1</span></td></tr>
+        <tr><td>Retail froth (margin debt + 0DTE)<span class="reading">Record $1.53T margin debt (+51.5% y/y — ~4.0% of GDP, above the 2021 peak ratio); 0DTE options are 59–65% of S&amp;P volume. Every prior margin-debt record — 1929, 2000, 2007, 2021 — preceded a major drawdown by 6–18 months.</span><span class="thr">0 &lt;2.5 · 1 2.5–3.0 · 2 3.0–3.5 · 3 &gt;3.5% of GDP or 0DTE &gt;55%</span></td><td class="num">2</td><td><span class="chip c3">3</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 6 · Household / consumer credit — 20/39 pts, the best pillar</td></tr>
+        <tr><td>Card + auto 90+ delinquency transitions<span class="reading">Cards ~7.0% (peaked 7.2% mid-2024 — the highest since 2011 and roughly <em>half</em> the GFC's 13.7% peak — then plateaued; NY Fed Q1-26 even shows early transitions ticking down). Autos ~2.9–3.0% — and the NY Fed's Q1-2026 report calls aggregate auto delinquency <b>the highest ever recorded</b>. Only the small-bank card series (issuers outside the top 100) has exceeded its GFC peak.</span><span class="thr">Card: 0 &lt;5.5 · 1 5.5–6.5 · 2 6.5–9.0 · 3 ≥9.0 · Auto: 0 &lt;2.4 · 1 2.4–2.7 · 2 2.7–3.3 · 3 ≥3.3</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Utilization / maxed-out / minimum-payment share<span class="reading">Share of card accounts paying only the minimum: ~10.5–10.9% — a record for the 12+ year series. ~10% of card borrowers (1 in 6 of Gen Z) are maxed out above 90% utilization — and maxed-out borrowers drive the majority of new delinquencies. Average consumer utilization ~29% (Experian); aggregate ~24%; APRs ~22–23%, barely responsive to Fed cuts.</span><span class="thr">0 min-pay &lt;9.5 &amp; maxed &lt;8 · 1 9.5–10.3 · 2 ≥10.3 or maxed ≥10% · 3 min-pay &gt;11 &amp; utilization &gt;26%</span></td><td class="num">2</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Subprime auto 60+ delinquency (Fitch ABS)<span class="reading">Record <b>6.90% in January 2026</b> — a 32-year high, above every GFC print in the index's history — easing to 6.80% in February. Repossessions: 1.73M, most since 2009. Yet prime auto 60+ holds at ~0.4% — the widest prime/subprime split on record. Prime contamination, not the subprime level, is the systemic signal — which is why a contained ≥6% scores 2, not 3.</span><span class="thr">0 &lt;4.0 · 1 4.0–5.0 · 2 5.0–6.0, or ≥6.0 with prime contained · 3 ≥6.0 AND prime 60+ &gt;0.6%</span></td><td class="num">2</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Student loan 90+ share<span class="reading">~10.2% of balances after reporting resumed; 5.3M borrowers in default with wage garnishment restarted May-2025, heading toward ~10M; 2.2M borrowers saw &gt;100-point score drops. A policy-manufactured drain on bottom-half cash flow that leaks into every other credit product.</span><span class="thr">0 &lt;6 · 1 6–9 · 2 9–12 · 3 ≥12% or &gt;15% of portfolio garnished</span></td><td class="num">1</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Household debt service ratio<span class="reading">~9.9–10.1% of disposable income — at 2019 levels, far below 2007's 13.2% peak, because ~95% of the mortgage stock is fixed at sub-4% coupons. <b>The great stabilizer</b>: the biggest household liability is cheap and locked. This is why stress reads contained-K, not systemic.</span><span class="thr">0 &lt;10.5 · 1 10.5–11.5 · 2 11.5–13 · 3 ≥13% (2007 peak: 13.2)</span></td><td class="num">2</td><td><span class="chip c0">0</span></td></tr>
+        <tr><td>Subprime lender defaults / funding stress<span class="reading">Tricolor Holdings Chapter 7 (Sep-2025: $1.4B of ABS, double-pledged collateral, &gt;$1B of bank exposure) plus the First Brands collapse — but ABS spreads re-tightened within weeks; the market priced fraud, not asset-class repricing. No verified 2026 failures. Dimon's cockroach rule stands: fraud <em>discovery</em> is the likely surprise vector.</span><span class="thr">0 none · 1 one idiosyncratic, spreads re-tighten · 2 2–3 in 12mo or +200bp sustained · 3 funding freeze</span></td><td class="num">2</td><td><span class="chip c1">1</span></td></tr>
+
+        <tr class="pillar-row"><td colspan="3">Pillar 7 · Big cycle / conflict / global — 30/45 pts</td></tr>
+        <tr><td>Internal disorder index<span class="reading">Squarely Dalio Stage 5: political attacks at a 30-year high (~150 in H1-2025, 2× the prior year); two assassinations of national figures and an attempted presidential assassination; top-1% wealth share 31.7% (postwar record); the Nov-2026 midterms are the next scheduled stress test. Markets have priced this twice — episodically, never persistently.</span><span class="thr">0 normal · 1 polarized · 2 Stage-5 markers · 3 Stage-6 onset (contested election, organized violence)</span></td><td class="num">5</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>External conflict index<span class="reading">Iran war since Feb-2026 with recurring Hormuz closure threats (Brent $86.6, briefly &gt;$90); a new 12.5% Section-301 tariff on July 23; the US-China truce expires Nov 10, 2026. ODNI assesses no Chinese commitment to a 2027 invasion — grey-zone pressure preferred.</span><span class="thr">0 none · 1 trade war · 2 regional war + commodity disruption or truce fraying · 3 great-power confrontation</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>Reserve-currency erosion &amp; the gold signal<span class="reading">Dollar COFER share 57.1% — actually <em>up</em> q/q — but gold has reached 27% of global central-bank reserve assets, <b>overtaking Treasuries (22%) for the first time ever</b>; central banks bought 863t in 2025; gold $4,030, +21% y/y. Dalio's "triple" (yields up + dollar down + gold up, sustained) is <em>not</em> confirmed — the world is hedging the dollar system without leaving it, because no successor exists (euro 20%, RMB 2%).</span><span class="thr">0 COFER &gt;60 · 1 57.5–60 drifting · 2 55–57.5 + gold &gt; USTs + CB buying &gt;700t · 3 &lt;55 falling fast, or triple confirmed 3mo</span></td><td class="num">4</td><td><span class="chip c2">2</span></td></tr>
+        <tr><td>China / global contagion index<span class="reading">China fixed-asset investment −5.7% y/y H1-2026 — the first sustained non-pandemic contraction on record (property −14%; PPI negative ~39 straight months). 30Y JGB at a record ~3.5% with the yen at a 40-year low ~164; global manufacturing PMI stalling at ~49.7–50.8. Two-edged: China's exported deflation is worth an estimated 30–50bp <em>off</em> US yields — but Japan's repatriation risk is the largest genuine foreign-flow threat to Treasuries.</span><span class="thr">0 FAI &gt;+4, JGB30 &lt;2, PMI &gt;52 · 1 mixed · 2 FAI contracting + JGB30 &gt;3 + PMI ≤50.5 · 3 China credit event / CNY &gt;7.5 / carry unwind 2.0</span></td><td class="num">3</td><td><span class="chip c2">2</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= DALIO STAGES ================= -->
+<section>
+  <p class="eyebrow">The Dalio Read</p>
+  <h2>Where the US sits in the Big Debt Cycle</h2>
+  <p class="lede">Dalio's nine stages, treated as a dashboard with tripwires rather than a prophecy. The US is at Stage 3 with partial Stage 4 — and the machinery of "repression-lite" is already quietly assembling (bill-heavy issuance at 21.7% of debt, Treasury buybacks, SLR-reform push, GENIUS-Act stablecoin T-bill demand, a proposed Treasury–Fed accord).</p>
+  <div class="scroll" style="border:none; background:transparent;">
+    <div class="stages">
+      <div class="stage done"><b>1</b>Sound money, low debt</div>
+      <div class="stage done"><b>2</b>Debt builds faster than income</div>
+      <div class="stage here"><b>3 ← US</b>Public-debt squeeze: interest compounds, auctions price-elastic</div>
+      <div class="stage partial"><b>4 (partial)</b>Buyer base rotates; gold displaces bonds in reserves; episodic "Sell America"</div>
+      <div class="stage"><b>5 · GATE</b>Central bank prints to buy the debt — <em>not begun</em></div>
+      <div class="stage"><b>6</b>Losses on the central bank's book</div>
+      <div class="stage"><b>7</b>Debt spiral; currency pressure</div>
+      <div class="stage"><b>8</b>Extraordinary measures: caps, controls, restructuring-equivalents</div>
+      <div class="stage"><b>9</b>New equilibrium / new monetary order</div>
+    </div>
+  </div>
+  <div class="two-col" style="margin-top:18px;">
+    <div class="callout" style="margin:0;">
+      <p><b>What Dalio gets right, on the July 2026 evidence:</b> interest &gt;$1T and above defense + Medicare; debt/public crossing 100% of GDP; gold overtaking Treasuries in world reserves; 14 straight tailed 5Y auctions; internal disorder at his Stage 5 with the wealth gap at postwar records. The mechanism is running.</p>
+    </div>
+    <div class="callout" style="margin:0;">
+      <p><b>Where the framework is discounted:</b> ~60 of his 65 historical crisis cases are foreign-currency borrowers — the US isn't. Own-currency reserve issuers fail <em>slowly</em>, via inflation and repression, not acutely. His acute-timing record (1982, 2015, 2018, 2020) is poor, and "cash is trash" marked a top for that view. So: dashboard yes, countdown no.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= BUBBLE ANATOMY ================= -->
+<section>
+  <p class="eyebrow">Bubble Anatomy</p>
+  <h2>Scoring 2026's AI market against history's manias</h2>
+  <p class="lede">The distinction that matters for the five-year path is not "is it a bubble?" but "<b>who is levered to it?</b>" Equity-financed bubbles in real technology (railways, the internet) destroy investors and then hand the productivity to the economy. Credit-financed bubbles (1873, 1929, 2008) destroy the banking system. AI in 2026 is a hybrid: an equity-cushioned, cash-flow-rich core — with a levered fringe growing fast.</p>
+
+  <div class="scroll" style="margin-top:18px;">
+    <table>
+      <thead><tr><th>Marker</th><th>1929</th><th>2000 (dot-com)</th><th class="num">2026 (AI)</th></tr></thead>
+      <tbody>
+        <tr><td>Shiller CAPE at peak</td><td class="num">32.6</td><td class="num">44.2</td><td class="num"><b>41.4</b> and rising</td></tr>
+        <tr><td>Top-10 index concentration</td><td class="num">~30%*</td><td class="num">~27%</td><td class="num"><b>~38%</b> — record</td></tr>
+        <tr><td>Capex-vs-revenue divergence</td><td>Utilities pyramids</td><td class="num">32% (telecom, 2001)</td><td class="num"><b>~46%</b></td></tr>
+        <tr><td>Financing of the boom</td><td>Margin + investment-trust leverage (credit)</td><td>~90% equity-financed; vendor financing at the fringe (Lucent: 21% of revenue)</td><td>Cash-rich core; <b>25–35% of capex now debt/SPV-financed</b> and rising; circular deals &gt;$800B</td></tr>
+        <tr><td>Retail participation</td><td>Record margin debt</td><td>Day-trading; 19% of household assets in equities</td><td><b>$1.53T margin debt (record ratio); 0DTE = 59–65% of volume</b></td></tr>
+        <tr><td>"New era" rhetoric</td><td>"Permanently high plateau"</td><td>"Eyeballs, not earnings"</td><td>"AGI changes everything" / "capacity-constrained, sold out"</td></tr>
+        <tr><td>First credit event</td><td>1928 broker-loan strain</td><td>Mar-2000 funding window shuts</td><td><b>Not yet</b> — proximity markers flashing (Oracle CDS, Nvidia DSO), no confirmations</td></tr>
+        <tr><td>What happened after</td><td>−89%; depression (credit bubble)</td><td>Nasdaq −78%; <b>8-month mild recession</b>; internet transformed everything anyway</td><td>— the debt/SPV share decides which template applies</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="footnote">*1929 concentration estimated from RCA/utilities-era weights. Minsky sequence placement for 2026: late Stage 3 (euphoria) with early Stage-4 (distress) markers at the fringe — crypto already −50%, semis in a bear market, Oracle CDS at post-2009 highs. Historically, first-distress-to-peak ran 6–18 months (mid-1928 → Sep 1929; mid-1999 → Mar 2000).</p>
+
+  <h3>The circular financing web — who funds whose purchases of whose product</h3>
+  <pre class="mermaid">
+flowchart LR
+  NVDA["NVIDIA<br/>2 customers = 39% of revenue"]
+  OAI["OpenAI<br/>$1.15–1.4T commitments<br/>vs ~$25–30B ARR"]
+  ORCL["Oracle<br/>CDS >125bp<br/>negative FCF"]
+  CW["CoreWeave + neoclouds<br/>~$25B+ debt, GPU-collateralized"]
+  MSFT["Microsoft<br/>27% OpenAI stake"]
+  META["Meta<br/>$30B bond + Hyperion SPV<br/>(Blue Owl ~$27B)"]
+  AMD["AMD<br/>warrants ≈10% to OpenAI<br/>tied to chip purchases"]
+  PC["Private credit + ABS<br/>>$200B DC loans<br/>~$40B/yr DC ABS"]
+  NVDA -- "up to $100B investment" --> OAI
+  OAI -- "~$300B Stargate compute contract" --> ORCL
+  ORCL -- "chip purchases" --> NVDA
+  OAI -- "chip-linked equity warrants" --> AMD
+  NVDA -- "stakes + backstops" --> CW
+  CW -- "chip purchases" --> NVDA
+  MSFT -- "compute + capital" --> OAI
+  PC -- "debt" --> CW
+  PC -- "SPV financing" --> META
+  META -- "chip purchases" --> NVDA
+  </pre>
+  <div class="callout">
+    <p><b>The revenue arithmetic:</b> 2026 hyperscaler capex ≈ $725B (+77% y/y), of which ~$545B is AI-specific — against genAI end-market revenue in the low hundreds of billions. Sequoia's "$600B question" has grown, not shrunk; Bain estimates ~$2T of annual AI revenue is needed by 2030 to justify the buildout. Depreciation alone on the installed base (~$110B/yr) exceeds all current AI revenue — and hyperscalers stretching GPU useful lives to 5–6 years against a 2–3-year economic reality flatters current earnings by an estimated $176B (the Burry critique). Only Amazon has shortened lives so far; any other hyperscaler doing so is "the accounting confession."</p>
+    <p><b>The honest bull rebuttal:</b> the funders throw off ~$475B/yr of genuine operating cash flow; capacity is sold out; token volumes and inference demand are compounding; power scarcity implies pricing power. Railroads went bankrupt — and the rails carried the economy for a century. Both things were true then. Both may be true now: <em>the technology delivers and the 2026-vintage capital still loses</em>.</p>
+  </div>
+</section>
+
+<!-- ================= ALGORITHM ================= -->
+<section>
+  <p class="eyebrow">The Algorithm</p>
+  <h2>BDCR-26: how the machine works</h2>
+  <p class="lede">Weights favor the pillars that historically moved first in own-currency debt cycles — fiscal arithmetic and bond-market supply/demand — with the bubble pillar elevated because AI capex is the single point of failure connecting market fragility to recession to fiscal deterioration.</p>
+  <div class="formula">
+COMPOSITE = Σ ( weightᵢ × scoreᵢ ) ÷ 3      → 0–100 scale
+  scoreᵢ ∈ {0,1,2,3}   ·   Σ weights = 100  ·  pillar weights: Fiscal 17 · Supply/Demand 16 ·
+  Monetary 13 · Fragility 12 · Bubble 14 · Consumer 13 · Big-Cycle/Global 15
+
+REGIME = score band [half-open: R3 = 45–70, R4 = 70–85, R5 = 85+], SUBJECT TO TWO GATES:
+  R4 gate (monetization): requires actual duration QE / yield caps / sustained negative
+      real rates under fiscal pressure — else "R3-upper: repression-lite onset"
+  R5 gate (crisis): composite ≥85 AND ≥1 crisis event — or any two events at any score —
+      of {failed 10–30Y auction · Dalio triple ≥3 months · foreign net selling &gt;$300B/yr ·
+      30Y &gt;6% sustained · funding-plumbing run}. A score alone never triggers R5.
+  Tiebreak: range-straddling readings score at the midpoint of the estimate range.
+
+CURRENT: 67.3 / 100 · R3 upper bound · both gates unmet · update monthly
+  </div>
+  <div class="two-col" style="margin-top:20px;">
+    <div>
+      <h3 style="margin-top:0;">Why gates, not just bands</h3>
+      <p style="font-size:14.5px; color:var(--ink-2);">A score can drift into the repression band while the Fed is literally signaling hikes — the July 2026 configuration. Gates prevent the algorithm from crying crisis before the defining mechanism (the central bank becoming the marginal buyer of duration) actually engages. Transitions will look like <b>jumps of 8–15 points, not drifts</b> — regime breaks are correlation events where a dozen indicators re-price in one quarter.</p>
+      <h3>The single most probable path from 67 → 80+</h3>
+      <p style="font-size:14.5px; color:var(--ink-2);">The bubble channel: a top-4 hyperscaler capex guidance cut → the 38%-concentrated index de-rates 20–35% → the top-decile wealth effect (50% of consumption) cracks → recession arrives with the deficit already at 6% → the monetization gate opens at the subsequent Fed rescue.</p>
+    </div>
+    <div>
+      <h3 style="margin-top:0;">Current playbook (Regime 3, upper bound)</h3>
+      <ul class="tight" style="font-size:14.5px; color:var(--ink-2);">
+        <li><b>Underweight long nominal Treasuries</b> — duration is the future tax base of repression; hold bills / short TIPS instead</li>
+        <li><b>Gold 10–15%</b> — Dalio's own range, validated by the central-bank bid</li>
+        <li>Equities at benchmark or below, tilted <b>equal-weight / value / energy-real assets / ex-US</b> (a 200–400bp expected annual edge at these concentration levels per GMO/AQR/Vanguard work)</li>
+        <li><b>Avoid the AI-circularity credit chain</b>: levered neoclouds, Oracle-profile credits, GPU-collateralized paper, private-credit data-center funds, tightest-decile HY</li>
+        <li>Own convexity (volatility, curve steepeners); keep 6–12 months' liquidity — in this regime drawdowns arrive as <b>air pockets</b>, not slow bleeds</li>
+      </ul>
+    </div>
+  </div>
+  <p class="footnote">The full algorithm ships as a runnable Python file (<code>bdcr26.py</code>) with every indicator's data series (FRED IDs where available), thresholds, weights, and current readings — re-score it monthly.</p>
+</section>
+
+<!-- ================= SCENARIO MAP ================= -->
+<section>
+  <p class="eyebrow">The Five-Year Map</p>
+  <h2>Six scenarios, mid-2026 → mid-2031</h2>
+  <p class="lede">Probabilities are anchored in base rates — Reinhart–Rogoff resolution frequencies for 100%+ debt/GDP reserve issuers, Japan's counterexample, the UK's slow-erosion template, and the serial failure of US-collapse predictions — not in any single guru's clock. The weights below are <b>post-adversarial-review</b>: the anti-doom pass moved ~10 points from the forced-policy scenarios (mostly the 1970s analog, whose transmission machinery — wage indexation, oil dependence, a compliant Fed — largely doesn't exist today) toward the base case and the productivity escape.</p>
+
+  <div class="prob-bar">
+    <div style="width:35%; background:var(--s1);">35%</div>
+    <div style="width:18%; background:var(--s2);">18%</div>
+    <div style="width:16%; background:var(--s3);">16%</div>
+    <div style="width:9%; background:var(--s4); color:#3d2c00;">9%</div>
+    <div style="width:19%; background:var(--s5);">19%</div>
+    <div style="width:3%; background:var(--s6);"></div>
+  </div>
+  <div class="prob-key">
+    <span><span class="swatch" style="background:var(--s1)"></span>Grinding Nominal Muddle · 35%</span>
+    <span><span class="swatch" style="background:var(--s2)"></span>Repression by Stealth · 18%</span>
+    <span><span class="swatch" style="background:var(--s3)"></span>AI Bust Feeds the Debt Cycle · 16%</span>
+    <span><span class="swatch" style="background:var(--s4)"></span>Second Wave &amp; Long-End Accident · 9%</span>
+    <span><span class="swatch" style="background:var(--s5)"></span>Productivity Escape · 19%</span>
+    <span><span class="swatch" style="background:var(--s6)"></span>Fracture · 3%</span>
+  </div>
+
+  <!-- Scenario 1 -->
+  <div class="scenario" style="--sc: var(--s1);">
+    <div class="sc-head"><h3>1 · Grinding Nominal Muddle</h3><span class="sc-prob">35% · base case</span></div>
+    <p class="sc-analog">Analog: UK 1950s–60s slow erosion × US 2004–06 nominal grind · Dalio: stuck at Stage 3 / partial 4 the whole horizon — his "heart attack" call fails on timing</p>
+    <p class="sc-desc">The chronic path. Deficits stay 5.5–6.5% of GDP, debt grinds toward 108–112%, and the market keeps clearing — at a price: a restored term premium, a 10Y oscillating 4–5.25%, soft repression (bill-heavy issuance, SLR relief, buybacks, stablecoin bill demand) doing the work quietly with no formal apparatus. Inflation settles ~3%, not 2% — quietly doing 1940s-style work at a third of the dose. Roughly <b>8–10 points of this scenario's mass is a course-correction variant</b>: a post-midterm or post-2028 fiscal package worth 1–1.5% of GDP under bond-market pressure — the single most common historical response of rich democracies short of crisis — with the term premium retracing and the 10Y ending 3.9–4.4%. And honesty about the path: from CAPE 41 with record margin debt, at least one 20–30% (recovered) drawdown inside the window is likelier than not — the endpoints survive it. <b>AI assumption:</b> capex decelerates to digestion (+10–20%/yr), revenue keeps compounding, corrections recur but the earnings core holds. <b>Consumer:</b> the K holds — bottom-quartile stress plateaus, prime never infects. <b>China:</b> deflation-export and flight-to-quality dominate — worth ~$100–150B/yr off the US interest bill.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>Stagflation-lite fades; one 12–18% S&amp;P correction, recovered. 10Y 4.3–5.1%; 30Y tests 5.5% once — drawing buybacks and SLR relief, not YCC. A 2027 debt-ceiling scare resolves.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>Mid-cycle slowdown, not recession. Net interest crosses $1.2T (~20–21% of revenue); an ugly-but-certified 2028 election; a modest fiscal package trims the deficit to ~5–5.5%. Equal-weight beats cap-weight as the Mag-7 premium compresses.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>Debt ~110% of GDP, interest ~$1.5–1.6T — uncomfortable, unresolved, functioning. Trust-fund cliffs (2032–33) dominate politics. Bills and TIPS beat long nominals for the whole window.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 4.25–5.00%</b>2031</div>
+      <div class="ep"><b>S&amp;P: +4–6%/yr</b>~0–2% real</div>
+      <div class="ep"><b>CPI avg: 2.8–3.3%</b></div>
+      <div class="ep"><b>GDP avg: 1.7–2.1%</b></div>
+      <div class="ep"><b>Gold: $5,000–6,000</b></div>
+      <div class="ep"><b>DXY 94–104</b>COFER ~55–57%</div>
+    </div>
+  </div>
+
+  <!-- Scenario 2 -->
+  <div class="scenario" style="--sc: var(--s2);">
+    <div class="sc-head"><h3>2 · Repression by Stealth</h3><span class="sc-prob">18%</span></div>
+    <p class="sc-analog">Analog: US 1942–51 fiscal arithmetic (106% debt/GDP liquidated without default; long bonds −29% real) + UK 1949–67 currency template · Dalio: deliberate, quiet Stage-5 entry — right on mechanism, wrong on violence</p>
+    <p class="sc-desc">The Reinhart–Rogoff modal outcome for a 100%+ own-currency reserve issuer: <b>engineered negative real returns for bondholders</b>. An ordinary 2027–28 recession lands on 6% structural deficits; belly auctions fail properly; and the machinery gets repurposed — SLR-deputized banks, cultivated stablecoin demand ($1T+ of bills by 2029), reserve purchases expanding from bills into coupons, the Fed cutting to 2% while CPI runs 3.5–4%. The 10Y is "managed" into a 4–4.75% band against ~4% inflation — roughly zero-to-negative real yields, a <em>diluted</em> 1946–51 (cumulative real bondholder loss ~5–10% for the window, not the −29% of the original, because caps this soft can't extract more). The four Dalio levers resolve ~70% printing/inflation, ~20% wealth-transfer taxation, ~10% austerity theater. The adversarial review's split is worth keeping: ~13 points of this mass is "ordinary recession + standard QE response with sticky 3–3.5% inflation" — the 2020 analog rebranded — and only ~5 points is the true repression apparatus (sustained negative real policy rates plus demand conscription). <b>Consumer:</b> recession spreads stress partway into prime; the fiscal transfers that cushion it deepen the dominance. <b>China:</b> its exported deflation is load-bearing — it's what makes 4.5% nominal caps possible with 4% CPI.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>The late-2026 hike proves the error: Sahm triggers mid-2027, deficit heads to 8.5%. Bonds rally, then the long end refuses to follow cuts — 5s30s through 150bp, a belly auction tails 4bp+. Equities −20 to −28%; gold breaks $5,000.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>The regime change: Fed at 2–2.5% with CPI 3.5–4.5%; banks and stablecoins absorb $1.5–2T of paper; the 2% target is quietly reinterpreted. The slow expropriation runs: 10Y pinned around or below inflation. Gold $6,000–7,000; DXY into the 80s; the dollar down 10–20% trade-weighted by decade's end.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>It works, at a price: debt stabilizes ~110%, interest/revenue peaks ~26% then eases. Real wages stagnate; the political rage channels into asset taxation. Duration was the tax base; gold and real assets were the exit.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 4.00–4.75%</b>managed; negative real</div>
+      <div class="ep"><b>S&amp;P: +5–8%/yr</b>+1–3% real, −25% en route</div>
+      <div class="ep"><b>CPI avg: 3.5–4.2%</b></div>
+      <div class="ep"><b>GDP avg: 1.3–1.8%</b></div>
+      <div class="ep"><b>Gold: $6,500–8,000</b></div>
+      <div class="ep"><b>DXY 82–92</b>COFER ~50–52%</div>
+    </div>
+  </div>
+
+  <!-- Scenario 3 -->
+  <div class="scenario" style="--sc: var(--s3);">
+    <div class="sc-head"><h3>3 · AI Bust Feeds the Debt Cycle</h3><span class="sc-prob">16%</span></div>
+    <p class="sc-analog">Analog: between 2001 (8-month recession) and 1873-lite (private-credit freeze) — railway/internet-type, not 1929/2008 · Dalio: a private debt crisis (Stage 2) cascading into public monetization (Stages 3–5) in 18 months — the fastest route through his sequence</p>
+    <p class="sc-desc">The dot-com-shaped unwind of a $700B+/yr capex cycle whose financing flipped from cash to debt just as it peaked — landing on an economy where AI drove ~74% of growth and the ex-AI economy runs ~0.5%. Sequence: a hyperscaler guidance cut → OpenAI's next round slips → Oracle's RPO renegotiates → neoclouds default on GPU-collateralized debt → an SPV impairs → the private-credit pipeline shuts. Nasdaq −55–65%, S&amp;P −35–45%. Direct damage is 2001-shaped (losses land on equity holders, insurers, BDCs, pension LPs — not levered banks). <b>The second order is the story:</b> the top-decile wealth effect (50% of consumption) converts a capex recession into a broad one; deficits jump to 9–10% of GDP; the Fed slashes to ~1% and restarts QE — first bills, then duration when 2027's enlarged auctions meet a recession-sized deficit. <b>The emergency machinery never exits.</b> 2029–31 becomes Scenario 2 run at higher speed. The technology delivers anyway: token prices collapse, stranded compute seeds the 2003-style second wave — the economy gets the productivity; the 2026-vintage capital is destroyed. <b>Consumer:</b> containment fails top-down — prime delinquencies finally rise. <b>China:</b> demand-shock compounds the downturn; flight-to-quality is what lets the Fed cut to 1%.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>Blow-off then break: capex peaks late-2026 (~$800B–1T run-rate), cracks by H1-2027, guidance cut by Q3. Recession: GDP −0.5 to −2.5% peak-to-trough (the direct capex hit is ~0.7–1.0pp of growth; the deeper outcomes require the wealth effect to fire hard), unemployment 6%+, deficit toward $3T. 10Y to 3.0–3.4% with one basis-trade air pocket; gold whipsaws then breaks $5,000 on the QE restart.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>The fiscal-monetary merger: QE reaches duration and formalizes. Reflation lands on a thinned supply side — CPI back through 3%. The Cisco pattern: 2026's leaders become dead money while equal-weight, value, and second-wave AI adopters lead a new bull +40–60% off the lows.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>Repression at speed: debt ~118–124% of GDP (the recession added 15+ points), the Fed owns the curve again, inflation tolerated at 3–3.5%. AI productivity now measurably 2–2.5% — the dividend accrues to the 2028-vintage buyers.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 3.75–4.50%</b>Fed-suppressed</div>
+      <div class="ep"><b>S&amp;P: 0–3%/yr</b>−3–0% real; −40% drawdown en route</div>
+      <div class="ep"><b>CPI avg: 2.6–3.2%</b>deflation then reflation</div>
+      <div class="ep"><b>GDP avg: 1.0–1.5%</b></div>
+      <div class="ep"><b>Gold: $6,000–7,500</b></div>
+      <div class="ep"><b>DXY 88–96</b>after a crisis spike</div>
+    </div>
+  </div>
+
+  <!-- Scenario 4 -->
+  <div class="scenario" style="--sc: var(--s4);">
+    <div class="sc-head"><h3>4 · Second Wave &amp; the Long-End Accident</h3><span class="sc-prob">9% · trimmed by the anti-doom review</span></div>
+    <p class="sc-analog">Analog: US 1968–74 (premature easing → wave two → "certificates of confiscation") + UK gilt crisis 2022 for the accident mechanics · Dalio: Stage 4 in full — his death-spiral "triple" finally confirmed — forced into Stage 5 under fire</p>
+    <p class="sc-desc">The 1970s sequence compressed, with a Truss-style punctuation. Premature easing — post-midterm political pressure or a capitulating Fed — cuts into 3%+ core inflation: the Burns move. Wave two builds on de-anchored expectations, a Hormuz round three, and tariff round two after the truce expires, peaking 5.5–6.5% in 2028–29 (each wave peaks higher than the last). Then the bond market imposes what the Fed wouldn't: with bills at 22% of debt, Japan's carry trade unwinding, and basis-trade leverage flight-prone, a failed auction cluster takes the 30Y through 6.5% <em>in weeks</em>. Emergency caps stabilize the level — but convert the crisis into repression with inflation at 5%, the worst possible entry. A Volcker-lite re-tightening delivers a hard 2029 recession. <b>Consumer:</b> the worst case — stress spreads 2007-style into prime; the K collapses into an L for the bottom two-thirds. <b>AI:</b> the discount-rate channel does what fundamentals didn't — capex stalls at a 5%+ cost of capital. <b>Why only 9%:</b> this scenario needs three sequential low-probability events (a Burns-style cut into &gt;3% core inflation ≈ 30–35%, breakevens actually de-anchoring given years of anchored 2.28% ≈ 40%, then a Truss-scale accident ≈ 60–70%), and the 1970s transmission machinery is mostly gone — COLA indexation covered most union contracts then vs essentially none now, union density is 6% vs 24%, oil intensity of GDP is down ~two-thirds, and the US is a net energy <em>exporter</em>, so a Hormuz shock partly transfers income <em>to</em> Texas rather than purely taxing the economy.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>Melt-up then menace: equities rally on the cuts (the 1998–99 rhyme, S&amp;P toward 8,000+) while long yields detach — 10Y through 5.25% by end-2027, curve bear-steepening violently. Gold breaks $5,500 as the triple confirms.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>Wave two peaks into the election; the accident: 30Y to 6.5–7% in days; caps imposed with CPI ~6%. Then the re-tightening: funds rate 6–7%, hard recession, unemployment 7%+. S&amp;P −40–50% real; long bonds' cumulative real loss 30–40%.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>Post-Volcker-lite stabilization: inflation ground back to ~3.5% at the cost of the deepest recession since 2008; debt ~120%+; genuine consolidation finally legislated under market duress — the 1976-IMF discipline, self-administered.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 5.25–6.25%</b>touched 6.5–7% at the accident</div>
+      <div class="ep"><b>S&amp;P: −2 to +1%/yr</b>−6 to −4% real</div>
+      <div class="ep"><b>CPI avg: 4.5–5.5%</b></div>
+      <div class="ep"><b>GDP avg: 0.8–1.3%</b></div>
+      <div class="ep"><b>Gold: $7,500–9,500</b></div>
+      <div class="ep"><b>DXY 78–90</b>COFER ~48–51%</div>
+    </div>
+  </div>
+
+  <!-- Scenario 5 -->
+  <div class="scenario" style="--sc: var(--s5);">
+    <div class="sc-head"><h3>5 · Productivity Escape</h3><span class="sc-prob">19% · raised by the anti-doom review</span></div>
+    <p class="sc-analog">Analog: US 1995–2000 (productivity surprise → surpluses — with its warning label) × 1948–51 growth-assisted deleveraging · Dalio: the cycle extends rather than ends — his own acknowledged escape hatch, which he assigns low odds</p>
+    <p class="sc-desc">The Blanchard exit: <b>g rises decisively above r</b>. AI monetization closes the gap on schedule — end-market revenue crossing annual capex by ~2028; measured productivity, after its usual 1995-style lag, printing 2.5–3% sustained. Revenues surprise +$300–500B/yr; the deficit falls to 4–4.5% <em>with no painful legislation</em>; debt/GDP flattens near 104% — the denominator does the work. Inflation glides to ~2.2% (AI goods/services deflation + Chinese overcapacity + an oil surplus); the Fed cuts to neutral from strength; the term premium compresses as the trajectory visibly bends. <b>Consumer:</b> the escape reaches the bottom half late but really — real wages +1.5–2%/yr; the K narrows for the first time since 2021. <b>Why raised to 19%:</b> in 1994, CBO and consensus assigned effectively zero probability to the productivity acceleration that produced the late-90s surpluses — the one prior case of a general-purpose technology diffusing into a deficit problem resolved bullishly; the US working-age population also grows through 2031 while China's shrinks by ~25–30M, a structural support no doom model prices. About <b>a third of this scenario's mass is a bust-then-boom sub-path</b> — a 2027 AI credit event followed by the productivity payoff anyway, exactly as 1995–2000 proved the boom and the crash coexist. Even here, entry valuations mean returns come from earnings, not multiples — the Nifty-Fifty lesson is that peak buyers of real franchises eventually got paid, with "eventually" the operative risk.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>The handoff: capex moderates while AI revenue triples; agents cross into production; productivity improves H2-2027. After a 10–15% valuation scare, earnings catch up — S&amp;P 8,200–8,800 by end-2027 on EPS, flat multiples. Gold stalls as the debasement thesis loses its bid.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>Confirmation: productivity 2.5–3%, real GDP ~3%, deficit 4–4.5% and falling. With g&gt;r visible, the 10Y re-rates to ~4%; breadth broadens beyond the Mag-7 — the healthiest market structure. COFER stabilizes: the first non-declining stretch in a decade.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>Debt flat-to-falling near ~102% — the ratio bent without a single hard vote; interest ~3% of GDP and stable. History's rarest exit from a debt overhang: growth.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 3.75–4.25%</b></div>
+      <div class="ep"><b>S&amp;P: +8–12%/yr</b>+6–9% real</div>
+      <div class="ep"><b>CPI avg: 2.0–2.4%</b></div>
+      <div class="ep"><b>GDP avg: 2.6–3.2%</b></div>
+      <div class="ep"><b>Gold: $2,800–3,500</b>the fear premium unwinds</div>
+      <div class="ep"><b>DXY 102–112</b>COFER stabilizes ~55–56%</div>
+    </div>
+  </div>
+
+  <!-- Scenario 6 -->
+  <div class="scenario" style="--sc: var(--s6);">
+    <div class="sc-head"><h3>6 · Fracture (Compound Crisis)</h3><span class="sc-prob">3% · the tail</span></div>
+    <p class="sc-analog">Analog: UK 1976 + US 1933 (gold-clause abrogation = 41% devaluation as "restructuring") + Suez 1956 · Dalio: Stages 5–8 compressed into 2–3 years; internal order tips toward Stage 6 — the scenario his "uncomfortably more than 50%" rhetoric describes, weighted here at 3%</p>
+    <p class="sc-desc">The genuine tail — kept small because every US-collapse prediction for 50+ years has failed, the US borrows in its own currency, and no reserve successor exists. It requires a <b>compound</b> failure: Fed capture consummated (the Cook 5-4 firewall breaking via its own due-process roadmap plus board turnover) <em>and</em> a contested 2028 election with dueling certifications <em>and</em> an external shock — a Taiwan quarantine freezing Asian reserve managers, or capital-war taxation of foreign holdings. Foreign official demand strikes for real; stablecoin runs fire-sell bills through a channel that didn't exist in prior cycles; emergency YCC, capital-flow friction, and extraordinary taxation follow. Even here: devaluation and repression, <b>not default</b> — the 1933 template, not Argentina. By 2031, stabilization under an Accord-like settlement, with a permanent ~20–30% loss in the dollar's real external value — and reserve privilege reduced, not ended, because there was still nowhere else to go at scale.</p>
+    <div class="sc-grid">
+      <div class="sc-col"><h4>2026–27</h4><p>Preconditions assemble: certification fights, a reshaped Fed board, truce collapse. "Sell America" episodes grow larger and closer together; each recovers less fully; gold to $5,500+.</p></div>
+      <div class="sc-col"><h4>2028–29</h4><p>The compound event around the election: a foreign official strike meets a $2.5T deficit; emergency YCC at gunpoint; inflation 6–8% as the dollar drops 25%+; S&amp;P −50–60% real; gold $12,000+.</p></div>
+      <div class="sc-col"><h4>2030–31</h4><p>A 1951-style Accord settlement: consolidation imposed, independence partially reconstructed, inflation ground to 4–5%. The 5–15% gold sleeve was the only thing that mattered.</p></div>
+    </div>
+    <div class="endpoints">
+      <div class="ep"><b>10Y: 6.0–7.0%</b>where uncapped</div>
+      <div class="ep"><b>S&amp;P: −4 to −1%/yr</b>−9 to −6% real</div>
+      <div class="ep"><b>CPI avg: 5.5–7.5%</b></div>
+      <div class="ep"><b>GDP avg: 0–0.8%</b></div>
+      <div class="ep"><b>Gold: $10,000–14,000</b></div>
+      <div class="ep"><b>DXY 65–78</b>COFER &lt;45%</div>
+    </div>
+  </div>
+
+  <!-- ======== endpoint range charts ======== -->
+  <h3 style="margin-top:44px;">2031 endpoints, scenario by scenario</h3>
+  <p class="kicker" style="max-width:72ch;">Bars show each scenario's projected range at mid-2031. Note gold: it rises in five of six scenarios — the only asset with that profile.</p>
+
+  <div class="range-chart">
+    <p style="font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin:18px 0 4px;">10-Year Treasury yield · %</p>
+    <!-- scale 3.0 – 7.5 -->
+    <div class="range-row"><div class="r-label">Muddle</div><div class="range-track"><div class="range-fill" style="background:var(--s1); left:calc((4.25 - 3)/4.5*100%); width:calc((5.0 - 4.25)/4.5*100%);"><span style="left:calc(100% + 8px);">4.25–5.00</span></div></div></div>
+    <div class="range-row"><div class="r-label">Repression</div><div class="range-track"><div class="range-fill" style="background:var(--s2); left:calc((4.0 - 3)/4.5*100%); width:calc(0.75/4.5*100%);"><span style="left:calc(100% + 8px);">4.00–4.75</span></div></div></div>
+    <div class="range-row"><div class="r-label">AI Bust</div><div class="range-track"><div class="range-fill" style="background:var(--s3); left:calc(0.75/4.5*100%); width:calc(0.75/4.5*100%);"><span style="left:calc(100% + 8px);">3.75–4.50</span></div></div></div>
+    <div class="range-row"><div class="r-label">Second Wave</div><div class="range-track"><div class="range-fill" style="background:var(--s4); left:calc(2.25/4.5*100%); width:calc(1.0/4.5*100%);"><span style="left:calc(100% + 8px);">5.25–6.25</span></div></div></div>
+    <div class="range-row"><div class="r-label">Escape</div><div class="range-track"><div class="range-fill" style="background:var(--s5); left:calc(0.75/4.5*100%); width:calc(0.5/4.5*100%);"><span style="left:calc(100% + 8px);">3.75–4.25</span></div></div></div>
+    <div class="range-row"><div class="r-label">Fracture</div><div class="range-track"><div class="range-fill" style="background:var(--s6); left:calc(3.0/4.5*100%); width:calc(1.0/4.5*100%);"><span style="right:calc(100% + 8px);">6.0–7.0</span></div></div></div>
+    <div class="axis-row"><div></div><div class="axis-line"><span>3%</span><span>4%</span><span>5%</span><span>6%</span><span>7.5%</span></div></div>
+  </div>
+
+  <div class="range-chart">
+    <p style="font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin:22px 0 4px;">S&amp;P 500 total return · %/yr nominal, 2026–31</p>
+    <!-- scale -5 – +13 (18) -->
+    <div class="range-row"><div class="r-label">Muddle</div><div class="range-track"><div class="range-fill" style="background:var(--s1); left:calc(9/18*100%); width:calc(2/18*100%);"><span style="left:calc(100% + 8px);">+4–6</span></div></div></div>
+    <div class="range-row"><div class="r-label">Repression</div><div class="range-track"><div class="range-fill" style="background:var(--s2); left:calc(10/18*100%); width:calc(3/18*100%);"><span style="left:calc(100% + 8px);">+5–8</span></div></div></div>
+    <div class="range-row"><div class="r-label">AI Bust</div><div class="range-track"><div class="range-fill" style="background:var(--s3); left:calc(5/18*100%); width:calc(3/18*100%);"><span style="left:calc(100% + 8px);">0–3</span></div></div></div>
+    <div class="range-row"><div class="r-label">Second Wave</div><div class="range-track"><div class="range-fill" style="background:var(--s4); left:calc(3/18*100%); width:calc(3/18*100%);"><span style="left:calc(100% + 8px);">−2–+1</span></div></div></div>
+    <div class="range-row"><div class="r-label">Escape</div><div class="range-track"><div class="range-fill" style="background:var(--s5); left:calc(13/18*100%); width:calc(4/18*100%);"><span style="right:calc(100% + 8px);">+8–12</span></div></div></div>
+    <div class="range-row"><div class="r-label">Fracture</div><div class="range-track"><div class="range-fill" style="background:var(--s6); left:calc(1/18*100%); width:calc(3/18*100%);"><span style="left:calc(100% + 8px);">−4–−1</span></div></div></div>
+    <div class="axis-row"><div></div><div class="axis-line"><span>−5</span><span>0</span><span>+5</span><span>+13</span></div></div>
+  </div>
+
+  <div class="range-chart">
+    <p style="font-family:var(--mono); font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); margin:22px 0 4px;">Gold · $/oz at 2031 (from $4,030 today)</p>
+    <!-- scale 2500 – 14500 (12000) -->
+    <div class="range-row"><div class="r-label">Muddle</div><div class="range-track"><div class="range-fill" style="background:var(--s1); left:calc(2500/12000*100%); width:calc(1000/12000*100%);"><span style="left:calc(100% + 8px);">5.0–6.0k</span></div></div></div>
+    <div class="range-row"><div class="r-label">Repression</div><div class="range-track"><div class="range-fill" style="background:var(--s2); left:calc(4000/12000*100%); width:calc(1500/12000*100%);"><span style="left:calc(100% + 8px);">6.5–8.0k</span></div></div></div>
+    <div class="range-row"><div class="r-label">AI Bust</div><div class="range-track"><div class="range-fill" style="background:var(--s3); left:calc(3500/12000*100%); width:calc(1500/12000*100%);"><span style="left:calc(100% + 8px);">6.0–7.5k</span></div></div></div>
+    <div class="range-row"><div class="r-label">Second Wave</div><div class="range-track"><div class="range-fill" style="background:var(--s4); left:calc(5000/12000*100%); width:calc(2000/12000*100%);"><span style="left:calc(100% + 8px);">7.5–9.5k</span></div></div></div>
+    <div class="range-row"><div class="r-label">Escape</div><div class="range-track"><div class="range-fill" style="background:var(--s5); left:calc(300/12000*100%); width:calc(700/12000*100%);"><span style="left:calc(100% + 8px);">2.8–3.5k</span></div></div></div>
+    <div class="range-row"><div class="r-label">Fracture</div><div class="range-track"><div class="range-fill" style="background:var(--s6); left:calc(7500/12000*100%); width:calc(4000/12000*100%);"><span style="right:calc(100% + 8px);">10–14k</span></div></div></div>
+    <div class="axis-row"><div></div><div class="axis-line"><span>$2.5k</span><span>$6.5k</span><span>$10.5k</span><span>$14.5k</span></div></div>
+  </div>
+</section>
+
+<!-- ================= SIGNPOSTS ================= -->
+<section>
+  <p class="eyebrow">Signposts</p>
+  <h2>Twenty-two tripwires that decide which map is real</h2>
+  <p class="lede">Each is observable and threshold-specific. The 2027–2029 window — coupon-size increases, the truce expiry, the election, the AI revenue verdict, the trust-fund clock — is the maximum-density stretch.</p>
+  <div class="scroll">
+    <table class="sp">
+      <thead><tr><th>Tripwire</th><th>Threshold</th><th>What it confirms</th></tr></thead>
+      <tbody>
+        <tr><td>Auction failure cluster</td><td class="num">5–7Y/10Y tail &gt;4bp twice in a quarter AND dealer takedown &gt;30% (current baseline: 0.9bp tails, dealer 25% at the March peak); or 30Y tail &gt;3bp above 5.25%</td><td>Second Wave forming; during a recession → accelerates Repression</td></tr>
+        <tr><td>Interest / revenue</td><td class="num">Trailing-12M basis &gt;22% (from ~18.6% now); &gt;25% = red zone</td><td>&gt;22% sustains the drift; &gt;25% makes Repression the base case</td></tr>
+        <tr><td><b>Fed pivots to duration</b> (the Stage-5 tripwire)</td><td class="num">Coupon purchases outside a labeled emergency; any accord language on yield levels</td><td>The single cleanest confirmation of Repression by Stealth</td></tr>
+        <tr><td>The Burns test</td><td class="num">50bp+ of cuts within two quarters while core PCE &gt;3.0%</td><td>Second Wave; the 1965–82 analog implies a higher next peak</td></tr>
+        <tr><td>Expectations de-anchor</td><td class="num">UMich 5–10yr &gt;3.5% AND 10Y breakeven &gt;2.75%</td><td>Second Wave; falsifies Muddle and Escape</td></tr>
+        <tr><td>Hyperscaler capex cut</td><td class="num">Any top-4 cuts guidance &gt;20%, or two cut &gt;10% in a half</td><td>The AI-Bust regime break — ~74% of GDP growth starts unwinding in 2–3 quarters</td></tr>
+        <tr><td>AI credit-complex stress</td><td class="num">Oracle CDS &gt;200bp; DC-ABS/private-credit +300bp sustained; first SPV impairment. Leading: Nvidia DSO &gt;60d, 2-customer share &gt;40%</td><td>AI Bust via the levered fringe — watch whether losses stay in funds (2001-shape) or reach banks (1873-shape)</td></tr>
+        <tr><td>AI revenue convergence</td><td class="num">End-market revenue &gt;35–40% of trailing capex by end-2027 → ~100% by 2029</td><td>Escape confirmed; stalling below 25% while capex grows confirms the bubble arithmetic</td></tr>
+        <tr><td>Productivity breakout</td><td class="num">≥2.5% annualized, 4 consecutive quarters (vs 0.3% Q1-26)</td><td>Escape — the only signpost that bends the debt denominator</td></tr>
+        <tr><td>Depreciation confession</td><td class="num">Any hyperscaler shortens GPU useful lives or takes a GPU impairment</td><td>AI-Bust accelerant — mechanically cuts Mag-7 EPS 5–10%</td></tr>
+        <tr><td>Card 90+ transitions</td><td class="num">&gt;8.0% breaks the plateau; &gt;9.5% = broad-recession consumer</td><td>&gt;8% shifts weight toward Repression; &gt;9.5% = Bust or Second Wave underway</td></tr>
+        <tr><td><b>Prime-borrower contagion</b> (the 2007-rhyme test)</td><td class="num">Prime card DQ +15bp/qtr twice; prime auto 60+ &gt;0.6%; mortgage 30+ transitions &gt;5%</td><td>Falsifies the contained-K thesis under Muddle and Escape</td></tr>
+        <tr><td>Subprime funding break</td><td class="num">Fitch subprime auto 60+ &gt;7.5% PLUS a second lender failure with ABS losses and spreads staying &gt;200bp wider</td><td>Asset-class repricing, not idiosyncratic fraud — consumer accelerant</td></tr>
+        <tr><td>Labor-regime break</td><td class="num">Continued claims &gt;2.5M; unemployment &gt;5.0% (Sahm); hiring rate &lt;3.0% with layoffs rising</td><td>The recession trigger that routes Muddle into Repression</td></tr>
+        <tr><td>China deepening / CNY break</td><td class="num">FAI worse than −8%; home prices down 40+ straight months; LGFV hard default; CNY through 7.5</td><td>Orderly = helps US inflation and Treasury demand; disorderly = compounds Bust or Second Wave</td></tr>
+        <tr><td>JGB / carry-trade tripwire</td><td class="num">10Y JGB &gt;3.5% or 30Y &gt;4.5% with yen surging through 140; Japanese UST holdings −$100B in two quarters</td><td>Carry unwind 2.0 — the largest foreign-flow threat (Japan, not China); Long-End Accident accelerant</td></tr>
+        <tr><td>Reserve-erosion acceleration</td><td class="num">COFER &lt;52%; gold &gt;32% of official reserves; CB buying &gt;1,200t/yr</td><td>Faster than the UK-template drift — raises Repression and Fracture; a COFER <em>rise</em> supports Muddle/Escape</td></tr>
+        <tr><td>Institutional rupture</td><td class="num">A governor actually removed with FOMC consequences; dueling certifications; capital-war taxation of foreign holders</td><td>Fracture preconditions — watch whether "Sell America" episodes stop mean-reverting</td></tr>
+        <tr><td style="color:var(--good-text);"><b>Fiscal course-correction</b></td><td class="num">Any legislated primary-deficit cut &gt;0.75% of GDP, or a bipartisan commission with reconciliation instructions</td><td>The optimist tripwire the doom models never carry — confirms Muddle's course-correction variant; 10Y re-rates toward 4%</td></tr>
+        <tr><td style="color:var(--good-text);"><b>Stablecoin demand scales</b></td><td class="num">Aggregate stablecoin market cap &gt;$600B with &gt;80% T-bill backing</td><td>A genuinely new price-insensitive buyer — the belly's 14-tail problem partially self-heals; supports Muddle/Escape</td></tr>
+        <tr><td style="color:var(--good-text);"><b>Reserve share stabilizes</b></td><td class="num">Two consecutive quarterly COFER USD-share increases (Q1-26 was already +0.7pp)</td><td>Erosion narrative pauses; supports Muddle/Escape against Repression/Fracture</td></tr>
+        <tr><td style="color:var(--good-text);"><b>Auction stress heals</b></td><td class="num">Belly auction tails compress below 1bp for a full quarter</td><td>The single most direct falsifier of the squeeze thesis — composite drops several points mechanically</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ================= HONESTY BOX ================= -->
+<section>
+  <p class="eyebrow">Calibration &amp; Limits</p>
+  <h2>What would make this map wrong</h2>
+  <div class="two-col">
+    <div class="callout" style="margin:0;">
+      <p><b>The verification actually ran, and it drew blood.</b> An independent fact-checker verified 13 of the 15 most load-bearing numbers against primary sources (and corrected the rest — the CAPE point estimate, a TIC level, a misleading delinquency framing, all fixed above). A logic auditor found two indicators scored against their own thresholds and an arithmetic slip in the repression scenario's bond math — fixed, moving the composite from 69.3 to 67.3. An anti-doom reviewer then attacked the probability weights and won ~10 points back for the benign states: the 1970s scenario was over-weighted (its transmission machinery — wage indexation, oil dependence, a compliant Fed — mostly no longer exists), and the productivity escape under-weighted (in 1994 consensus gave ~0% odds to the boom that actually arrived).</p>
+      <p><b>What the doom-bias check conceded:</b> the remaining ~43% forced-policy mass is not a collapse call — negative real T-bill returns happened in ~40% of all years since 1946, and real 10Y returns were deeply negative in 2020–23 with zero crisis machinery. The drama is in the institutions; the bondholder outcome is ordinary.</p>
+    </div>
+    <div class="callout" style="margin:0;">
+      <p><b>Known weaknesses that survive all fixes:</b> ~±5–8 points of input uncertainty on the composite; thresholds anchored partly to the ZIRP decade (a 0.73% term premium was unremarkable pre-2008 — re-anchoring to 1960–2025 distributions would read ~63–65, mid-R3); the two-sided credit indicator can't produce a benign reading in either direction (kept deliberately, as a fragility measure, not a timing measure); a small-N history with survivorship bias; four rule-scored judgment indicators; and an additive structure that understates tail steepness — regime breaks are correlation events, so expect jumps of 8–15 points, not drifts. Several official US data series are themselves degrading (record payroll revisions, a never-published CPI month) — uncomfortably, one of Dalio's own Stage-5 markers.</p>
+      <p><b>Robust vs fragile conclusions:</b> the regime call (upper R3, monetization gate unmet) survives every honest recalibration tried (~62–76). The point estimate, scenario probabilities, and all price targets are soft. The signposts are the product — <em>watch the tripwires, not the forecast.</em></p>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    <p><b>Method:</b> Built from 12 parallel research streams (~1.3M tokens: treasury market &amp; auctions, fiscal, Fed/inflation, equities/credit, Dalio's frameworks, historical analogs, dollar/geopolitics, AI economics, bubble anatomy, consumer credit, China/global contagion, AI circular-deal forensics), synthesized into the BDCR-26 algorithm and scenario map, then adversarially reviewed by three independent verifiers — a primary-source fact-checker, an internal-consistency auditor, and an anti-doom contrarian — whose ~30 findings (2 critical) are incorporated throughout. Data as of July 28, 2026; sourced from Treasury/TreasuryDirect, Fed/FRED, NY Fed HHDC, CBO, BLS/BEA, IMF COFER, TIC, Fitch, FINRA, World Gold Council, NBS China, company filings, and financial press.</p>
+    <p><b>This is a scenario-analysis exercise, not investment advice.</b> Five-year macro forecasts have wide error bars by nature; the honest deliverable is the framework, the probabilities, and the tripwires — all of which should be revised as data arrives. Nothing here accounts for your personal circumstances. Ray Dalio's frameworks are used analytically; this document is not affiliated with or endorsed by him.</p>
+  </div>
+</section>
+
+</div>
