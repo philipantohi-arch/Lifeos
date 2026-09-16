@@ -109,7 +109,7 @@
     position: absolute; top: -7px; width: 2px; height: 28px; background: var(--ink);
   }
   .band-needle::after {
-    content: "67.3"; position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+    content: attr(data-v); position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
     font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--ink);
   }
   .band-ticks { display: flex; font-family: var(--mono); font-size: 11px; color: var(--ink-3); }
@@ -240,16 +240,146 @@
   <h1>The Debt Cycle Meets the AI&nbsp;Bubble</h1>
   <p class="sub">A mechanical implementation of Ray Dalio's <em>How Countries Go Broke</em> and <em>The Changing World Order</em> — 31 indicators, 7 pillars, live July 2026 readings — plus a probability-weighted map of the US economy and markets through mid-2031.</p>
   <div class="mastmeta">
-    <span>BASELINE 2026-07-28 · RE-SCORED 2026-09-10</span>
-    <span>12 RESEARCH STREAMS · ~1.3M TOKENS</span>
+    <span>BASELINE 2026-07-28 · RE-SCORED 2026-09-10 · 2026-09-16</span>
+    <span>23 RESEARCH SWEEPS · ~3.7M TOKENS</span>
     <span>ADVERSARIALLY VERIFIED</span>
     <span>NOT INVESTMENT ADVICE</span>
   </div>
 </header>
 
-<!-- ================= SEPT 2026 RE-BASELINE ================= -->
-<section id="rebaseline" style="margin-top:36px;">
-  <p class="eyebrow">Live Re-baseline · 10 September 2026</p>
+<!-- ================= SEPT 16 2026 RE-BASELINE ================= -->
+<section id="rebaseline-0916" style="margin-top:36px;">
+  <p class="eyebrow">Live Re-baseline · 16 September 2026 · post-FOMC</p>
+  <h2>The Fed hiked into it — and the long end sold off on the hike</h2>
+  <p class="lede">Six fresh sweeps over the Sep 10 → Sep 16 window (Fed, Treasury, geopolitics, AI credit, consumer, China/global), re-scored on the algorithm's written thresholds and the Sep 10 prospective amendments. One indicator crossed a pre-registered line: the 10-year broke 5% and pushed the equity risk premium below zero. The composite sits exactly on the 70 line — inside the Regime 4 band — but the Monetization Gate is <em>more</em> firmly shut, not less, because the Fed just raised rates. The market is pricing fiscal dominance while the Fed behaves as if it does not exist. That contradiction is the projection.</p>
+
+  <div class="gauge-card">
+    <div class="gauge-head">
+      <div class="gauge-num">70.0<small>/100</small></div>
+      <div class="gauge-label">
+        <strong>Regime 3 — upper; R4 band entered, gate unmet</strong>. The model's own output reads "repression-lite onset (R4 band, Monetization Gate NOT met)".<br>
+        <span class="kicker">From 69.0 on Sep 10 (raw 207 → 210). Single mechanical change: equity risk premium 2 → 3 (10Y 5.008% vs forward E/P 4.55–4.85%). Thirty other indicators tested against their thresholds and held. Six of 31 at 3/3; 21 at 2/3. The ERP score reverts to 2 if the 10Y falls back under 4.85% or the forward multiple drops under 20×.</span>
+      </div>
+    </div>
+    <div class="band">
+      <div class="band-track">
+        <div style="width:25%; background: var(--good);"></div>
+        <div style="width:20%; background: var(--warn);"></div>
+        <div style="width:25%; background: var(--serious);"></div>
+        <div style="width:15%; background: var(--critical); opacity:.75;"></div>
+        <div style="width:15%; background: var(--critical);"></div>
+      </div>
+      <div class="band-needle" data-v="70.0" style="left: calc(70.0% - 1px);"></div>
+      <div class="band-needle" data-v="69.0" style="left: calc(69.0% - 1px); opacity:.35;"></div>
+      <div class="band-needle" data-v="67.3" style="left: calc(67.3% - 1px); opacity:.2;"></div>
+    </div>
+    <div class="band-ticks">
+      <span style="width:25%">0</span><span style="width:20%">25</span><span style="width:25%">45</span><span style="width:15%">70</span><span style="width:15%">85</span><span>100</span>
+    </div>
+    <div class="regime-legend"><span class="kicker">Bold = Sep 16 (70.0). Faint = Sep 10 (69.0) and Aug 19 (67.3).</span></div>
+  </div>
+
+  <div class="tiles">
+    <div class="tile"><div class="t-label">Fed funds</div><div class="t-value">3.75–4.00%</div><div class="t-note">+25bp, 12–0; median dot: one more in 2026</div></div>
+    <div class="tile"><div class="t-label">10Y Treasury</div><div class="t-value">5.01%</div><div class="t-note">First close above 5% since 2007 — <em>on</em> the hike</div></div>
+    <div class="tile"><div class="t-label">30Y Treasury</div><div class="t-value">5.25%+</div><div class="t-note">Last verified Sep 15; ~5.35–5.40 implied post-FOMC</div></div>
+    <div class="tile"><div class="t-label">Brent</div><div class="t-value">$108</div><div class="t-note">Hormuz single-digit transits; Saudi E-W pipeline down</div></div>
+    <div class="tile"><div class="t-label">UMich sentiment</div><div class="t-value">47.8</div><div class="t-note">1-yr inflation exp. 4.6%; 5–10yr 3.4%</div></div>
+    <div class="tile"><div class="t-label">Retail sales (Aug)</div><div class="t-value">+1.2%</div><div class="t-note">Control +1.4% — nominal, gasoline-flattered</div></div>
+    <div class="tile"><div class="t-label">Oracle FCF (Q1)</div><div class="t-value">−$5.4B</div><div class="t-note">$20B equity program spent; capex now debt-only</div></div>
+    <div class="tile"><div class="t-label">China new loans (Aug)</div><div class="t-value">¥60B</div><div class="t-note">vs ¥400B expected; FAI −7.2% YTD</div></div>
+  </div>
+
+  <h3>What the week decided</h3>
+  <div class="two-col">
+    <div class="callout" style="margin:0;">
+      <p><b>The counter-read failed.</b> On Sep 10 the honest bull case was the 1994 pattern: a credible hike compresses term premium and the long end <em>rallies</em>. Instead the 10-year rose from ~4.94% to 5.008% on the decision and printed above 5.04% intraday, the 2-year only +5bp. A curve that bear-steepens on a hike is saying the hike raises the government's interest bill faster than it lowers inflation risk. That is fiscal dominance in the <em>pricing</em>, whatever the Fed is doing. Three G3 central banks tightened in nine days (ECB Sep 10, Fed Sep 16, BOJ ~80% for Sep 18) into a long end at 19-year highs; the "disorderly bond market" tail is now the consensus fear in BofA's survey, and consensus fears are usually early, not wrong.</p>
+      <p><b>But the Fed did not swerve.</b> A unanimous vote — Governor Cook included — under "clowns" / "I won't allow that" / trade-halt threats is institutional evidence that the independence indicator belongs at 2, not 3. The Monetization Gate is further from opening than at any point since July. Treasury's buybacks ($4–6B per op, the Sep 10 op undersubscribed at $5.19B of $6B) and Japan's decision to fund intervention via the Fed's FIMA repo rather than sell Treasuries are the two official "keep it going" moves of the week.</p>
+    </div>
+    <div class="callout" style="margin:0;">
+      <p><b>The AI leg produced its first insider signal.</b> Not a capex cut — Oracle reaffirmed $90–95B, TSMC printed a record +53%, Korea's chip exports ran +270% — but the labs themselves (OpenAI, Anthropic, Google, Sep 12–14) publicly discussing "pacing the frontier" and OpenAI deferring its IPO to 2027. In a race, public talk of coordination appears only when the private payoff to running has fallen. The market read it that way instantly: NVDA −3.4%, AVGO/AMD −4%, CoreWeave −8% pre-market. Oracle's cash picture is the financing tell: FCF −$5.4B in one quarter, equity program exhausted, BBB−/Baa2-negative, so the next $70B is debt or leases. BCRED capped redemptions for a second straight quarter.</p>
+      <p><b>The consumer split widened.</b> Nominal spending surprised hard (retail +1.2%, card spend +4.5% y/y) while sentiment printed 47.8, real hourly earnings −0.1% y/y, gasoline $4.33, and the saving rate sits at exactly the 3.0% trigger. Capital One's August delinquency ticked up; no lender failed. Hires 3.2% (at trigger). The setup is a zero-cushion saver spending nominal dollars into an energy shock — resilient until it isn't.</p>
+    </div>
+  </div>
+
+  <h3>The game-theory layer: who moves, why, and where it converges</h3>
+  <p class="kicker" style="max-width:78ch;">This is my own read of the incentives, not a data series. Each row is a repeated game whose equilibrium explains a piece of the projection. The point of the exercise: the near-term stability everyone is counting on is the <em>product</em> of these incentives, and each round played shrinks the policy space for the next one.</p>
+  <div class="scroll">
+    <table class="sp">
+      <thead><tr><th>Game</th><th>Players &amp; payoffs</th><th>Dominant moves</th><th>Equilibrium it converges to</th><th>This week's move</th></tr></thead>
+      <tbody>
+        <tr><td><b>Reverse-Accord chicken</b><br><span class="kicker">Fed vs Treasury</span></td><td class="num">Fed wants credibility on 3%+ inflation without being the fiscal agent. Treasury wants long yields contained through Nov 3 without formal YCC. Each side's move raises the other's cost: hikes lift the interest bill; bill-funded buybacks drain reserves.</td><td class="num">Neither swerves before the election. First formal move is the Nov 4 refunding: cut long-coupon sizes (Treasury swerves, YCC-by-issuance) or hold "regular and predictable" (treadmill).</td><td class="num">No formal cap until a dislocation legitimizes it. The 1951 Accord followed the 1950 inflation shock; the 2022 gilt rescue followed a four-day crash. Repression needs a crisis to become politically possible — so the crash is the <em>mechanism</em>, not the alternative.</td><td class="num">Fed hiked 12–0; long end sold off; Treasury op undersubscribed. Fed did not swerve; the market now tests Treasury.</td></tr>
+        <tr><td><b>Foreign holders' exit</b><br><span class="kicker">Japan, China, Gulf, Europe</span></td><td class="num">Everyone wants slightly less exposure; nobody wants to be the seller who marks down their own book. Bank-run structure.</td><td class="num">Slow rotation into gold, shorten duration, keep bills. Fund interventions through Fed facilities rather than sales (Japan, Aug). Hold, don't add (China).</td><td class="num">Gradual erosion, not a dump — unless Section 899 or secondary tariffs change the payoff to holding. The structural loss is Japanese duration demand: a 4.15% 30-year JGB makes home bonds competitive.</td><td class="num">PBOC +20t gold (largest since 2023); Q2 central-bank buying a record 289t; June TIC top-3 <em>added</em>; Japan chose FIMA repo over sales.</td></tr>
+        <tr><td><b>AI capex prisoner's dilemma</b><br><span class="kicker">Hyperscalers, labs, Nvidia, Oracle, neoclouds, private credit</span></td><td class="num">If all build: overcapacity later, stock rewarded now. If one cuts alone: loses the race, stock crushed. Vendor guarantees (NVDA $105B) move the financing constraint onto the vendor.</td><td class="num">Build. Overbuild ends when the <em>financing</em> channel closes, not when demand disappoints. Demand disappointment is the second leg (railroads 1873, Lucent 2000).</td><td class="num">First credit event surfaces in vendor and neocloud paper (ORCL ~200bp CDS, CRWV 13% bonds), then in the private-credit funds that hold it. The trigger to watch is Oct 1 gates and Oracle's next debt raise, not NVDA's guide.</td><td class="num">Labs signaled "pace the frontier"; OpenAI IPO deferred; Oracle equity leg exhausted; BCRED gated twice. Cooperation talk = the payoff to defection fell.</td></tr>
+        <tr><td><b>Oil-as-weapon attrition</b><br><span class="kicker">US/Israel vs Iran; Houthis vs Saudi</span></td><td class="num">Iran's best play: keep oil high with no decisive escalation, raising US inflation and constraining the Fed into the midterms. US: contain, blockade, "war ends after the election."</td><td class="num">Sustained tanker war at low intensity; Iran seeks China's shield (FM Araghchi in Beijing Sep 16). Houthis widen to Saudi export routes.</td><td class="num">Brent $100–115 through Nov, then de-escalation offers. Tail: Hormuz fully closed plus Yanbu compromised = both Saudi export routes down — the one path to $150.</td><td class="num">Five Iranian tankers destroyed; Hormuz single digits; Houthis seized two islands; Saudi E-W pipeline out for weeks; GCC-Iran talks postponed.</td></tr>
+        <tr><td><b>China's patience</b><br><span class="kicker">Xi vs Washington; Xi vs his own economy</span></td><td class="num">Xi wants chip self-sufficiency, export relief for a deflating domestic economy, and Treasuries kept as leverage. Trump wants prices down into the midterms. Both need a truce that lasts.</td><td class="num">Extend the Busan truce (expires Nov 10) at the Sep 23–25 state visit; trade small tariff cuts for rare-earth licenses; PLA patrols continue as background pressure.</td><td class="num">A managed rivalry that holds while both need it — roughly through Q1 2027. China exports its deflation (record $805B surplus), which is disinflationary for goods and a job-loss story for everyone else. Tail: Taiwan.</td><td class="num">FAI −7.2%, loans ¥60B, retail +0.4%: the domestic squeeze is worsening, which <em>raises</em> Xi's payoff to a truce. Yuan at 6.71 is the strongest in years.</td></tr>
+        <tr><td><b>Election calendar</b><br><span class="kicker">White House, Congress, the Fed</span></td><td class="num">Pre-election, incumbents' dominant move is stability: buybacks, jawboning, SPR, tariff pauses, a clean CR to Dec 11. Post-election, the payoff to growth-at-any-cost rises and the cost of inflation-fighting falls.</td><td class="num">Hold everything together to Nov 3. Then pressure the Fed to cut into 3%+ core (the Burns test) through H1 2027 — with a likely Democratic House (D+7–9) removing any fiscal offset.</td><td class="num">Deficits stay ~$2T; the Fed becomes the only adjustment valve; the second hike (Oct 27–28) is the last one the calendar permits. The accident is likelier when the calendar stops helping — 2027.</td><td class="num">Trump: "clowns," "I won't allow that." Fed hiked anyway. Dem Senate odds ~59%. CR passed 370–48.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout" style="margin-top:18px;">
+    <p><b>Meta-equilibrium — where the world is going.</b> Every player's dominant strategy is to keep the game going through November 3, which is why Muddle is still the single largest bucket. But each "keep it going" move — a buyback, a vendor guarantee, a redemption gate, a FIMA repo, a truce extension — spends policy space the next round no longer has. The system is converging on a <b>repression regime</b> (negative real rates, issuance control, captive buyers, weaker dollar, gold as the reserve asset of choice) because it is the only equilibrium that clears a $2T deficit at a 5% marginal cost of borrowing. That regime needs a crisis to legitimize it, and the market has now refused to accept caps voluntarily three times (Aug 19, Sep 9, Sep 16). So the modal path is <b>crash → repression</b>, not repression instead of a crash. Geopolitically the structure is a managed US–China rivalry with hot proxy theaters (Gulf, Red Sea, Ukraine, Baltic) that keep an energy risk premium in the system — an inflation floor near 3% that the Fed cannot hike away and that the bond market keeps repricing. The five-year endpoint is a dollar that buys less, nominal assets that survive, real assets that win, and long nominal bonds that lose in real terms.</p>
+  </div>
+
+  <h3>Scenario probabilities — third evidence-based update</h3>
+  <div class="prob-bar">
+    <div style="width:28%; background:var(--s1);">28%</div>
+    <div style="width:19%; background:var(--s2);">19%</div>
+    <div style="width:17%; background:var(--s3);">17%</div>
+    <div style="width:17%; background:var(--s4); color:#3d2c00;">17%</div>
+    <div style="width:14%; background:var(--s5);">14%</div>
+    <div style="width:5%; background:var(--s6);"></div>
+  </div>
+  <div class="prob-key">
+    <span><span class="swatch" style="background:var(--s1)"></span>Muddle 28% (was 31)</span>
+    <span><span class="swatch" style="background:var(--s2)"></span>Repression 19% (20)</span>
+    <span><span class="swatch" style="background:var(--s3)"></span>AI Bust 17% (16)</span>
+    <span><span class="swatch" style="background:var(--s4)"></span>Second Wave / Long-End Accident 17% (13)</span>
+    <span><span class="swatch" style="background:var(--s5)"></span>Escape 14% (16)</span>
+    <span><span class="swatch" style="background:var(--s6)"></span>Fracture 5% (4)</span>
+  </div>
+  <p class="footnote">Second Wave +4 — the largest single move since the map was built — because the hike-then-rally counter-read failed on the day it was tested, three G3 hikes landed in nine days, import prices are +7% y/y and 5–10yr expectations sit one tick from the 3.5% trigger. Muddle −3: the election put still holds the near term, but the long end stopped cooperating. AI Bust +1 for the labs' own slowdown signal and the removal of the IPO liquidity event; demand data (TSMC, Korea) prevent a bigger move. Escape −2 for the macro hurdle (hikes, $108 oil, negative real wages, 10Y at 5%), not for any AI weakness. Repression −1 near-term on positive real rates, with its five-year mass preserved by the game-theory argument above. Fracture +1 on the first NATO drone shoot-down over Lithuania, the India–Pakistan naval collision and a 100% secondary-tariff bill on China/India advancing — netted against the Xi visit and the BRICS "de-risking, not de-dollarization" language.</p>
+
+  <h3>Where the projection stands</h3>
+  <div class="callout">
+    <p><b>Sequence check.</b> Map: tantrum → rescue → melt-up → top → crash. Reality: tantrum (30Y 5.33), rescue twice (both shrugged off), <em>hike</em> (Sep 16), long end sells off on the hike. The melt-up leg has still not engaged; the S&amp;P is ~2–3% under its Aug 26–27 record with CTAs at 100% max long and the buyback bid in blackout — the systematic buyer has no more ammunition and a $74B sell trigger below the market. Burry's decision to close his December 2026 puts and keep the 2027 ones is, read plainly, the same timing call this map has made since July.</p>
+    <p><b>Timing.</b> Near-term correction (≥10% from the record) before the Nov 4 refunding: <b>~40%</b>, from ~30%. Ladder: <b>Sep 18</b> BOJ + triple witching + S&amp;P rebalance → <b>Sep 24</b> Xi–Trump and a 20–30Y buyback op → <b>Sep 26</b> August saving rate (3.0% trigger) → <b>Sep 30</b> Micron, COFER Q2, France's budget → <b>Oct 1</b> Blue Owl / HLEND / ADS / ASIF Q3 gates → <b>Oct 6</b> August hires rate (3.2% trigger) → <b>Oct 8</b> 30Y auction → <b>Oct 27–28</b> second hike → <b>Nov 3</b> midterms → <b>Nov 4</b> QRA. Probability the August record was <em>the</em> cycle high: ~30%, from ~20%. Center of mass for the full crash (&gt;25%) is unchanged at 2027–28; the political calendar is why it is not Q4 2026, and the calendar stops helping in January.</p>
+    <p><b>What would make this wrong.</b> A long-end rally after the BOJ hike (the delayed 1994 read); a Xi visit that reopens rare earths and cuts tariffs with a Hormuz de-escalation behind it, taking Brent under $85; August hires rebounding above 3.4% on Oct 6; or an Oct 1 private-credit print with requests <em>falling</em>. Any two of those and Muddle takes its points back from Second Wave.</p>
+  </div>
+
+  <h3>Tripwire scorecard — Sep 16</h3>
+  <div class="scroll">
+    <table class="sp">
+      <thead><tr><th>Tripwire</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td>Treasury intervention forced &amp; not holding</td><td><span class="chip c2">WATCH</span></td><td class="num">Sep 10 op accepted $5.19B of $6B and the selloff intensified; 30Y 5.25% Sep 15 vs 5.31% pre-op — the "fails within 5 sessions" clause is not met on the 30Y itself. Held 2</td></tr>
+        <tr><td>Fed pivots to duration (Stage-5 gate)</td><td><span class="chip c0">OPPOSITE</span></td><td class="num">Fed HIKED 12–0, one more penciled; bills-only RMPs; real rate positive. Gate more firmly closed</td></tr>
+        <tr><td>10Y ≥ 5% / 30Y ≥ 5.5%</td><td><span class="chip c3">10Y CROSSED</span></td><td class="num">10Y 5.008% (intraday &gt;5.04%); 30Y 5.25% verified, ~5.35–5.40 implied; 5.5% is ~10–15bp away with the Oct 8 auction ahead</td></tr>
+        <tr><td>Equity risk premium ≤ 0</td><td><span class="chip c3">CROSSED</span></td><td class="num">−0.15 to −0.45pp; the one indicator upgraded this week; reverts if 10Y &lt;4.85%</td></tr>
+        <tr><td>Burns test (cuts into &gt;3% core)</td><td><span class="chip c0">OPPOSITE</span></td><td class="num">Hiked despite "clowns"/"I won't allow that"; test moves to H1 2027 post-midterms</td></tr>
+        <tr><td>Expectations de-anchor</td><td><span class="chip c2">APPROACHING</span></td><td class="num">UMich 5–10yr 3.4% (3.5 trigger); 1-yr 4.6%; import prices +7.0% y/y; PPI 5.4%</td></tr>
+        <tr><td>Hyperscaler capex cut</td><td><span class="chip c1">SIGNAL</span></td><td class="num">No cut (ORCL reaffirmed $90–95B) — but labs' "pace the frontier" + OpenAI IPO to 2027 is the first top-down slowdown language</td></tr>
+        <tr><td>AI credit-complex stress</td><td><span class="chip c2">APPROACHING</span></td><td class="num">ORCL CDS ~200bp regime, FCF −$5.4B, ATM spent, Baa2 negative; CRWV bonds ~13%; no default</td></tr>
+        <tr><td>Circular guarantee at scale</td><td><span class="chip c3">CROSSED</span></td><td class="num">NVDA $105B RVG stands; Crusoe–Jane Street $13B contract underwriting a $3B raise added to the list</td></tr>
+        <tr><td>Second private-credit gate wave</td><td><span class="chip c2">APPROACHING</span></td><td class="num">BCRED capped 5% for a 2nd straight quarter (~10% requested); Blue Owl / HLEND / ADS / ASIF Q3 ~Oct 1</td></tr>
+        <tr><td>Consumer weak-3 flag</td><td><span class="chip c2">AT TRIGGER</span></td><td class="num">Hires 3.2% (=trigger), saving 3.0% (=trigger), prime auto 0.49% (0.6); retail +1.2% is the offset</td></tr>
+        <tr><td>Subprime funding break</td><td><span class="chip c2">APPROACHING</span></td><td class="num">Fitch 60+ 6.13% Jul; no Aug print; no new failure; Car-Mart runway to Nov 6</td></tr>
+        <tr><td>Oil / Hormuz</td><td><span class="chip c3">CROSSED</span></td><td class="num">Brent $108; transits single digits; Saudi E-W pipeline out; Houthis holding Red Sea islands</td></tr>
+        <tr><td>Great-power confrontation (→3)</td><td><span class="chip c2">APPROACHING</span></td><td class="num">First NATO drone shoot-down over Lithuania; Russian frigate flares at Danish helicopter; India–Pak naval collision; Xi visit is the offset</td></tr>
+        <tr><td>Reserve erosion / Dalio triple</td><td><span class="chip c1">2 OF 3, WEAKENING</span></td><td class="num">Gold $4,263–4,348 (−24% from ATH, ~+18% y/y — the +20% clause is borderline); DXY 99.6 firming; PBOC +20t; COFER Q2 Sep 30 decides a downgrade</td></tr>
+        <tr><td>Japan long end / repatriation</td><td><span class="chip c2">RISING</span></td><td class="num">30Y JGB 4.15% (+9bp, near record); 30Y auction cover 2.92 worst since 2023; BOJ ~80% Sep 18; intervention via FIMA repo, not UST sales</td></tr>
+        <tr><td>China contraction</td><td><span class="chip c2">WORSENING</span></td><td class="num">FAI −7.2% YTD, loans ¥60B vs ¥400B, retail +0.4%, M2 17-mo low; no stimulus; CNY strong at 6.71 (against the 7.5 trigger)</td></tr>
+        <tr><td>Institutional rupture / Section 899</td><td><span class="chip c1">RHETORIC</span></td><td class="num">No 899 text found; secondary-tariff bill (100% on top-5 Russian-oil buyers) cleared a House procedural vote 214–211; Fed independence held under attack</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="footnote">Method: six parallel research sweeps over Sep 10–16 (~700K tokens), each capped by the session's search budget and unable to fetch primary pages directly, so figures are from search extracts of dated sources; items the sweeps could not confirm are marked as such in the model notes rather than filled in. Known gaps at publication: the post-FOMC 30Y close, July TIC (due 4pm), Sep 10 30Y auction stats, post-FOMC VIX and MOVE, the ECB's projections. The game-theory table is analysis, not data. Not investment advice.</p>
+</section>
+
+<!-- ================= SEPT 10 2026 RE-BASELINE (previous) ================= -->
+<section id="rebaseline" style="margin-top:56px;">
+  <p class="eyebrow">Previous Re-baseline · 10 September 2026 (retained)</p>
   <h2>Three weeks later: the rescue came twice, the market shrugged twice, and the Fed is hiking into it</h2>
   <p class="lede">Full five-pillar refresh of the Aug 19 → Sep 10 window, re-scored on the algorithm's <em>unchanged</em> thresholds and then adversarially audited. The composite rose 1.7 points to 69.0 — still Regime 3. A first-pass score of 71.7 was rejected by the auditors because two of its upgrades re-anchored pre-registered thresholds in the same update that benefited from them. The monetization gate is not merely unmet, it is <em>contested</em>: Treasury is buying duration to manage yields while the Fed prices a hike — the pre-Accord conflict configuration, not fiscal dominance.</p>
 
@@ -269,8 +399,8 @@
         <div style="width:15%; background: var(--critical); opacity:.75;"></div>
         <div style="width:15%; background: var(--critical);"></div>
       </div>
-      <div class="band-needle" style="left: calc(69.0% - 1px);"></div>
-      <div class="band-needle" style="left: calc(67.3% - 1px); opacity:.35;"></div>
+      <div class="band-needle" data-v="69.0" style="left: calc(69.0% - 1px);"></div>
+      <div class="band-needle" data-v="67.3" style="left: calc(67.3% - 1px); opacity:.35;"></div>
     </div>
     <div class="band-ticks">
       <span style="width:25%">0</span><span style="width:20%">25</span><span style="width:25%">45</span><span style="width:15%">70</span><span style="width:15%">85</span><span>100</span>
@@ -393,7 +523,7 @@
         <div style="width:15%; background: var(--critical); opacity:.75;"></div>
         <div style="width:15%; background: var(--critical);"></div>
       </div>
-      <div class="band-needle" style="left: calc(67.3% - 1px);"></div>
+      <div class="band-needle" data-v="67.3" style="left: calc(67.3% - 1px);"></div>
     </div>
     <div class="band-ticks">
       <span style="width:25%">0</span><span style="width:20%">25</span><span style="width:25%">45</span><span style="width:15%">70</span><span style="width:15%">85</span><span>100</span>
