@@ -1,0 +1,124 @@
+# Episode definitions for the v6 historical replay. Dates are the SPX peak and
+# trough used to define the entry grid (month-ends from 24 months before the peak
+# to the peak). "analog" maps the episode to a BDCR-26 scenario for pooling.
+# "replayable" is set by the data actually available in this environment.
+
+crash_episodes:
+  - id: "1987"
+    label: "1987 crash"
+    window: ["1985-01-01", "1988-12-31"]
+    peak: "1987-08-25"
+    trough: "1987-12-04"
+    drawdown: -0.34
+    speed: fast
+    analog: SecondWave
+    notes: "VXO unavailable here; pre-1990 vol is a realized-vol proxy. Pre-Oct-1987 put skew set flat (0.10) by regime flag."
+  - id: "1990"
+    label: "1990 recession"
+    window: ["1989-01-01", "1991-06-30"]
+    peak: "1990-07-16"
+    trough: "1990-10-11"
+    drawdown: -0.20
+    speed: medium
+    analog: Repression
+  - id: "1998"
+    label: "1998 LTCM"
+    window: ["1997-01-01", "1999-06-30"]
+    peak: "1998-07-17"
+    trough: "1998-08-31"
+    drawdown: -0.19
+    speed: fast
+    analog: Fracture
+  - id: "2000"
+    label: "2000-02 dot-com"
+    window: ["1998-01-01", "2003-06-30"]
+    peak: "2000-03-24"
+    trough: "2002-10-09"
+    drawdown: -0.49
+    speed: slow
+    analog: AIBust
+    notes: "NDX futures data begin 1999-12; QQQ rows use entries from 1999-12 only."
+  - id: "2007"
+    label: "2007-09 GFC"
+    window: ["2006-01-01", "2010-06-30"]
+    peak: "2007-10-09"
+    trough: "2009-03-09"
+    drawdown: -0.57
+    speed: medium
+    analog: Repression
+  - id: "2011"
+    label: "2011 debt-ceiling"
+    window: ["2010-06-01", "2012-06-30"]
+    peak: "2011-04-29"
+    trough: "2011-10-03"
+    drawdown: -0.19
+    speed: fast
+    analog: MuddleCorrection
+  - id: "2015"
+    label: "2015-16 China/oil"
+    window: ["2014-06-01", "2016-12-31"]
+    peak: "2015-05-21"
+    trough: "2016-02-11"
+    drawdown: -0.14
+    speed: fast
+    analog: MuddleCorrection
+  - id: "2018"
+    label: "2018 Volmageddon + Q4"
+    window: ["2017-06-01", "2019-06-30"]
+    peak: "2018-09-20"
+    trough: "2018-12-24"
+    drawdown: -0.20
+    speed: fast
+    analog: MuddleCorrection
+  - id: "2020"
+    label: "2020 COVID"
+    window: ["2019-01-01", "2021-06-30"]
+    peak: "2020-02-19"
+    trough: "2020-03-23"
+    drawdown: -0.34
+    speed: very fast
+    analog: SecondWave
+  - id: "2022"
+    label: "2022 rate shock"
+    window: ["2021-06-01", "2023-06-30"]
+    peak: "2022-01-03"
+    trough: "2022-10-12"
+    drawdown: -0.25
+    speed: slow
+    analog: AIBust
+  - id: "2025"
+    label: "2025 April tariff shock"
+    window: ["2024-06-01", "2025-12-31"]
+    peak: "2025-02-19"
+    trough: "2025-04-08"
+    drawdown: -0.19
+    speed: fast
+    analog: MuddleCorrection
+    replayable: false
+    notes: "Daily SPX unavailable in this environment after 2024-03-28. Episode retained in the definitions; excluded from results."
+
+nonevent_episodes:
+  - id: "1995-99"
+    label: "1995-99 melt-up"
+    window: ["1995-01-01", "1999-12-31"]
+  - id: "2013"
+    label: "2013"
+    window: ["2013-01-01", "2013-12-31"]
+  - id: "2017"
+    label: "2017"
+    window: ["2017-01-01", "2017-12-31"]
+  - id: "2023-24"
+    label: "2023-24"
+    window: ["2023-01-01", "2024-03-28"]
+    notes: "Truncated at the end of available daily data."
+
+baseline:
+  label: "Unconditional: every month-end 1990-01 to the last date that allows the structure to expire inside the data"
+  start: "1990-01-31"
+
+analog_to_scenario:
+  SecondWave: SecondWave
+  Repression: Repression
+  Fracture: Fracture
+  AIBust: AIBust
+  MuddleCorrection: Muddle
