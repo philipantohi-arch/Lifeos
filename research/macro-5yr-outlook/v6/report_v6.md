@@ -1,6 +1,6 @@
 # report_v6.md — historical replay of the BDCR-26 put structures
 
-Generated 2026-09-17 01:56 from raw data with cached downloads. **N = 10 crash episodes, 4 non-event windows, 404 unconditional month-end entries.** Ten replayed crash episodes (eleven defined) is not a distribution: every number below is a range-carrying estimate from a small sample, and no point estimate should be read without its neighbours in the episode table. Episodes excluded: 2025 (no daily SPX after 2024-03-28). Pre-2000 surfaces are parametric guesses; results are reported with and without pre-2000 episodes in §2.
+Generated 2026-09-22 20:37 from raw data with cached downloads. **N = 10 crash episodes, 4 non-event windows, 404 unconditional month-end entries.** Ten replayed crash episodes (eleven defined) is not a distribution: every number below is a range-carrying estimate from a small sample, and no point estimate should be read without its neighbours in the episode table. Episodes excluded: 2025 (no daily SPX after 2024-03-28). Pre-2000 surfaces are parametric guesses; results are reported with and without pre-2000 episodes in §2.
 
 **Source tags.** spx: futures-derived (Panama-adjusted continuous, re-anchored monthly to Shiller spot average; 3 Oct-1987 sessions overridden with published spot returns); ndx: futures-derived (Panama-adjusted, re-anchored to 10 remembered spot closes; VERIFY anchors); r3m: proxy (100 - Eurodollar/SOFR 3m futures, continuous); vix: real 1990+, realized proxy before; vix_term: VIX futures slope 2006+, default mean-reversion before; skew: NOT AVAILABLE -> parametric default 0.35*T^-0.25 (flat 0.10 before 1987-10 per regime flag); hy_oas: NOT AVAILABLE -> entry filter run without the HY leg; cape_ep_dy: Shiller monthly to 2023-09; NaN after (2025 episode excluded). Every surface is *parametric* (no licensed surface is reachable here). VIX term structure: 'vix-futures' where the VIX-futures slope exists (2006+), 'default-MR' before. Put wing: spec default 0.35·T^-0.25 everywhere (SKEW unavailable to fit), flat 0.10 before 1987-10-19.
 
@@ -8,11 +8,11 @@ Generated 2026-09-17 01:56 from raw data with cached downloads. **N = 10 crash e
 
 | Window | Report §2 | v4 engine | v6 engine |
 |---|---:|---:|---:|
-| pre-Nov-26 | 7% | 0.0% | 6.8% |
-| Nov-26–Jun-27 | 13% | 32.2% | 12.2% |
-| Jul-27–Jun-28 | 38% | 29.3% | 38.7% |
-| Jul–Sep-28 | 4% | 1.4% | 5.2% |
-| No crash within 24m | ~38% | 37.1% | 37.1% |
+| pre-Nov-26 | 7% | 0.0% | 6.3% |
+| Nov-26–Jun-27 | 13% | 32.1% | 12.3% |
+| Jul-27–Jun-28 | 38% | 28.8% | 38.5% |
+| Jul–Sep-28 | 4% | 1.1% | 4.9% |
+| No crash within 24m | ~38% | 38.0% | 38.0% |
 
 The v6 replay does not use scenario timing (it replays real dates), but the scenario-weighted EV in §1 uses the current BDCR-26 weights (28/19/17/17/14/5). For the synthetic model, the v6 windows above are the reconciled timing and are what `put_scenario_model_sept2026.py` should adopt (`SecondWave` 40% in months 0–1.5 and 60% in 1.5–20; `AI Bust` 6–22; `Repression` 8–24; `Fracture` 16–24). The report's §2 table is the timing used.
 
@@ -22,15 +22,15 @@ Entries within 12 months of each episode peak, exit rule = v4 (−22% index trig
 
 | structure | cost % (median) | EV hist-weighted | P0 (crash entries) | >=3x | >=10x | Mu/Rp/AB/SW/Es/Fr | v4 synthetic EV (Sep-16) | v4 reconciled-timing EV | steep-skew cost % | steep-skew EV |
 |---|---|---|---|---|---|---|---|---|---|---|
-| SPX Jun-28 10% OTM | 4.51 | 1.72 | 0.71 | 0.21 | 0.05 | 0.1/2.1/0.6/7.0/0.1/0.0 | 2.20 | 1.92 | 4.24 | 1.91 |
-| SPX Dec-27 10% OTM | 3.65 | 1.57 | 0.74 | 0.17 | 0.05 | 0.0/0.9/0.4/7.7/0.0/0.0 | 2.37 | 1.75 | 3.54 | 1.63 |
-| SPX Mar-27 10% OTM | 2.10 | 1.29 | 0.85 | 0.10 | 0.05 | 0.0/0.0/0.2/7.3/0.0/0.0 | 1.28 | 1.63 | 2.26 | 1.20 |
-| SPX Dec-27 90/70 spread | 2.00 | 1.12 | 0.73 | 0.19 | 0.03 | 0.0/1.5/0.7/4.2/0.1/0.0 | 2.07 | 1.46 | 2.02 | 1.11 |
-| QQQ Jun-28 90/65 spread | 3.65 | 1.08 | 0.64 | 0.13 | 0.00 | 0.1/4.0/1.5/0.2/0.1/0.1 | 1.77 | 1.58 | 3.85 | 1.02 |
-| SPX Mar-27 90/75 spread | 1.32 | 0.74 | 0.85 | 0.10 | 0.02 | 0.1/0.0/0.3/4.0/0.0/0.0 | 1.11 | 1.22 | 1.29 | 0.71 |
-| QQQ Dec-27 90/65 spread | 3.38 | 0.68 | 0.76 | 0.08 | 0.00 | 0.1/1.8/1.5/0.2/0.1/0.1 | 1.92 | 1.44 | 3.45 | 0.65 |
-| QQQ Dec-27 10% OTM | 5.70 | 0.51 | 0.76 | 0.05 | 0.00 | 0.1/1.2/1.2/0.3/0.1/0.1 | 2.19 | 1.65 | 5.53 | 0.52 |
-| [B] QQQ Jun-27 p 11% OTM | 4.08 | 0.28 | 0.83 | 0.03 | 0.00 | 0.1/0.1/1.1/0.3/0.0/0.0 | 1.82 | 1.62 | 4.15 | 0.27 |
+| SPX Jun-28 10% OTM | 4.51 | 1.66 | 0.71 | 0.21 | 0.05 | 0.1/2.1/0.6/7.0/0.1/0.0 | 2.20 | 1.99 | 4.24 | 1.84 |
+| SPX Dec-27 10% OTM | 3.65 | 1.50 | 0.74 | 0.17 | 0.05 | 0.0/0.9/0.4/7.7/0.0/0.0 | 2.37 | 1.79 | 3.54 | 1.56 |
+| SPX Mar-27 10% OTM | 2.10 | 1.22 | 0.85 | 0.10 | 0.05 | 0.0/0.0/0.2/7.3/0.0/0.0 | 1.28 | 1.89 | 2.26 | 1.14 |
+| QQQ Jun-28 90/65 spread | 3.65 | 1.10 | 0.64 | 0.13 | 0.00 | 0.1/4.0/1.5/0.2/0.1/0.1 | 1.77 | 1.61 | 3.85 | 1.04 |
+| SPX Dec-27 90/70 spread | 2.00 | 1.09 | 0.73 | 0.19 | 0.03 | 0.0/1.5/0.7/4.2/0.1/0.0 | 2.07 | 1.54 | 2.02 | 1.07 |
+| SPX Mar-27 90/75 spread | 1.32 | 0.71 | 0.85 | 0.10 | 0.02 | 0.1/0.0/0.3/4.0/0.0/0.0 | 1.11 | 1.36 | 1.29 | 0.68 |
+| QQQ Dec-27 90/65 spread | 3.38 | 0.69 | 0.76 | 0.08 | 0.00 | 0.1/1.8/1.5/0.2/0.1/0.1 | 1.92 | 1.46 | 3.45 | 0.66 |
+| QQQ Dec-27 10% OTM | 5.70 | 0.52 | 0.76 | 0.05 | 0.00 | 0.1/1.2/1.2/0.3/0.1/0.1 | 2.19 | 1.70 | 5.53 | 0.53 |
+| [B] QQQ Jun-27 p 11% OTM | 4.08 | 0.29 | 0.83 | 0.03 | 0.00 | 0.1/0.1/1.1/0.3/0.0/0.0 | 1.82 | 1.50 | 4.15 | 0.28 |
 
 'steep-skew' = put slope 0.35·T^-0.5 instead of the spec default T^-0.25. The spec default prices short-dated deep wings far below observed levels (a 2-month 25%-OTM SPX put on 2020-02-14 costs 0.03% of spot under the default vs ~0.19% under the steep variant; the spec's own 2020 sanity band of 20-50x is met only by the steep variant). Long-dated 10%-OTM structures are much less sensitive to the choice.
 
@@ -41,14 +41,14 @@ With pre-2000 episodes excluded (2000, 2007, 2011, 2015, 2018, 2020, 2022 only):
 
 | structure | EV hist-weighted (post-2000) | Mu/Rp/AB/SW/Es/Fr |
 |---|---|---|
-| SPX Jun-28 10% OTM | 1.61 | 0.1/4.0/0.6/3.3/0.1/3.3 |
-| SPX Dec-27 90/70 spread | 1.45 | 0.0/2.8/0.7/3.5/0.1/3.5 |
-| SPX Dec-27 10% OTM | 1.29 | 0.0/1.8/0.4/4.0/0.0/4.0 |
-| QQQ Jun-28 90/65 spread | 1.09 | 0.1/4.0/1.5/0.2/0.1/0.2 |
-| SPX Mar-27 10% OTM | 0.93 | 0.0/0.0/0.2/4.0/0.0/4.0 |
-| SPX Mar-27 90/75 spread | 0.78 | 0.1/0.0/0.3/3.2/0.0/3.2 |
-| QQQ Dec-27 90/65 spread | 0.68 | 0.1/1.8/1.5/0.2/0.1/0.2 |
-| QQQ Dec-27 10% OTM | 0.52 | 0.1/1.2/1.2/0.3/0.1/0.3 |
+| SPX Jun-28 10% OTM | 1.55 | 0.1/4.0/0.6/3.3/0.1/3.3 |
+| SPX Dec-27 90/70 spread | 1.38 | 0.0/2.8/0.7/3.5/0.1/3.5 |
+| SPX Dec-27 10% OTM | 1.21 | 0.0/1.8/0.4/4.0/0.0/4.0 |
+| QQQ Jun-28 90/65 spread | 1.10 | 0.1/4.0/1.5/0.2/0.1/0.2 |
+| SPX Mar-27 10% OTM | 0.85 | 0.0/0.0/0.2/4.0/0.0/4.0 |
+| SPX Mar-27 90/75 spread | 0.72 | 0.1/0.0/0.3/3.2/0.0/3.2 |
+| QQQ Dec-27 90/65 spread | 0.70 | 0.1/1.8/1.5/0.2/0.1/0.2 |
+| QQQ Dec-27 10% OTM | 0.53 | 0.1/1.2/1.2/0.3/0.1/0.3 |
 | [B] QQQ Jun-27 p 11% OTM | 0.30 | 0.1/0.1/1.1/0.3/0.0/0.3 |
 
 ### 1b. Seagulls (put spread part-financed by a far-OTM short call)
@@ -320,10 +320,11 @@ Surface validation on 300 random dates: parity violations 0, calendar 0, butterf
 
 v5 is not present in this environment; the comparison is against the v4 synthetic model re-run on the reconciled §0 timing (exit rule on, 6,000 paths). Structures in the top 8 with a gap above 30%:
 
-**QQQ Jun-28 90/65 spread**: historical-weighted 1.08x vs v4 synthetic 1.58x (-32%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 4.0 / AB 1.5 / SW 0.2 / Es 0.1 / Fr 0.1. In 14% of these entries the option expired before the episode trough, and in 69% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
-**SPX Mar-27 90/75 spread**: historical-weighted 0.74x vs v4 synthetic 1.22x (-39%); 10 episodes, 123 entries. Historical conditionals Mu 0.1 / Rp 0.0 / AB 0.3 / SW 4.0 / Es 0.0 / Fr 0.0. In 80% of these entries the option expired before the episode trough, and in 90% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. 
-**QQQ Dec-27 90/65 spread**: historical-weighted 0.68x vs v4 synthetic 1.44x (-53%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 1.8 / AB 1.5 / SW 0.2 / Es 0.1 / Fr 0.1. In 37% of these entries the option expired before the episode trough, and in 78% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
-**QQQ Dec-27 10% OTM**: historical-weighted 0.51x vs v4 synthetic 1.65x (-69%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 1.2 / AB 1.2 / SW 0.3 / Es 0.1 / Fr 0.1. In 37% of these entries the option expired before the episode trough, and in 78% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
+**SPX Mar-27 10% OTM**: historical-weighted 1.22x vs v4 synthetic 1.89x (-35%); 10 episodes, 123 entries. Historical conditionals Mu 0.0 / Rp 0.0 / AB 0.2 / SW 7.3 / Es 0.0 / Fr 0.0. In 80% of these entries the option expired before the episode trough, and in 90% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. 
+**QQQ Jun-28 90/65 spread**: historical-weighted 1.10x vs v4 synthetic 1.61x (-32%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 4.0 / AB 1.5 / SW 0.2 / Es 0.1 / Fr 0.1. In 14% of these entries the option expired before the episode trough, and in 69% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
+**SPX Mar-27 90/75 spread**: historical-weighted 0.71x vs v4 synthetic 1.36x (-48%); 10 episodes, 123 entries. Historical conditionals Mu 0.1 / Rp 0.0 / AB 0.3 / SW 4.0 / Es 0.0 / Fr 0.0. In 80% of these entries the option expired before the episode trough, and in 90% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. 
+**QQQ Dec-27 90/65 spread**: historical-weighted 0.69x vs v4 synthetic 1.46x (-53%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 1.8 / AB 1.5 / SW 0.2 / Es 0.1 / Fr 0.1. In 37% of these entries the option expired before the episode trough, and in 78% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
+**QQQ Dec-27 10% OTM**: historical-weighted 0.52x vs v4 synthetic 1.70x (-69%); 7 episodes, 78 entries. Historical conditionals Mu 0.1 / Rp 1.2 / AB 1.2 / SW 0.3 / Es 0.1 / Fr 0.1. In 37% of these entries the option expired before the episode trough, and in 78% the −22%-from-entry trigger never fired at all (the index rallied after entry, so the eventual drawdown from the peak was not a 22% drawdown from the entry spot). The synthetic model starts every crash from the entry level and never lets a position expire before the crash, which is where the gap comes from; the peak-anchored exit rule in §5 recovers part of it. QQQ conditionals rest on NDX data that begin 1999-12, so the 2000 episode contributes only entries at 0–3 months before the peak.
 
 ## 9. Red-team checklist status
 

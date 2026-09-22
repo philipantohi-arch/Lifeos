@@ -27,7 +27,7 @@ import random
 
 V4 = dict(SecondWave=(2, 14), AIBust=(5, 14), Repression=(5, 13), Fracture=(15, 24))
 V6 = dict(SecondWave=((0.0, 1.5), (1.5, 20.0), 0.40), AIBust=(6, 22), Repression=(8, 24), Fracture=(16, 24))
-PROB = dict(Muddle=.28, Repression=.19, AIBust=.17, SecondWave=.17, Escape=.14, Fracture=.05)
+PROB = dict(Muddle=.29, Repression=.19, AIBust=.18, SecondWave=.16, Escape=.14, Fracture=.04)
 BUCKETS = [("pre-Nov-26", 0, 1.5), ("Nov-26–Jun-27", 1.5, 9.5), ("Jul-27–Jun-28", 9.5, 21.5), ("Jul–Sep-28", 21.5, 24.01)]
 REPORT = {"pre-Nov-26": 7, "Nov-26–Jun-27": 13, "Jul-27–Jun-28": 38, "Jul–Sep-28": 4}
 
