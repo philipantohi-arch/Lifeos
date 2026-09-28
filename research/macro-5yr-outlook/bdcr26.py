@@ -652,3 +652,10 @@ if __name__ == "__main__":
 # any month of the 'modal' Jul-27..Jun-28 bucket, so 'October 2027' was a
 # modal-BUCKET claim. The engine now reports modal month, 80% interval and
 # confidence from the hazard curve. Output: hazard_report.md / hazard_curve.json.
+# v0.2 (same day, second memo "Dalio's Methodology & BDCR 2.0"): adds an encoded
+# Dalio decision tree (pass/fail per node), three reflexivity loops with gains, a
+# fifth engine (market plumbing), +200bp / asset-value / financing stresses, a
+# backtest of pre-specified mechanism rules on 1881-2023 (in/out of sample, nothing
+# fitted), mechanism-matched analogues, and confidence defined as stability across
+# 162 model specifications. First v0.2 run: systemic modal month SEPTEMBER 2027
+# (prior October), 80% interval Feb 2027 - Mar 2029, confidence MEDIUM.

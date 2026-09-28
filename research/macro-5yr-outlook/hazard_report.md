@@ -8,31 +8,32 @@ Response to the red-team memo. The 32-indicator composite is retained as the *st
 |---|---:|
 | Systemic vulnerability (structural, de-duplicated) | 77.0 |
 | BDCR-26 additive composite (for reference) | 71.7 |
-| Transmission stress | 49.5 |
+| Transmission stress | 53.6 |
 | Policy capacity remaining | 28.6 |
-| Reflexivity | 54.4 |
+| Reflexivity | 24.3 |
 | Liquidity stress | 64.3 |
 | Credit deterioration | 58.3 |
 | Market internals | 56.0 |
-| Catalyst proximity | 64.8 |
+| Catalyst proximity | 88.2 |
 
-**Crash hazard (systemic, ≥25% with financial transmission), posterior = prior blended with engine at λ=0.61, × policy-suppression modifier:**
+**Crash hazard (systemic, ≥25% with financial transmission), posterior = prior blended with engine at λ=0.66, × policy-suppression modifier:**
 
 | Window | Probability |
 |---|---:|
-| next 3m | 4.3% |
-| 3-6m | 5.9% |
-| 6-12m | 16.5% |
-| 12-18m | 17.4% |
-| 18-24m | 6.8% |
-| 24-36m | 9.2% |
-| 36-month cumulative | 60% |
+| next 3m | 3.0% |
+| 3-6m | 4.0% |
+| 6-12m | 15.1% |
+| 12-18m | 14.3% |
+| 18-24m | 7.8% |
+| 24-36m | 8.6% |
+| 36-month cumulative | 53% |
 
-- **Current modal month: Oct 2027**  (prior: Oct 2027; engine alone: Nov 2026)
-- **80% timing interval: Feb 2027 – Feb 2029**
-- **Confidence: LOW** (cross-market confirmation 1 of 5 domains fully confirmed, 2.0 weighted; independent clocks converging on H2-2027/H1-2028: 4 of 4)
+- **Current modal month: Sep 2027**  (prior: Oct 2027; engine alone: Apr 2027)
+- **80% timing interval: Feb 2027 – Mar 2029**
+- **Confidence: MEDIUM** (cross-market confirmation 1 of 5 domains fully confirmed, 2.0 weighted; independent clocks converging on H2-2027/H1-2028: 5 of 5)
 - First-crack candidate node: **Oracle** (distance-to-default proxy 0.62); most central node: **Nvidia**; highest centrality × fragility: **OpenAI**
-- Primary transmission: engine A (Sovereign / bond-market), furthest along the first-crack chain (stage 4: *funding contraction (gates, failed syndication)*)
+- Primary transmission: engine A (Sovereign / bond-market), furthest along its chain on Tier-1 evidence (stage 4: *funding contraction (gates, failed syndication)*)
+- Confidence decomposition: specification stability 100% of 162 specs keep the modal month within ±2 months (modal distribution {'Sep 2027': 132, 'Jul 2027': 18, 'Oct 2027': 12}); cross-market confirmation 1/3 required; combined score 0.67 → **MEDIUM**
 - Key clock: the Treasury rollover (~$11.8T over the next 12 months repricing from 3.41% toward 5.1%) and the Q1–Q2 2027 AI funding need (Oracle FY27 + OpenAI round); see §3.
 
 ### Three-date output (memo §27)
@@ -40,9 +41,9 @@ Response to the red-team memo. The 32-indicator composite is retained as the *st
 | Clock | Modal month | 80% interval | 36-month cumulative |
 |---|---|---|---:|
 | A — First crack (Tier-1 credit/liquidity event) | **Oct–Nov 2026** (Oct 1 gates / Car-Mart; Oct 8 30Y; Micron guide) | Oct 2026 – Mar 2027 | n/a (event, not index) |
-| Correction (≥10%) | **Nov 2026** | Nov 2026 – Feb 2028 | 91% |
-| B — Bear market (≥20%) | **Oct 2027** | Jan 2027 – Jan 2029 | 66% |
-| C — Systemic crash (≥25% + transmission) | **Oct 2027** | Feb 2027 – Feb 2029 | 60% |
+| Correction (≥10%) | **Nov 2026** | Nov 2026 – Feb 2028 | 88% |
+| B — Bear market (≥20%) | **Sep 2027** | Feb 2027 – Feb 2029 | 55% |
+| C — Systemic crash (≥25% + transmission) | **Sep 2027** | Feb 2027 – Mar 2029 | 53% |
 
 Moves earlier if: a Tier-1 event in engine A (a 30Y auction tail ≥4bp with cover <2.2 on Oct 8; a fails/repo spike at quarter-end), or a second Tier-1 event in engine B (an AI-chain default, an SPV impairment, a capex guide cut), or the confirmation count reaching 3 of 5 for two consecutive observations. Moves later if: the 30Y closes <5.30% for five sessions; the Nov 4 QRA cuts long-coupon sizes and the long end accepts it; Oct 1 gate requests fall; the AI funding-gap coverage ratio rises above 1.2 on new equity.
 
@@ -66,12 +67,36 @@ Nine latent factors; within-factor aggregation is 0.6·max + 0.4·mean, so sever
 
 | Engine | Chain stage reached (T1/T2 evidence) | Reflexivity | Refi coverage | T1 / T2 items | Clock |
 |---|---|---:|---:|---|---|
+| E — Market plumbing | 3: volatility regime shift — MOVE 80 -> 105 (T2); stock-bond correlation positive every session (T2); margin debt $1.45T record (T2); CTA down-tape branch engaged (T3); repo/SRF/fails QUIET (T2 benign); Treasury depth not retrieved; Sep 30 quarter-end SRF test pending. Absent: margin calls, forced liquidation. | 0.52 (collateral loop: prices -> collateral -> margin -> forced selling; strongest loop today because the buyback bid is in blackout and CTAs are sellers) | 1.00 | 0 / 3 | Sep 30 quarter-end funding test -> Oct 8 30Y auction -> Nov 4 QRA; thereafter whenever a 10% index move meets the collateral loop |
 | A — Sovereign / bond-market | 4: funding contraction (gates, failed syndication) — 5Y auction tail 3.1bp at 5.03% (T1); 30Y 5.56 through the buyback (T1); MOVE 105 (T2); buyback under-filled (T1); no failed auction, no fails spike (T1 absent) | 0.82 (loop gain 0.03 pp/pp per year (damped, cumulative); rescue half-life 6 -> 2 sessions) | 0.73 | 3 / 3 | Nov 4 QRA (coupon sizes) -> Q1-27 refunding + $9.7T rollover at 5%+ -> post-election coupon step-up and the Oct-8 30Y auction as the near test |
 | B — AI capital cycle | 2: lender concern (CDS, marks) — Oracle force majeure on Jupiter (T1: contractual); Jupiter loans 89-91 + CDS record (T2); CoreWeave-tenant paper 9.25% vs 8.25% (T2); no default, no capex cut, no impairment (T1 absent) | 0.55 (capex -> revenue coverage 46% (gap $490B); prepayment financing in revenue (ASC 606) = A->B->A loop forming; write-offs 2028-29) | 0.90 | 1 / 3 | Micron/DRAM contract rollover Q4-26 -> OpenAI 2027 round + Oracle FY27 debt need (Q1-Q2 27) -> OpenAI cash-out / write-off window (2028) |
-| C — Private credit | 3: credit-spread widening — Fitch PC default 6.3% record (T2); all perpetual BDCs gated 5% (T2); OBDC mark at 5c (T2); no insurer/pension writedown, no BDC bond >600, no covenant breach (T1 absent); Oct 1 windows pending | 0.50 (gates -> NAV doubt -> redemptions -> gates: loop live but capped by the 5% structure; discount to NAV ~25% = the market's own mark) | 0.85 | 0 / 4 | Oct 1 Q3 windows -> Jan 1 Q4 windows (second gate wave) -> 2027 BDC unsecured maturities (placeholder) |
+| C — Private credit | 5: gates — PC sequence reached 'gates' (stage 5 of 7): fundraising slowing (T3), Fitch PC default 6.3% record (T2), all perpetual BDCs gated 5% for 2-3 quarters (T2), OBDC mark at 5c (T2), BDCs ~25% below NAV (T2); NOT reached: forced sales, insurer/pension writedown (T1 absent), BDC bond >600, covenant breach; bank exposure to PC ~$1T+ of lending lines (E, no stress print) | 0.50 (gates -> NAV doubt -> redemptions -> gates: loop live but capped by the 5% structure; discount to NAV ~25% = the market's own mark) | 0.85 | 0 / 4 | Oct 1 Q3 windows -> Jan 1 Q4 windows (second gate wave) -> 2027 BDC unsecured maturities (placeholder) |
 | D — Consumer / recession | 1: missed payment / covenant breach / force majeure — hires 3.2% and saving 3.0% at trigger (T3); subprime auto 6.13% re-accelerating (T2); prime 0.49% contained (T2); claims 197K, mortgage DQ stable (T2 benign); Car-Mart alive to Oct 1 (T1 pending) | 0.30 (delinquency -> tighter credit -> spending -> jobs: not self-reinforcing while claims <230K) | 1.10 | 0 / 2 | second hike Oct 27 + $105 oil + 7% mortgages transmit on a 6-9 month lag -> Q2-Q3 2027 |
 
-Reading: engine A (sovereign) is furthest along the chain and is the only one with three Tier-1 items; engine B has the single most important Tier-1 event (force majeure) but no default; engine C is structurally gated, which slows its loop; engine D is a lagging engine that the second hike arms for mid-2027. The AI engine is **not** a prerequisite: the hazard curve is a union of the four.
+Reading: engine A (sovereign) is furthest along its chain with Tier-1 evidence and is the only one with three Tier-1 items; engine B has the single most important Tier-1 event (force majeure) but no default; engine C has reached 'gates' on the private-credit sequence but not 'forced sales'; engine D is a lagging engine that the second hike arms for mid-2027; engine E (plumbing) shows a volatility-regime shift in rates only. The AI engine is **not** a prerequisite: the hazard curve is a union of the five.
+
+### 2b. Dalio decision tree (BDCR 2.0 memo §5) — encoded conditions, current pass/fail
+
+| # | Node | Condition (specified before looking) | Reading | Tier | Passes |
+|---|---|---|---|:---:|:---:|
+| 1 | Debt rising faster than income | federal debt growth vs nominal GDP growth (y/y) | debt +~7-8% vs NGDP +4.2% (E) | T4 | YES |
+| 2 | Debt service becoming restrictive | net interest / revenue >= 18% OR marginal r - g > 0 | 19.4% (V); marginal r-g +0.9pp (V) | T2 | YES |
+| 3 | Monetary policy unable to fully offset | Fed constrained by inflation: core PCE > 3% while hiking; real EFFR > 0 | core 3.4%, Oct hike 72% priced (V) | T2 | YES |
+| 4 | Credit contraction | HY OAS > 400 OR bank C&I standards tightening > +20 net OR private-credit gates AND defaults > 6% | HY 280 (no); gates + 6.3% defaults (yes, private only) | T2 | no |
+| 5 | Spending deterioration | real retail sales < 0 y/y OR claims > 260K OR saving rate < 3.0% | retail +1.2% nominal, claims 197K, saving 3.0% at line | T2 | no |
+| 6 | Deleveraging regime | household or corporate debt/GDP falling with defaults rising | no | T2 | no |
+
+Tree stage **3 of 6**: the system is past 'monetary policy unable to offset' and stops at **Credit contraction** — the bank/HY channel has not contracted (HY 280) and spending has not deteriorated (claims 197K). That is the precise statement of 'amber, not red' in causal form, and it is the node the Sep 30 / Oct 2 / Oct 6 prints test.
+
+### 2c. Reflexivity loops (BDCR 2.0 memo §13) — one-year gain of each loop
+
+| Loop | Gain | Note |
+|---|---:|---|
+| Sovereign: yield -> interest -> deficit -> issuance -> yield | 0.03 | damped within a year; compounds into the 2028-29 interest step-up (V inputs) |
+| Credit: losses -> lending -> activity -> defaults | 0.17 | live in private credit only; the bank channel has not engaged (HY <300) (E) |
+| Collateral: prices -> collateral -> margin -> forced selling -> prices | 0.52 | margin debt record, CTA down-tape branch engaged, buyback bid in blackout: the strongest loop today (E) |
+
+Gain scale: >1 explosive, 0.3–1 self-reinforcing, <0.3 damped. The collateral loop is the only one in the self-reinforcing band today; the sovereign loop is damped on a one-year horizon but compounds.
 
 ## 3. Liability maturity clock (memo #3, #22, #24) — $B per quarter
 
@@ -98,10 +123,14 @@ The wall is back-loaded: the private/AI/credit funding need rises from ~$162B in
 |---|---:|---:|---:|---:|---:|
 | base | 710 | 120 | 520 | 70 | 0.90 |
 | rates +100bp | 710 | 120 | 442 | 148 | 0.79 |
+| rates +200bp | 710 | 120 | 364 | 226 | 0.68 |
 | AI revenue -30% | 780 | 120 | 520 | 140 | 0.82 |
 | spreads +150bp | 710 | 120 | 403 | 187 | 0.74 |
 | utilization -20% | 724 | 120 | 520 | 84 | 0.88 |
-| all four | 795 | 120 | 325 | 350 | 0.56 |
+| asset values -25% (GPU/DC collateral) | 710 | 120 | 474 | 116 | 0.84 |
+| financing window half-closed (-30%) | 710 | 120 | 364 | 226 | 0.68 |
+| all: +100bp, rev -30%, spreads +150, util -20% | 795 | 120 | 325 | 350 | 0.56 |
+| severe: +200bp, rev -30%, assets -25%, financing -30% | 780 | 120 | 233 | 428 | 0.45 |
 
 Base case: the complex can fund itself only because the IG market is assumed to absorb ~$520B; coverage falls below 1.0 under any single stress and to ~0.6 under all four. The measurable clock is therefore the IG/private spread on AI paper, not the capex number.
 
@@ -153,35 +182,38 @@ State vector ['capez', 'cape_lvl', 'ret12', 'dy10', 'rvol', 'erp_pp'] at t, t−
 | 2000-02-01 | 1.25 | 42.2 | 10 | 13 | 19 |
 | 1997-11-01 | 2.09 | 32.3 | 10 | >36 | >36 |
 | 2018-09-01 | 2.45 | 32.6 | 3 | >36 | >36 |
-| 1929-10-01 | 2.47 | 29.0 | 1 | 1 | 1 |
-| 1966-04-01 | 2.73 | 23.1 | 4 | >36 | >36 |
-| 1902-04-01 | 2.87 | 22.8 | 12 | 15 | 16 |
-| 1964-09-01 | 2.96 | 22.9 | 23 | >36 | >36 |
-| 1968-12-01 | 2.99 | 22.3 | 7 | 17 | 17 |
-| 1962-03-01 | 3.01 | 21.4 | 2 | 3 | >36 |
-| 2004-07-01 | 3.03 | 25.7 | >36 | >36 | >36 |
-| 1899-08-01 | 3.04 | 21.7 | 13 | >36 | >36 |
 | 2002-06-01 | 3.09 | 26.4 | 1 | >36 | >36 |
-| 2006-02-01 | 3.13 | 26.2 | 23 | 31 | 32 |
 | 2007-10-01 | 3.16 | 27.3 | 3 | 11 | 12 |
-| 1995-08-01 | 3.33 | 23.3 | >36 | >36 | >36 |
-| 2017-02-01 | 3.39 | 28.7 | 22 | >36 | >36 |
-| 1892-10-01 | 3.4 | 19.0 | 7 | 9 | 9 |
-| 1960-01-01 | 3.42 | 18.3 | 28 | 29 | >36 |
-| 1937-08-01 | 3.53 | 19.8 | 1 | 2 | 2 |
-| 1956-10-01 | 3.54 | 17.4 | 12 | >36 | >36 |
+| 2004-06-01 | 3.28 | 26.4 | >36 | >36 | >36 |
+| 1996-03-01 | 3.66 | 25.6 | 30 | >36 | >36 |
 
 Empirical hazard from the matches (events / at-risk per bucket):
 
 | Bucket | −10% | −20% | −25% |
 |---|---|---|---|
-| 0-6m | 7/20 = 35% | 3/20 = 15% | 2/20 = 10% |
-| 6-12m | 6/13 = 46% | 2/17 = 12% | 2/18 = 11% |
-| 12-18m | 1/7 = 14% | 3/15 = 20% | 2/16 = 12% |
-| 18-24m | 3/6 = 50% | 0/12 = 0% | 1/14 = 7% |
-| 24-36m | 1/3 = 33% | 2/12 = 17% | 1/13 = 8% |
+| 0-6m | 3/7 = 43% | 0/7 = 0% | 0/7 = 0% |
+| 6-12m | 2/4 = 50% | 1/7 = 14% | 1/7 = 14% |
+| 12-18m | 0/2 = 0% | 1/6 = 17% | 0/6 = 0% |
+| 18-24m | 0/2 = 0% | 0/5 = 0% | 1/6 = 17% |
+| 24-36m | 1/2 = 50% | 0/5 = 0% | 0/5 = 0% |
 
-Small-sample caveat: twenty matched months, many from the same few regimes. The analogue hazard enters the engine curve at 30% weight.
+Mechanism filter ON: candidates restricted to the 111 months (of 1651) that satisfy rule R1 or R2 at the match date, so matches share the transmission mechanism, not just the chart (BDCR 2.0 memo §6, §15). Small-sample caveat: twenty matched months, many from the same few regimes. The analogue hazard enters the engine curve at 30% weight.
+
+Chart-only matching (no mechanism filter), for comparison — the memo warns against exactly this: 2000-02, 1997-11, 2018-09, 1929-10, 1966-04, 1902-04, 1964-09, 1968-12, 1962-03, 2004-07.
+
+### 8b. Backtest of pre-specified mechanism rules (BDCR 2.0 memo §4–§6)
+
+Rules written before looking at outcomes: **R1 no-cushion valuation** = CAPE >= 25 AND (E/P - 10Y) <= +0.5pp; **R2 rate shock into richness** = CAPE >= 25 AND 12-month change in 10Y >= +0.75pp; **R3 top formation** = R1 AND 12-month return >= +10% AND realized vol rising vs 6 months earlier. Today satisfies R1, R2 and R3. Outcome = a drawdown of the stated size from the running high within the stated horizon, measured on Shiller monthly prices 1881–2023. In-sample / out-of-sample split at 1960.
+
+| State | n | P(−10% in 12m) | P(−20% in 24m) | P(−25% in 36m) | pre-1960: n, −25%/36m | post-1960: n, −25%/36m |
+|---|---:|---:|---:|---:|---|---|
+| R1 no-cushion valuation | 89 | 51% | 47% | 52% | 0, 0% | 89, 52% |
+| R2 rate shock into richness | 17 | 41% | 53% | 59% | 0, 0% | 17, 59% |
+| R3 top formation | 29 | 28% | 17% | 31% | 0, 0% | 29, 31% |
+| R1 AND R2 (today) | 12 | 50% | 75% | 75% | 0, 0% | 12, 75% |
+| ALL months (base rate) | 1674 | 38% | 29% | 32% | 948, 37% | 726, 24% |
+
+Episodes in today's state (R1 AND R2): [('1997-01-01', '1997-01-01'), ('1999-09-01', '2000-05-01'), ('2004-05-01', '2004-06-01')]. Read the lift, not the level: the rules were specified from the mechanism (no cushion + rate shock into richness), not tuned, and the question is whether the conditional rates beat the base rate in BOTH halves of the sample. Where they do, the mechanism has historical support; where the post-1960 sample is a handful of months, the test is inconclusive and says so.
 
 ## 9. Network centrality (memo #20)
 
@@ -210,42 +242,47 @@ Small-sample caveat: twenty matched months, many from the same few regimes. The 
 
 | Month | Correction prior | Correction post | Bear prior | Bear post | Systemic prior | Systemic engine | Systemic post | Suppression |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Oct 2026 | 26.5 | 8.6 | 3.0 | 1.6 | 3.1 | 2.1 | 1.4 | 0.55 |
-| Nov 2026 | 36.0 | 10.4 | 3.0 | 1.8 | 3.3 | 2.5 | 1.5 | 0.55 |
-| Dec 2026 | 10.4 | 6.2 | 2.4 | 2.1 | 1.7 | 2.3 | 1.5 | 0.75 |
-| Jan 2027 | 11.6 | 6.2 | 2.5 | 2.1 | 1.7 | 2.3 | 1.5 | 0.75 |
-| Feb 2027 | 13.2 | 12.6 | 2.8 | 3.4 | 1.7 | 2.5 | 2.3 | 1.00 |
-| Mar 2027 | 15.2 | 13.9 | 3.1 | 3.6 | 2.0 | 2.6 | 2.5 | 1.00 |
-| Apr 2027 | 6.4 | 11.0 | 3.4 | 3.7 | 2.2 | 2.7 | 2.7 | 1.00 |
-| May 2027 | 6.9 | 11.2 | 3.8 | 3.8 | 2.5 | 2.6 | 2.8 | 1.00 |
-| Jun 2027 | 7.4 | 11.5 | 4.2 | 3.9 | 2.7 | 2.6 | 2.8 | 1.00 |
-| Jul 2027 | 8.0 | 11.7 | 5.4 | 4.4 | 4.8 | 2.5 | 3.7 | 1.00 |
-| Aug 2027 | 8.7 | 12.1 | 6.1 | 4.6 | 5.4 | 2.5 | 3.9 | 1.00 |
-| Sep 2027 | 9.5 | 12.6 | 6.8 | 4.9 | 6.1 | 2.4 | 4.2 | 1.00 |
-| Oct 2027 | 2.2 | 7.5 | 6.9 | 5.2 | 6.9 | 2.4 | 4.5 | 1.00 |
-| Nov 2027 | 2.2 | 7.3 | 7.1 | 5.2 | 7.0 | 2.3 | 4.5 | 1.00 |
-| Dec 2027 | 2.3 | 7.1 | 7.2 | 5.2 | 7.1 | 2.2 | 4.5 | 1.00 |
-| Jan 2028 | 2.3 | 6.7 | 7.2 | 5.1 | 7.1 | 2.1 | 4.4 | 1.00 |
-| Feb 2028 | 2.4 | 6.3 | 7.3 | 5.0 | 7.1 | 1.9 | 4.3 | 1.00 |
-| Mar 2028 | 2.5 | 5.8 | 7.3 | 4.9 | 7.0 | 1.7 | 4.2 | 1.00 |
-| Apr 2028 | 2.5 | 7.4 | 7.3 | 4.0 | 6.9 | 1.3 | 3.9 | 1.00 |
-| May 2028 | 2.6 | 3.9 | 7.3 | 2.8 | 6.7 | 1.1 | 2.7 | 0.80 |
-| Jun 2028 | 2.6 | 3.5 | 7.8 | 2.8 | 6.5 | 1.0 | 2.5 | 0.80 |
-| Jul 2028 | 2.7 | 3.3 | 2.9 | 1.2 | 2.8 | 0.8 | 1.3 | 0.80 |
-| Aug 2028 | 2.8 | 3.0 | 2.9 | 1.1 | 2.9 | 0.7 | 1.3 | 0.80 |
-| Sep 2028 | 2.9 | 2.9 | 3.0 | 1.1 | 3.0 | 0.6 | 1.2 | 0.80 |
-| Oct 2028 | 3.0 | 1.7 | 3.1 | 1.3 | 3.1 | 0.4 | 1.1 | 0.80 |
-| Nov 2028 | 3.1 | 1.6 | 3.2 | 1.3 | 3.2 | 0.3 | 1.1 | 0.80 |
-| Dec 2028 | 3.1 | 2.8 | 3.3 | 1.8 | 3.3 | 0.3 | 1.6 | 1.00 |
-| Jan 2029 | 3.3 | 2.8 | 3.4 | 1.8 | 3.4 | 0.3 | 1.6 | 1.00 |
-| Feb 2029 | 3.4 | 2.8 | 3.6 | 1.9 | 3.5 | 0.2 | 1.7 | 1.00 |
-| Mar 2029 | 3.5 | 2.8 | 3.7 | 1.9 | 3.7 | 0.2 | 1.7 | 1.00 |
-| Apr 2029 | 3.6 | 2.9 | 3.8 | 2.0 | 3.8 | 0.2 | 1.8 | 1.00 |
-| May 2029 | 3.7 | 2.9 | 4.0 | 2.0 | 4.0 | 0.2 | 1.8 | 1.00 |
-| Jun 2029 | 3.9 | 3.0 | 4.2 | 2.1 | 4.1 | 0.2 | 1.9 | 1.00 |
-| Jul 2029 | 4.0 | 3.1 | 4.3 | 2.2 | 4.3 | 0.2 | 2.0 | 1.00 |
-| Aug 2029 | 4.2 | 3.2 | 4.5 | 2.3 | 4.5 | 0.2 | 2.1 | 1.00 |
-| Sep 2029 | 4.4 | 3.4 | 4.8 | 2.4 | 4.7 | 0.2 | 2.2 | 1.00 |
+| Oct 2026 | 26.5 | 8.2 | 3.0 | 1.0 | 3.1 | 1.1 | 1.0 | 0.55 |
+| Nov 2026 | 36.0 | 9.6 | 3.0 | 1.0 | 3.3 | 1.3 | 1.1 | 0.55 |
+| Dec 2026 | 10.4 | 6.0 | 2.4 | 1.2 | 1.7 | 1.2 | 1.0 | 0.75 |
+| Jan 2027 | 11.6 | 5.9 | 2.5 | 1.2 | 1.7 | 1.1 | 1.0 | 0.75 |
+| Feb 2027 | 13.2 | 11.8 | 2.8 | 1.9 | 1.7 | 1.2 | 1.5 | 1.00 |
+| Mar 2027 | 15.2 | 13.0 | 3.1 | 2.0 | 2.0 | 1.3 | 1.7 | 1.00 |
+| Apr 2027 | 6.4 | 10.4 | 3.4 | 2.7 | 2.2 | 2.1 | 2.3 | 1.00 |
+| May 2027 | 6.9 | 10.6 | 3.8 | 2.8 | 2.5 | 2.1 | 2.4 | 1.00 |
+| Jun 2027 | 7.4 | 10.8 | 4.2 | 3.0 | 2.7 | 2.1 | 2.5 | 1.00 |
+| Jul 2027 | 8.0 | 11.1 | 5.4 | 3.4 | 4.8 | 2.0 | 3.2 | 1.00 |
+| Aug 2027 | 8.7 | 11.5 | 6.1 | 3.6 | 5.4 | 2.0 | 3.4 | 1.00 |
+| Sep 2027 | 9.5 | 11.9 | 6.8 | 3.9 | 6.1 | 2.0 | 3.7 | 1.00 |
+| Oct 2027 | 2.2 | 6.3 | 6.9 | 4.0 | 6.9 | 1.2 | 3.4 | 1.00 |
+| Nov 2027 | 2.2 | 6.1 | 7.1 | 4.0 | 7.0 | 1.1 | 3.4 | 1.00 |
+| Dec 2027 | 2.3 | 5.8 | 7.2 | 4.0 | 7.1 | 1.0 | 3.4 | 1.00 |
+| Jan 2028 | 2.3 | 5.5 | 7.2 | 4.0 | 7.1 | 0.9 | 3.3 | 1.00 |
+| Feb 2028 | 2.4 | 5.1 | 7.3 | 3.9 | 7.1 | 0.8 | 3.3 | 1.00 |
+| Mar 2028 | 2.5 | 4.6 | 7.3 | 3.9 | 7.0 | 0.7 | 3.2 | 1.00 |
+| Apr 2028 | 2.5 | 4.1 | 7.3 | 3.2 | 6.9 | 1.5 | 3.7 | 1.00 |
+| May 2028 | 2.6 | 2.0 | 7.3 | 2.3 | 6.7 | 1.4 | 2.6 | 0.80 |
+| Jun 2028 | 2.6 | 1.8 | 7.8 | 2.3 | 6.5 | 1.3 | 2.5 | 0.80 |
+| Jul 2028 | 2.7 | 1.5 | 2.9 | 0.9 | 2.8 | 1.2 | 1.4 | 0.80 |
+| Aug 2028 | 2.8 | 1.4 | 2.9 | 0.9 | 2.9 | 1.1 | 1.4 | 0.80 |
+| Sep 2028 | 2.9 | 1.2 | 3.0 | 0.9 | 3.0 | 1.1 | 1.4 | 0.80 |
+| Oct 2028 | 3.0 | 1.9 | 3.1 | 0.9 | 3.1 | 0.1 | 0.9 | 0.80 |
+| Nov 2028 | 3.1 | 1.8 | 3.2 | 0.9 | 3.2 | 0.1 | 0.9 | 0.80 |
+| Dec 2028 | 3.1 | 3.2 | 3.3 | 1.3 | 3.3 | 0.1 | 1.3 | 1.00 |
+| Jan 2029 | 3.3 | 3.1 | 3.4 | 1.3 | 3.4 | 0.0 | 1.3 | 1.00 |
+| Feb 2029 | 3.4 | 3.1 | 3.6 | 1.3 | 3.5 | 0.0 | 1.3 | 1.00 |
+| Mar 2029 | 3.5 | 3.2 | 3.7 | 1.4 | 3.7 | 0.0 | 1.4 | 1.00 |
+| Apr 2029 | 3.6 | 3.2 | 3.8 | 1.4 | 3.8 | 0.0 | 1.4 | 1.00 |
+| May 2029 | 3.7 | 3.3 | 4.0 | 1.5 | 4.0 | 0.0 | 1.5 | 1.00 |
+| Jun 2029 | 3.9 | 3.4 | 4.2 | 1.5 | 4.1 | 0.0 | 1.5 | 1.00 |
+| Jul 2029 | 4.0 | 3.4 | 4.3 | 1.6 | 4.3 | 0.0 | 1.6 | 1.00 |
+| Aug 2029 | 4.2 | 3.6 | 4.5 | 1.7 | 4.5 | 0.0 | 1.7 | 1.00 |
+| Sep 2029 | 4.4 | 3.7 | 4.8 | 1.8 | 4.7 | 0.0 | 1.8 | 1.00 |
+
+### 10b. Specification stability (BDCR 2.0 memo §16: confidence = stability across specifications)
+
+162 specifications: engine weight λ ±0.15, analogue blend 0.15/0.30/0.45, engine level ×0.7/1.0/1.3, analogue neighbours k = 12/20/30, election deferral on/off. **100%** keep the systemic modal month within ±2 months of the base result. Modal-month distribution: {'Sep 2027': 132, 'Jul 2027': 18, 'Oct 2027': 12}. 10th-percentile start month ranges Dec 2026 – Mar 2027. Confidence score = ½ stability + ½ min(1, confirmed domains / 3) = 0.67 → **MEDIUM**.
+
 
 ## 11. What was adopted, changed, or rejected from the memo
 

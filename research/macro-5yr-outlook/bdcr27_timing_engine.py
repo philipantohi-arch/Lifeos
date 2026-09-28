@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 """
-BDCR-27 Crash-Timing Engine  (v0.1, 2026-09-28)
+BDCR-27 Crash-Timing Engine  (v0.2, 2026-09-28)
 =================================================
 
-Response to the red-team memo "BDCR Crash-Timing Engine: Red-Team Analysis,
-Counterpoints & Proposed Next-Generation Model" (received 2026-09-28).
+Response to two memos received 2026-09-28: "BDCR Crash-Timing Engine: Red-Team
+Analysis, Counterpoints & Proposed Next-Generation Model" (v0.1) and "Dalio's
+Methodology & BDCR 2.0" (v0.2). v0.2 adds, from the second memo: an explicitly
+encoded Dalio decision tree with pass/fail per node (§2b); three reflexivity
+loops with one-year gains (§2c); a fifth engine for market plumbing and a
+private-credit sequence chain (§2); +200bp, asset-value and financing-
+availability stresses in the funding-gap test (§4); mechanism-filtered
+analogue matching (§8); a backtest layer that tests pre-specified mechanism
+rules in and out of sample against the base rate, with nothing fitted (§8b);
+and confidence defined as stability across model specifications (§10b).
 
 The memo's central criticism is accepted: BDCR-26 answers "how dangerous is the
 environment" and only asserts "when". This module sits ON TOP of the unchanged
@@ -284,22 +292,124 @@ AI = dict(
     genai_revenue=235,                                  # V range midpoint ($200-270B)
 )
 
-def funding_gap(rate_shock_bp=0, revenue_shock=0.0, spread_shock_bp=0, util_shock=0.0) -> dict:
+def funding_gap(rate_shock_bp=0, revenue_shock=0.0, spread_shock_bp=0, util_shock=0.0,
+                asset_value_shock=0.0, financing_avail=1.0) -> dict:
+    """Memo (Dalio/BDCR 2.0 §10): stress +100bp, +200bp, revenue, utilization, monetization, financing
+    availability and asset values. asset_value_shock cuts GPU/DC collateral values -> collateral-based
+    debt capacity (assumed 35% of debt capacity is collateral-dependent); financing_avail scales the
+    whole debt channel (a 30% cut = the IG/private window half-closing)."""
     a = AI
     rev_hit = a["genai_revenue"] * revenue_shock                              # lost revenue -> lost OCF (1:1 at margin)
     ocf = a["ocf_big4"] - rev_hit - a["ocf_big4"] * 0.15 * util_shock           # utilization hit flows to margin
     fcf_after_capex = ocf - a["capex_big4_2027"] - a["other_uses_big4"]
     required = -fcf_after_capex + a["openai_need"] + a["oracle_need"] + a["neocloud_need"]
     debt_cap = a["debt_capacity_base"] * (1 - 0.0015 * (rate_shock_bp + spread_shock_bp))  # E: capacity shrinks 15% per 100bp
+    debt_cap *= (1 - 0.35 * asset_value_shock) * financing_avail
     gap = required - a["equity_available"] - debt_cap
     coverage = (a["equity_available"] + debt_cap) / max(required, 1)
     return dict(required=required, equity=a["equity_available"], debt_capacity=debt_cap, gap=gap, coverage=coverage)
+
+# ======================================================================
+# §2b  DALIO DECISION TREE (BDCR 2.0 memo §5): explicit, encoded conditions, tested not asserted
+# ======================================================================
+# Each node: (condition as written BEFORE looking, measurable variable, current reading, tier, passes?)
+DECISION_TREE = [
+    ("Debt rising faster than income", "federal debt growth vs nominal GDP growth (y/y)", "debt +~7-8% vs NGDP +4.2% (E)", 4, True),
+    ("Debt service becoming restrictive", "net interest / revenue >= 18% OR marginal r - g > 0", "19.4% (V); marginal r-g +0.9pp (V)", 2, True),
+    ("Monetary policy unable to fully offset", "Fed constrained by inflation: core PCE > 3% while hiking; real EFFR > 0", "core 3.4%, Oct hike 72% priced (V)", 2, True),
+    ("Credit contraction", "HY OAS > 400 OR bank C&I standards tightening > +20 net OR private-credit gates AND defaults > 6%", "HY 280 (no); gates + 6.3% defaults (yes, private only)", 2, False),
+    ("Spending deterioration", "real retail sales < 0 y/y OR claims > 260K OR saving rate < 3.0%", "retail +1.2% nominal, claims 197K, saving 3.0% at line", 2, False),
+    ("Deleveraging regime", "household or corporate debt/GDP falling with defaults rising", "no", 2, False),
+]
+
+def tree_stage() -> dict:
+    stage = 0
+    for i, (_, _, _, _, ok) in enumerate(DECISION_TREE):
+        if ok: stage = i + 1
+        else: break
+    return dict(stage=stage, of=len(DECISION_TREE), next_node=DECISION_TREE[stage][0] if stage < len(DECISION_TREE) else None)
+
+# ======================================================================
+# §2c  REFLEXIVITY LOOPS (BDCR 2.0 memo §13): three loops, each with an estimated one-year gain
+# ======================================================================
+def loops(sov: dict) -> list:
+    """gain = fraction of an initial shock that returns to its origin within ~1 year; >1 = explosive,
+    0.3-1 = self-reinforcing, <0.3 = damped. Inputs tagged in notes."""
+    # Loop 1 sovereign: yield -> interest -> deficit -> issuance -> yield (computed in sovereign_engine)
+    l1 = sov["loop_gain"]
+    # Loop 2 credit: losses -> lending down -> activity down -> defaults up. E: each 1pp of PC default ->
+    # ~2% less private-credit origination -> ~0.05pp of GDP -> ~0.1pp more defaults (Fitch/loan-loss elasticities, E)
+    l2 = 0.10 + 0.15 * (1 if DOMAINS["Credit stress"][0] >= 1 else 0.5)
+    # Loop 3 collateral: prices -> collateral -> margin -> forced selling -> prices. E: margin debt $1.45T record,
+    # CTA sell branch engaged, buyback bid absent -> a 10% fall triggers ~$100-200B of mechanical selling ~ 0.3-0.5 of the move
+    l3 = 0.35 + 0.15 * (INTERNALS[9].score) + 0.10 * (INTERNALS[8].score)
+    return [("Sovereign: yield -> interest -> deficit -> issuance -> yield", l1, "damped within a year; compounds into the 2028-29 interest step-up (V inputs)"),
+            ("Credit: losses -> lending -> activity -> defaults", l2, "live in private credit only; the bank channel has not engaged (HY <300) (E)"),
+            ("Collateral: prices -> collateral -> margin -> forced selling -> prices", l3, "margin debt record, CTA down-tape branch engaged, buyback bid in blackout: the strongest loop today (E)")]
+
+# ======================================================================
+# §8b  BACKTEST LAYER (BDCR 2.0 memo §4-§6): pre-specified mechanism rules tested on 1881-2023,
+#      in-sample vs out-of-sample, against the unconditional base rate. No parameter is fitted.
+# ======================================================================
+RULES = {  # written before looking at outcomes; the current state satisfies all three
+    "R1 no-cushion valuation":  "CAPE >= 25 AND (E/P - 10Y) <= +0.5pp",
+    "R2 rate shock into richness": "CAPE >= 25 AND 12-month change in 10Y >= +0.75pp",
+    "R3 top formation":          "R1 AND 12-month return >= +10% AND realized vol rising vs 6 months earlier",
+}
+
+def backtest():
+    try:
+        import numpy as np, pandas as pd
+        from v6.data.loaders import build_all
+        m = build_all(verbose=False)["monthly"].copy()
+    except Exception as e:  # pragma: no cover
+        return dict(ok=False, error=str(e))
+    m = m[(m.index >= "1881-01-01") & (m.index <= "2023-06-01")]
+    p = m["price"]; m["ret12"] = p.pct_change(12); m["dy10"] = m["gs10"].diff(12) * 100
+    m["rvol"] = np.log(p).diff().rolling(12).std() * math.sqrt(12) * 100
+    m["erp_pp"] = (m["ep"] - m["gs10"]) * 100
+    r1 = (m["cape"] >= 25) & (m["erp_pp"] <= 0.5)
+    r2 = (m["cape"] >= 25) & (m["dy10"] >= 0.75)
+    r3 = r1 & (m["ret12"] >= 0.10) & (m["rvol"] > m["rvol"].shift(6))
+    states = {"R1 no-cushion valuation": r1, "R2 rate shock into richness": r2, "R3 top formation": r3, "R1 AND R2 (today)": r1 & r2, "ALL months (base rate)": pd.Series(True, index=m.index)}
+    prices = p.to_numpy(); n = len(prices)
+    def hit(i, dd, horizon):
+        hi = prices[i]
+        for j in range(i + 1, min(n, i + horizon + 1)):
+            hi = max(hi, prices[j])
+            if prices[j] <= hi * (1 - dd): return True
+        return False
+    out = {}; split = pd.Timestamp("1960-01-01")
+    for name, s in states.items():
+        idx = [i for i, ok in enumerate(s.fillna(False).to_numpy()) if ok and i < n - 36]
+        row = dict(n=len(idx))
+        for lab, sel in (("all", idx), ("pre-1960", [i for i in idx if m.index[i] < split]), ("post-1960", [i for i in idx if m.index[i] >= split])):
+            if not sel: row[lab] = None; continue
+            row[lab] = {f"{int(dd*100)}%/{h}m": sum(hit(i, dd, h) for i in sel) / len(sel) for dd, h in ((.10, 12), (.20, 24), (.25, 36))}
+            row[lab]["n"] = len(sel)
+        out[name] = row
+    # first/last months in the today-state, for the record
+    today_state = m.index[(r1 & r2).fillna(False).to_numpy()]
+    episodes = []
+    if len(today_state):
+        start = prev = today_state[0]
+        for d in today_state[1:]:
+            if (d - prev).days > 100: episodes.append((str(start.date()), str(prev.date()))); start = d
+            prev = d
+        episodes.append((str(start.date()), str(prev.date())))
+    return dict(ok=True, table=out, episodes=episodes)
 
 # ======================================================================
 # §2  FOUR CRASH ENGINES (memo #4, #8-#10, #19)
 # ======================================================================
 CHAIN = ["vulnerable borrower", "missed payment / covenant breach / force majeure", "lender concern (CDS, marks)",
          "credit-spread widening", "funding contraction (gates, failed syndication)", "forced selling", "deleveraging", "equity crash"]
+# BDCR 2.0 memo §12: market plumbing has its own chain (macro stress -> market crash)
+PLUMB_CHAIN = ["Treasury liquidity thinning", "repo / funding-spread stress", "dealer balance-sheet constraint",
+               "volatility regime shift", "margin requirements rising", "forced liquidation", "correlation-1 selling", "equity crash"]
+# BDCR 2.0 memo §11: private credit has its own sequence
+PC_CHAIN = ["fundraising slows", "underwriting deteriorates", "NAV marks questioned", "defaults rise", "redemption requests rise",
+            "gates", "forced sales", "bank / insurer losses"]
 
 @dataclass
 class Engine:
@@ -313,9 +423,17 @@ class Engine:
     clock_peaks: list          # [(months_from_now, width_months, weight)] where pressure becomes unavoidable
     clock_note: str
     hazard_scale: float        # peak monthly hazard contribution to the SYSTEMIC clock if fully confirmed
+    chain: list = field(default_factory=lambda: CHAIN)
 
-def engines(sov: dict, bs: dict, fr: dict, gap: dict) -> list:
+def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) -> list:
+    l3 = lp[2][1] if lp else 0.5
     return [
+        Engine("E", "Market plumbing", 3,
+               "MOVE 80 -> 105 (T2); stock-bond correlation positive every session (T2); margin debt $1.45T record (T2); CTA down-tape branch engaged (T3); repo/SRF/fails QUIET (T2 benign); Treasury depth not retrieved; Sep 30 quarter-end SRF test pending. Absent: margin calls, forced liquidation.",
+               min(1.0, l3), "collateral loop: prices -> collateral -> margin -> forced selling; strongest loop today because the buyback bid is in blackout and CTAs are sellers",
+               1.0, 0, 3, [(0.1, 0.8, 0.35), (1.2, 1.0, 0.30), (12, 6, 0.35)],
+               "Sep 30 quarter-end funding test -> Oct 8 30Y auction -> Nov 4 QRA; thereafter whenever a 10% index move meets the collateral loop",
+               0.020, chain=PLUMB_CHAIN),
         Engine("A", "Sovereign / bond-market", 4,
                "5Y auction tail 3.1bp at 5.03% (T1); 30Y 5.56 through the buyback (T1); MOVE 105 (T2); buyback under-filled (T1); no failed auction, no fails spike (T1 absent)",
                min(1.0, 0.45 + 0.5 * fr["score"]), f"loop gain {sov['loop_gain']:.2f} pp/pp per year (damped, cumulative); rescue half-life 6 -> 2 sessions",
@@ -329,12 +447,12 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict) -> list:
                gap["coverage"], 1, 3, [(3, 2, 0.20), (9, 4, 0.40), (16, 6, 0.40)],
                "Micron/DRAM contract rollover Q4-26 -> OpenAI 2027 round + Oracle FY27 debt need (Q1-Q2 27) -> OpenAI cash-out / write-off window (2028)",
                0.028),
-        Engine("C", "Private credit", 3,
-               "Fitch PC default 6.3% record (T2); all perpetual BDCs gated 5% (T2); OBDC mark at 5c (T2); no insurer/pension writedown, no BDC bond >600, no covenant breach (T1 absent); Oct 1 windows pending",
+        Engine("C", "Private credit", 5,
+               "PC sequence reached 'gates' (stage 5 of 7): fundraising slowing (T3), Fitch PC default 6.3% record (T2), all perpetual BDCs gated 5% for 2-3 quarters (T2), OBDC mark at 5c (T2), BDCs ~25% below NAV (T2); NOT reached: forced sales, insurer/pension writedown (T1 absent), BDC bond >600, covenant breach; bank exposure to PC ~$1T+ of lending lines (E, no stress print)",
                0.50, "gates -> NAV doubt -> redemptions -> gates: loop live but capped by the 5% structure; discount to NAV ~25% = the market's own mark",
                0.85, 0, 4, [(0.2, 1.0, 0.25), (4, 3, 0.35), (13, 5, 0.40)],
                "Oct 1 Q3 windows -> Jan 1 Q4 windows (second gate wave) -> 2027 BDC unsecured maturities (placeholder)",
-               0.022),
+               0.022, chain=PC_CHAIN),
         Engine("D", "Consumer / recession", 1,
                "hires 3.2% and saving 3.0% at trigger (T3); subprime auto 6.13% re-accelerating (T2); prime 0.49% contained (T2); claims 197K, mortgage DQ stable (T2 benign); Car-Mart alive to Oct 1 (T1 pending)",
                0.30, "delinquency -> tighter credit -> spending -> jobs: not self-reinforcing while claims <230K",
@@ -362,7 +480,10 @@ def confirmation() -> dict:
 # ======================================================================
 # §8  HISTORICAL ANALOGUE ENGINE (memo #18): Shiller monthly 1881-2023
 # ======================================================================
-def analogue_engine(k=20):
+def analogue_engine(k=20, mechanism=True):
+    """mechanism=True (BDCR 2.0 memo §6, §15): candidates must satisfy at least one of the pre-specified
+    mechanism rules (R1 no-cushion valuation, R2 rate shock into richness) at the match date, so matches
+    share the transmission mechanism and not merely the chart shape."""
     try:
         import numpy as np, pandas as pd
         from v6.data.loaders import build_all
@@ -401,8 +522,11 @@ def analogue_engine(k=20):
             hi = max(hi, prices[j])
             if prices[j] <= hi * (1 - dd): return j - i
         return None
+    erp_raw = ((hist["ep"] - hist["gs10"]) * 100).to_numpy(); cape_raw = hist["cape"].to_numpy(); dy_raw = hist["dy10"].to_numpy()
+    mech = [(cape_raw[i] >= 25 and (erp_raw[i] <= 0.5 or dy_raw[i] >= 0.75)) for i in range(n)]
     cands = []
     for i in range(12, n - 36):
+        if mechanism and not mech[i]: continue
         traj = np.stack([Z[i - L] for L in lags])
         d_pt = np.linalg.norm(traj - cur, axis=1).mean()
         # cheap DTW over the 4-point trajectories
@@ -430,7 +554,7 @@ def analogue_engine(k=20):
             ev = sum(1 for r in rows if r[dd_key] is not None and lo < r[dd_key] <= hi_)
             out.append((f"{lo}-{hi_}m", ev, at_risk, ev / at_risk if at_risk else 0)); at_risk -= ev
         haz[dd_key] = out
-    return dict(ok=True, n_hist=int(n), matches=rows, hazard=haz, feats=feats, cur=cur_now)
+    return dict(ok=True, n_hist=int(n), n_mech=int(sum(mech)), mechanism=mechanism, k=k, matches=rows, hazard=haz, feats=feats, cur=cur_now)
 
 # ======================================================================
 # §9  NETWORK CENTRALITY (memo #20)
@@ -525,7 +649,7 @@ def suppression(t: int) -> float:
     if date(2028, 5, 1) <= d < date(2028, 11, 8): return 0.80   # 2028 presidential put (1972 Burns analog)
     return 1.0
 
-def engine_curve(engs: list, conf: dict, analog: dict, clock: str) -> tuple:
+def engine_curve(engs: list, conf: dict, analog: dict, clock: str, ablend: float = 0.3, mult: float = 1.0) -> list:
     """Engine-derived monthly hazard. Each engine contributes a Gaussian-in-time hazard around each of its
     clock peaks, scaled by (evidence tier weights x stage reached x reflexivity) and, for the systemic clock,
     by the cross-market confirmation gate. Analogue hazard (empirical) is blended at 30%."""
@@ -559,16 +683,16 @@ def engine_curve(engs: list, conf: dict, analog: dict, clock: str) -> tuple:
                 if 1 - math.prod(1 - min(0.95, k * c) for c in cur) < target: lo_ = k
                 else: hi_ = k
             cur = [min(0.95, k * c) for c in cur]
-        cur = [0.7 * c + 0.3 * a for c, a in zip(cur, ah)]
-    return cur
+        cur = [(1 - ablend) * c + ablend * a for c, a in zip(cur, ah)]
+    return [min(0.95, mult * c) for c in cur]
 
-def posterior(prior_h, eng_h, lam):
+def posterior(prior_h, eng_h, lam, use_sup=True):
     """Blend prior and engine hazards, then apply the policy-suppression modifier as a DEFERRAL:
     the mass suppressed inside an election window is pushed into the months after it (proportionally to
     the unsuppressed density there), not destroyed. Interventions buy time; they do not repay debt."""
     blend = [min(0.95, (1 - lam) * p + lam * e) for p, e in zip(prior_h, eng_h)]
     pdf = hazard_to_pdf(blend)
-    sup = [suppression(t) for t in range(H)]
+    sup = [suppression(t) if use_sup else 1.0 for t in range(H)]
     pdf_s = [p * s for p, s in zip(pdf, sup)]
     deficit = sum(pdf) - sum(pdf_s)
     free = [i for i in range(H) if sup[i] >= 1.0 and i >= 4]
@@ -604,12 +728,18 @@ def main():
     gap0 = funding_gap(); gaps = {
         "base": gap0,
         "rates +100bp": funding_gap(rate_shock_bp=100),
+        "rates +200bp": funding_gap(rate_shock_bp=200),
         "AI revenue -30%": funding_gap(revenue_shock=0.30),
         "spreads +150bp": funding_gap(spread_shock_bp=150),
         "utilization -20%": funding_gap(util_shock=0.20),
-        "all four": funding_gap(100, 0.30, 150, 0.20),
+        "asset values -25% (GPU/DC collateral)": funding_gap(asset_value_shock=0.25),
+        "financing window half-closed (-30%)": funding_gap(financing_avail=0.70),
+        "all: +100bp, rev -30%, spreads +150, util -20%": funding_gap(100, 0.30, 150, 0.20),
+        "severe: +200bp, rev -30%, assets -25%, financing -30%": funding_gap(200, 0.30, 0, 0.0, 0.25, 0.70),
     }
-    engs = engines(sov, bs, fr, gap0); conf = confirmation(); analog = analogue_engine(); net = network(); mi = internals_score()
+    lp = loops(sov); tree = tree_stage()
+    engs = engines(sov, bs, fr, gap0, lp); conf = confirmation(); analog = analogue_engine(); analog_chart = analogue_engine(mechanism=False)
+    net = network(); mi = internals_score(); bt = backtest()
     # independent clocks converging on H2-27..H1-28: engine peaks with weight >=0.3 inside months 9..21
     converging = sum(1 for e in engs if any(9 <= mu <= 21 and w >= 0.3 for mu, sd, w in e.clock_peaks))
     lam = 0.35 + 0.15 * conf["count"] / 5 + 0.05 * converging       # weight on the engine curve vs the prior
@@ -618,11 +748,27 @@ def main():
     for clock in ("correction", "bear", "systemic"):
         pr = prior_curve(clock); en = engine_curve(engs, conf, analog, clock); po = posterior(pr, en, lam)
         curves[clock] = dict(prior=pr, engine=en, posterior=po, s_prior=summarize(pr), s_engine=summarize(en), s_post=summarize(po))
-    trans = 100 * (0.4 * conf["count"] / 5 + 0.3 * max(e.stage for e in engs) / 7 + 0.3 * sum(e.reflexivity for e in engs) / 4)
-    reflex = 100 * sum(e.reflexivity for e in engs) / 4
+    # ---- specification stability (BDCR 2.0 memo §16: confidence = stability across model specifications)
+    base_modal = curves["systemic"]["s_post"]["modal"]
+    specs = []; analog_k = {12: analogue_engine(k=12), 20: analog, 30: analogue_engine(k=30)}
+    for dl in (-0.15, 0.0, 0.15):
+        for ab in (0.15, 0.30, 0.45):
+            for mult in (0.7, 1.0, 1.3):
+                for kk in (12, 20, 30):
+                    for us in (True, False):
+                        en = engine_curve(engs, conf, analog_k[kk], "systemic", ablend=ab, mult=mult)
+                        po = posterior(prior_curve("systemic"), en, min(0.85, max(0.1, lam + dl)), use_sup=us)
+                        s = summarize(po); specs.append(dict(dl=dl, ab=ab, mult=mult, k=kk, sup=us, modal=s["modal"], p10=s["p10"], p90=s["p90"], total=s["total"]))
+    stab = sum(1 for s in specs if abs(s["modal"] - base_modal) <= 2) / len(specs)
+    from collections import Counter
+    modal_dist = Counter(mlabel(month_add(date(2026, 10, 1), s["modal"])) for s in specs)
+    conf_score = 0.5 * stab + 0.5 * min(1.0, conf["full"] / 3)
+    conf_level = "HIGH" if conf_score >= 0.75 else "MEDIUM" if conf_score >= 0.5 else "LOW"
+    n_eng = len(engs)
+    trans = 100 * (0.4 * conf["count"] / 5 + 0.3 * max(e.stage for e in engs) / 7 + 0.3 * sum(e.reflexivity for e in engs) / n_eng)
+    reflex = 100 * sum(g for _, g, _ in lp) / 3
     credit = 100 * (0.5 * fs["Private/corporate credit"]["score"] / 3 + 0.5 * DOMAINS["Credit stress"][0])
-    catalyst = 100 * min(1.0, sum(w * math.exp(-mu / 3) for e in engs for mu, sd, w in e.clock_peaks) / 1.2)
-    conf_level = "LOW" if conf["full"] < 2 else "MEDIUM" if conf["full"] < 3 else "HIGH"
+    catalyst = 100 * min(1.0, sum(w * math.exp(-mu / 3) for e in engs for mu, sd, w in e.clock_peaks) / 1.5)
     dash = {
         "Systemic vulnerability (structural, de-duplicated)": sv,
         "BDCR-26 additive composite (for reference)": bdcr26.composite_score(),
@@ -632,7 +778,13 @@ def main():
     out = dict(as_of=str(TODAY), dashboard=dash, factors={k: dict(score=v["score"], weight=v["weight"]) for k, v in fs.items()},
                sovereign=sov, buyers_strike=dict(score=bs["score"], verdict=bs["verdict"]), failed_rescue=fr, policy_capacity=pc,
                funding_gap={k: v for k, v in gaps.items()}, confirmation=conf, converging=converging, lambda_engine=lam,
-               engines=[dict(key=e.key, name=e.name, stage=e.stage, reflexivity=e.reflexivity, coverage=e.coverage, tier1=e.tier1, tier2=e.tier2, clock=e.clock_note) for e in engs],
+               engines=[dict(key=e.key, name=e.name, stage=e.stage, stage_name=e.chain[e.stage], reflexivity=e.reflexivity, coverage=e.coverage, tier1=e.tier1, tier2=e.tier2, clock=e.clock_note) for e in engs],
+               decision_tree=dict(stage=tree["stage"], of=tree["of"], next_node=tree["next_node"], nodes=[dict(node=n, variable=v, reading=r, tier=t, passes=ok) for n, v, r, t, ok in DECISION_TREE]),
+               loops=[dict(loop=n, gain=g, note=nt) for n, g, nt in lp],
+               backtest=bt if bt.get("ok") else dict(ok=False),
+               analogue_chart_only=dict(matches=analog_chart.get("matches", []), hazard=analog_chart.get("hazard")) if analog_chart.get("ok") else None,
+               stability=dict(share_within_2m=stab, n_specs=len(specs), modal_distribution=dict(modal_dist.most_common(8)), conf_score=conf_score,
+                              p10_range=(min(s["p10"] for s in specs), max(s["p10"] for s in specs)) if specs else None),
                network=dict(most_central=net["most_central"], closest_to_failure=net["closest_to_failure"], highest_systemic=net["highest_systemic"],
                             centrality=net["centrality"], systemic_risk=net["systemic_risk"]),
                analogue=analog if analog.get("ok") else dict(ok=False),
@@ -644,6 +796,11 @@ def main():
     (HERE / "hazard_curve.json").write_text(json.dumps(out, indent=1, default=float))
     write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, dash, converging, lam, conf_level)
     print_dash(dash, curves, conf, converging, engs, net, conf_level, lam)
+    print(f"  Decision tree: stage {tree['stage']} of {tree['of']} (next node: {tree['next_node']})   loops: " + ", ".join(f"{n.split(':')[0]} {g:.2f}" for n, g, _ in lp))
+    print(f"  Spec stability: {100*stab:.0f}% of {len(specs)} specifications keep the systemic modal month within ±2 months of {curves['systemic']['s_post']['modal_label']}; modal distribution {dict(modal_dist.most_common(5))}; confidence score {conf_score:.2f}")
+    if bt.get("ok"):
+        t = bt["table"]; a = t["R1 AND R2 (today)"]["all"]; b = t["ALL months (base rate)"]["all"]
+        print(f"  Backtest (today's state R1&R2, n={a['n']}): P(-10% in 12m) {100*a['10%/12m']:.0f}% vs base {100*b['10%/12m']:.0f}% | P(-20% in 24m) {100*a['20%/24m']:.0f}% vs {100*b['20%/24m']:.0f}% | P(-25% in 36m) {100*a['25%/36m']:.0f}% vs {100*b['25%/36m']:.0f}%; episodes {bt['episodes']}")
 
 def print_dash(dash, curves, conf, converging, engs, net, conf_level, lam):
     print("BDCR-27 CRASH-TIMING ENGINE — dashboard as of 2026-09-28\n" + "=" * 72)
@@ -655,10 +812,10 @@ def print_dash(dash, curves, conf, converging, engs, net, conf_level, lam):
     print(f"  prior modal {curves['systemic']['s_prior']['modal_label']} | engine modal {curves['systemic']['s_engine']['modal_label']} | lambda(engine) {lam:.2f}")
     print(f"  Bear (>=20%): modal {sb['modal_label']}, 80% {sb['p10']} – {sb['p90']}, 36m cum {100*sb['total']:.0f}%")
     print(f"  Correction (>=10%): modal {sc['modal_label']}, 80% {sc['p10']} – {sc['p90']}, 36m cum {100*sc['total']:.0f}%")
-    print(f"  Confidence: {conf_level}   cross-market confirmation: {conf['full']} of 5 full ({conf['count']:.1f} weighted)   clocks converging on H2-27/H1-28: {converging} of 4")
+    print(f"  Confidence: {conf_level}   cross-market confirmation: {conf['full']} of 5 full ({conf['count']:.1f} weighted)   clocks converging on H2-27/H1-28: {converging} of {len(engs)}")
     print(f"  First-crack candidate: {net['closest_to_failure']}   most central: {net['most_central']}   highest systemic risk: {net['highest_systemic']}")
-    lead = max(engs, key=lambda e: e.stage)
-    print(f"  Primary transmission: engine {lead.key} ({lead.name}) at chain stage {lead.stage} '{CHAIN[lead.stage]}'")
+    lead = max(engs, key=lambda e: (e.tier1, e.stage))
+    print(f"  Primary transmission: engine {lead.key} ({lead.name}) at chain stage {lead.stage} '{lead.chain[lead.stage]}'")
 
 def write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, dash, converging, lam, conf_level):
     L = []; A = L.append
@@ -675,10 +832,13 @@ def write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, da
     A(f"| 36-month cumulative | {100*sp['total']:.0f}% |")
     A(f"\n- **Current modal month: {sp['modal_label']}**  (prior: {curves['systemic']['s_prior']['modal_label']}; engine alone: {curves['systemic']['s_engine']['modal_label']})")
     A(f"- **80% timing interval: {sp['p10']} – {sp['p90']}**")
-    A(f"- **Confidence: {conf_level}** (cross-market confirmation {conf['full']} of 5 domains fully confirmed, {conf['count']:.1f} weighted; independent clocks converging on H2-2027/H1-2028: {converging} of 4)")
+    A(f"- **Confidence: {conf_level}** (cross-market confirmation {conf['full']} of 5 domains fully confirmed, {conf['count']:.1f} weighted; independent clocks converging on H2-2027/H1-2028: {converging} of {len(engs)})")
     A(f"- First-crack candidate node: **{net['closest_to_failure']}** (distance-to-default proxy {DTD[net['closest_to_failure']][0]:.2f}); most central node: **{net['most_central']}**; highest centrality × fragility: **{net['highest_systemic']}**")
     lead = max(engs, key=lambda e: e.stage)
-    A(f"- Primary transmission: engine {lead.key} ({lead.name}), furthest along the first-crack chain (stage {lead.stage}: *{CHAIN[lead.stage]}*)")
+    lead = max(engs, key=lambda e: (e.tier1, e.stage))
+    A(f"- Primary transmission: engine {lead.key} ({lead.name}), furthest along its chain on Tier-1 evidence (stage {lead.stage}: *{lead.chain[lead.stage]}*)")
+    st = out["stability"]
+    A(f"- Confidence decomposition: specification stability {100*st['share_within_2m']:.0f}% of {st['n_specs']} specs keep the modal month within ±2 months (modal distribution {st['modal_distribution']}); cross-market confirmation {conf['full']}/3 required; combined score {st['conf_score']:.2f} → **{conf_level}**")
     A(f"- Key clock: the Treasury rollover (~${sov['reprice_T']:.1f}T over the next 12 months repricing from 3.41% toward 5.1%) and the Q1–Q2 2027 AI funding need (Oracle FY27 + OpenAI round); see §3.")
     A("\n### Three-date output (memo §27)\n")
     sb = curves["bear"]["s_post"]; sc = curves["correction"]["s_post"]
@@ -697,8 +857,17 @@ def write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, da
     for k, v in fs.items(): A(f"| {k} | {v['weight']} | {v['score']:.2f} | {', '.join(f'{m} ({s})' for m, s in v['members']) or 'engine inputs (MOVE, stock-bond corr, plumbing) — no BDCR-26 indicator exists; gap accepted'} |")
     A("\n## 2. Four crash engines (memo #4, #8–#10, #19)\n")
     A("| Engine | Chain stage reached (T1/T2 evidence) | Reflexivity | Refi coverage | T1 / T2 items | Clock |\n|---|---|---:|---:|---|---|")
-    for e in engs: A(f"| {e.key} — {e.name} | {e.stage}: {CHAIN[e.stage]} — {e.stage_evidence} | {e.reflexivity:.2f} ({e.reflex_note}) | {e.coverage:.2f} | {e.tier1} / {e.tier2} | {e.clock_note} |")
-    A("\nReading: engine A (sovereign) is furthest along the chain and is the only one with three Tier-1 items; engine B has the single most important Tier-1 event (force majeure) but no default; engine C is structurally gated, which slows its loop; engine D is a lagging engine that the second hike arms for mid-2027. The AI engine is **not** a prerequisite: the hazard curve is a union of the four.\n")
+    for e in engs: A(f"| {e.key} — {e.name} | {e.stage}: {e.chain[e.stage]} — {e.stage_evidence} | {e.reflexivity:.2f} ({e.reflex_note}) | {e.coverage:.2f} | {e.tier1} / {e.tier2} | {e.clock_note} |")
+    A("\nReading: engine A (sovereign) is furthest along its chain with Tier-1 evidence and is the only one with three Tier-1 items; engine B has the single most important Tier-1 event (force majeure) but no default; engine C has reached 'gates' on the private-credit sequence but not 'forced sales'; engine D is a lagging engine that the second hike arms for mid-2027; engine E (plumbing) shows a volatility-regime shift in rates only. The AI engine is **not** a prerequisite: the hazard curve is a union of the five.\n")
+    dt = out["decision_tree"]
+    A("### 2b. Dalio decision tree (BDCR 2.0 memo §5) — encoded conditions, current pass/fail\n")
+    A("| # | Node | Condition (specified before looking) | Reading | Tier | Passes |\n|---|---|---|---|:---:|:---:|")
+    for i, nd in enumerate(dt["nodes"]): A(f"| {i+1} | {nd['node']} | {nd['variable']} | {nd['reading']} | T{nd['tier']} | {'YES' if nd['passes'] else 'no'} |")
+    A(f"\nTree stage **{dt['stage']} of {dt['of']}**: the system is past 'monetary policy unable to offset' and stops at **{dt['next_node']}** — the bank/HY channel has not contracted (HY 280) and spending has not deteriorated (claims 197K). That is the precise statement of 'amber, not red' in causal form, and it is the node the Sep 30 / Oct 2 / Oct 6 prints test.\n")
+    A("### 2c. Reflexivity loops (BDCR 2.0 memo §13) — one-year gain of each loop\n")
+    A("| Loop | Gain | Note |\n|---|---:|---|")
+    for l in out["loops"]: A(f"| {l['loop']} | {l['gain']:.2f} | {l['note']} |")
+    A("\nGain scale: >1 explosive, 0.3–1 self-reinforcing, <0.3 damped. The collateral loop is the only one in the self-reinforcing band today; the sovereign loop is damped on a one-year horizon but compounds.\n")
     A("## 3. Liability maturity clock (memo #3, #22, #24) — $B per quarter\n")
     rows, totp = clock_table()
     A("| Cohort | " + " | ".join(Q) + " | Tag | Source |\n|---|" + "---:|" * len(Q) + "---|---|")
@@ -734,9 +903,23 @@ def write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, da
         for i, (lab, _, _, _) in enumerate(analog["hazard"]["t10"]):
             r10 = analog["hazard"]["t10"][i]; r20 = analog["hazard"]["t20"][i]; r25 = analog["hazard"]["t25"][i]
             A(f"| {lab} | {r10[1]}/{r10[2]} = {100*r10[3]:.0f}% | {r20[1]}/{r20[2]} = {100*r20[3]:.0f}% | {r25[1]}/{r25[2]} = {100*r25[3]:.0f}% |")
-        A("\nSmall-sample caveat: twenty matched months, many from the same few regimes. The analogue hazard enters the engine curve at 30% weight.\n")
+        A(f"\nMechanism filter ON: candidates restricted to the {analog.get('n_mech')} months (of {analog['n_hist']}) that satisfy rule R1 or R2 at the match date, so matches share the transmission mechanism, not just the chart (BDCR 2.0 memo §6, §15). Small-sample caveat: twenty matched months, many from the same few regimes. The analogue hazard enters the engine curve at 30% weight.\n")
+        ac = out.get("analogue_chart_only")
+        if ac:
+            A("Chart-only matching (no mechanism filter), for comparison — the memo warns against exactly this: " + ", ".join(r["date"][:7] for r in ac["matches"][:10]) + ".\n")
     else:
         A(f"Analogue engine unavailable: {analog.get('error')}\n")
+    bt = out.get("backtest", {})
+    A("### 8b. Backtest of pre-specified mechanism rules (BDCR 2.0 memo §4–§6)\n")
+    if bt.get("ok"):
+        A("Rules written before looking at outcomes: " + "; ".join(f"**{k}** = {v}" for k, v in RULES.items()) + ". Today satisfies R1, R2 and R3. Outcome = a drawdown of the stated size from the running high within the stated horizon, measured on Shiller monthly prices 1881–2023. In-sample / out-of-sample split at 1960.\n")
+        A("| State | n | P(−10% in 12m) | P(−20% in 24m) | P(−25% in 36m) | pre-1960: n, −25%/36m | post-1960: n, −25%/36m |\n|---|---:|---:|---:|---:|---|---|")
+        for name, row in bt["table"].items():
+            a = row["all"]; pre = row.get("pre-1960"); post = row.get("post-1960")
+            A(f"| {name} | {row['n']} | {100*a['10%/12m']:.0f}% | {100*a['20%/24m']:.0f}% | {100*a['25%/36m']:.0f}% | {pre['n'] if pre else 0}, {100*pre['25%/36m']:.0f}% | {post['n'] if post else 0}, {100*post['25%/36m']:.0f}% |" if pre and post else f"| {name} | {row['n']} | {100*a['10%/12m']:.0f}% | {100*a['20%/24m']:.0f}% | {100*a['25%/36m']:.0f}% | {pre['n'] if pre else 0}, {(100*pre['25%/36m']) if pre else 0:.0f}% | {post['n'] if post else 0}, {(100*post['25%/36m']) if post else 0:.0f}% |")
+        A(f"\nEpisodes in today's state (R1 AND R2): {bt['episodes']}. Read the lift, not the level: the rules were specified from the mechanism (no cushion + rate shock into richness), not tuned, and the question is whether the conditional rates beat the base rate in BOTH halves of the sample. Where they do, the mechanism has historical support; where the post-1960 sample is a handful of months, the test is inconclusive and says so.\n")
+    else:
+        A(f"Backtest unavailable: {bt.get('error')}\n")
     A("## 9. Network centrality (memo #20)\n")
     A("| Node | Centrality | Distance-to-default proxy | Centrality × fragility |\n|---|---:|---:|---:|")
     for n in sorted(NODES, key=lambda n: -net["systemic_risk"][n]): A(f"| {n} | {net['centrality'][n]:.2f} | {DTD[n][0]:.2f} (T{DTD[n][1]}) | {net['systemic_risk'][n]:.2f} |")
@@ -745,6 +928,11 @@ def write_report(out, fs, sov, bs, fr, gaps, engs, conf, analog, net, curves, da
     for t in range(H):
         d = month_add(date(2026, 10, 1), t)
         A(f"| {mlabel(d)} | {100*curves['correction']['prior'][t]:.1f} | {100*curves['correction']['posterior'][t]:.1f} | {100*curves['bear']['prior'][t]:.1f} | {100*curves['bear']['posterior'][t]:.1f} | {100*curves['systemic']['prior'][t]:.1f} | {100*curves['systemic']['engine'][t]:.1f} | {100*curves['systemic']['posterior'][t]:.1f} | {suppression(t):.2f} |")
+    st = out["stability"]
+    A("\n### 10b. Specification stability (BDCR 2.0 memo §16: confidence = stability across specifications)\n")
+    A(f"{st['n_specs']} specifications: engine weight λ ±0.15, analogue blend 0.15/0.30/0.45, engine level ×0.7/1.0/1.3, analogue neighbours k = 12/20/30, election deferral on/off. "
+      f"**{100*st['share_within_2m']:.0f}%** keep the systemic modal month within ±2 months of the base result. Modal-month distribution: {st['modal_distribution']}. "
+      f"10th-percentile start month ranges {st['p10_range'][0]} – {st['p10_range'][1]}. Confidence score = ½ stability + ½ min(1, confirmed domains / 3) = {st['conf_score']:.2f} → **{conf_level}**.\n")
     A("\n## 11. What was adopted, changed, or rejected from the memo\n")
     A("- **Adopted in full:** causal factors (§1); four engines with a first-crack chain, reflexivity gain and coverage ratio (§2); the liability clock (§3, first fill); the hard cash-flow test (§4); marginal-rate sovereign engine, clearing model, buyers'-strike detector, failed-rescue counter, policy-exhaustion clock (§5); 3-of-5 confirmation (§6); internals as a timing layer (§7); analogue engine with trajectory matching (§8); network centrality (§9); a monthly hazard model with three separate clocks (§10); evidence tiers; election calendar demoted to a suppression modifier; forecast separated from trade timing; October 2027 demoted to a prior.")
     A("- **Changed:** the 32-indicator composite is *kept*, renamed the structural layer, and reported alongside the de-duplicated vulnerability score rather than replaced — the pre-registered thresholds and amendment log are the audit trail the new engine does not yet have. The hazard model is a Bayesian blend (prior × engine, λ set by confirmation and convergence) rather than a purely statistical survival fit: ten crash episodes cannot support a fitted survival model without a prior, and the memo itself says to treat the current forecast as one.")
