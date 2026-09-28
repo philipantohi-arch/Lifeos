@@ -619,3 +619,36 @@ if __name__ == "__main__":
 # NEXT: Sep 29 Conf Board, 7Y results; Sep 30 PCE/saving/GDP revision, Micron, COFER,
 #   France budget, quarter-end; Oct 1 Car-Mart, gates, OpenAI $10B; Oct 2 payrolls;
 #   Oct 6 JOLTS; Oct 8 30Y auction; Oct 13-14 banks; Oct 27-28 FOMC; Nov 3; Nov 4 QRA.
+
+# ======================================================================
+# RED-TEAM RESPONSE (2026-09-28, same day) — ARCHITECTURE CHANGE, PROSPECTIVE
+# ======================================================================
+# A red-team memo ("BDCR Crash-Timing Engine: Red-Team Analysis, Counterpoints &
+# Proposed Next-Generation Model") was received and accepted in substance:
+#   (1) this composite answers "how dangerous", not "what breaks, when";
+#   (2) it is additive over correlated symptoms (five faces of one sovereign-
+#       funding shock can count five times);
+#   (3) it scores levels, not clocks; (4) the AI thesis was treated as the
+#       prerequisite transmission; (5) the election calendar moved the timing
+#       judgment on narrative grounds; (6) 10% / 20% / 25% events were conflated;
+#   (7) market internals and liquidity had no place in the score;
+#   (8) 'October 2027' was a judgment, not a hazard-model output.
+# DISPOSITION: this file is RETAINED UNCHANGED as the STRUCTURAL-REGIME layer
+# (its pre-registered thresholds and amendment log are the audit trail). The
+# scenario probabilities and timing distribution logged above are RE-CLASSIFIED
+# as a PRIOR. Timing now comes from bdcr27_timing_engine.py, which adds: a
+# 9-factor de-duplicated vulnerability score; four independent crash engines
+# (sovereign, AI capital cycle, private credit, consumer) with first-crack
+# stage, reflexivity gain and refinancing coverage; a liability maturity clock;
+# an AI funding-gap test; a marginal-rate sovereign engine with a Treasury-
+# demand clearing model, buyers'-strike detector, failed-rescue counter and
+# policy-exhaustion clock; 3-of-5 cross-market confirmation; a market-internals
+# layer (the liquidity/plumbing factor this file lacks); a historical analogue
+# engine on the 1881-2023 Shiller record; network centrality; and a monthly
+# hazard model with THREE separate clocks (correction, bear, systemic) in which
+# the election calendar is a policy-suppression (deferral) modifier only.
+# HONESTY NOTE recorded by the first engine run: the judgment prior placed 8% of
+# crash mass in the ~5 weeks before Nov 4, a higher single-month density than
+# any month of the 'modal' Jul-27..Jun-28 bucket, so 'October 2027' was a
+# modal-BUCKET claim. The engine now reports modal month, 80% interval and
+# confidence from the hazard curve. Output: hazard_report.md / hazard_curve.json.
