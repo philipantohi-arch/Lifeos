@@ -3,7 +3,7 @@
 BDCR-26 — US Big Debt Cycle Regime Algorithm
 =============================================
 
-A 31-indicator, 7-pillar mechanical implementation of Ray Dalio's
+A 32-indicator, 7-pillar mechanical implementation of Ray Dalio's
 "How Countries Go Broke" (2025) 9-stage big-debt-cycle framework and
 "The Changing World Order" (2021) cycle markers, hardened with:
 
@@ -40,7 +40,7 @@ Regime 4 is therefore the central attractor of the system, not a waypoint
 to Armageddon. The algorithm scores POSITION IN THE CYCLE, explicitly not
 market timing.
 
-Baseline readings as of 2026-07-28; RE-SCORED 2026-09-10, 2026-09-16 and 2026-09-22 (see RE-SCORE LOGS at end) (sources in each
+Baseline readings as of 2026-07-28; RE-SCORED 2026-09-10, 09-16, 09-22 and 09-28 (see RE-SCORE LOGS at end) (sources in each
 indicator's `series` field; refresh cadence: monthly, quarterly deep
 refresh for TIC / COFER / NY Fed HHDC series). Where a reading could not
 be verified against a primary source it is marked UNVERIFIED in the note.
@@ -81,7 +81,7 @@ INDICATORS = [
         "Deficit % of GDP", "1. Fiscal",
         "FRED FYFSGDA188S; CBO Monthly Budget Review",
         "0:<3 (Dalio's 3% solution) | 1:3-5 | 2:5-7 | 3:>=7",
-        6, "[Sep-22] CBO lifts FY26 to $2.1T on a ~$250B tariff shortfall (~6.6% GDP); IEEPA refunds $135B paid | [Sep-16] FYTD (11mo) $2.0T, ~6.3-6.5% GDP; CR funds govt to Dec 11 | 5.8-6.1% (FY26 tracking $1.9-2.0T; tariff offset gutted by SCOTUS IEEPA ruling)", 2,
+        6, "[Sep-28] CR to Dec 11 passed the House 370-48; IEEPA refunds ~$122B disbursed and tapering; FY26 closes Sep 30 at ~$2.1T (~6.6% GDP). Held 2 (3 requires >=7%) | [Sep-22] CBO lifts FY26 to $2.1T on a ~$250B tariff shortfall (~6.6% GDP); IEEPA refunds $135B paid | [Sep-16] FYTD (11mo) $2.0T, ~6.3-6.5% GDP; CR funds govt to Dec 11 | 5.8-6.1% (FY26 tracking $1.9-2.0T; tariff offset gutted by SCOTUS IEEPA ruling)", 2,
         "OBBBA locked in ~6% structural deficits; a recession from here = 9-10%"),
     Indicator(
         "Debt held by public % GDP", "1. Fiscal",
@@ -103,25 +103,25 @@ INDICATORS = [
         "10Y term premium", "2. Supply/Demand",
         "FRED THREEFYTP10 (Kim-Wright); NY Fed ACM cross-check",
         "0:<0 | 1:0-0.5 | 2:0.5-1.0 | 3:>=1.0%",
-        4, "[Sep-16] 10Y 5.008% post-FOMC (intraday >5.04%, highest since 2007); ACM TP not retrieved — score held | 0.73% (Jul 2026) — highest since 2014 after a decade near zero", 2,
+        4, "[Sep-28] 10Y 5.17% close Sep 25 / 5.23% intraday Sep 28 (highest since June 2007); 2Y 4.81-4.90 (highest since 2023); 2s10s flattest of the year (~31bp Sep 24) then +36bp; ACM/Kim-Wright TP still not retrieved -- the 2Y moved almost as much as the 10Y, so the rise is largely expected-path, not term premium. Held 2 | [Sep-16] 10Y 5.008% post-FOMC (intraday >5.04%, highest since 2007); ACM TP not retrieved — score held | 0.73% (Jul 2026) — highest since 2014 after a decade near zero", 2,
         "The restored price of supply outrunning price-insensitive demand"),
     Indicator(
         "Auction stress composite", "2. Supply/Demand",
         "TreasuryDirect results: tails vs when-issued, bid-to-cover, dealer takedown",
         "0:none | 1:occasional | 2:>=6 serial tails OR dealer 2x norm | 3:tail>=4bp & BTC<2.2 at 10/30Y",
-        5, "[Sep-22] 2Y auction 4.787% (highest since 2024), 0.2bp tail, indirects 57.8% (from 66%), dealers 13.2% (highest since Mar); 20Y Sep 15 stopped 5.42%; no >=4bp tail | [Sep-10] Score rests on the '>=6 consecutive tails in any tenor' clause: 5Y tail streak continued (Aug 26 +0.2bp). NOT on the 10Y: Sep 9 10Y BTC 2.71 (best since 2019), dealers 4.3%, stop-through — demand clears at a higher price. No failed-adjacent auction", 2,
+        5, "[Sep-28] Sep 23 $70B 5Y auction stopped 5.033% (first >5% since 2007): 3.1bp TAIL, bid-to-cover 2.21 -- the closest any auction has come to the 3-clause (needs >=4bp tail AND BTC <2.2 at the 10Y/30Y; this was the 5Y). 7Y (Sep 24) result not retrieved. Oct 8 30Y auction is the test. Held 2 | [Sep-22] 2Y auction 4.787% (highest since 2024), 0.2bp tail, indirects 57.8% (from 66%), dealers 13.2% (highest since Mar); 20Y Sep 15 stopped 5.42%; no >=4bp tail | [Sep-10] Score rests on the '>=6 consecutive tails in any tenor' clause: 5Y tail streak continued (Aug 26 +0.2bp). NOT on the 10Y: Sep 9 10Y BTC 2.71 (best since 2019), dealers 4.3%, stop-through — demand clears at a higher price. No failed-adjacent auction", 2,
         "Bifurcated demand: belly buyers' strike vs record indirects at the long end"),
     Indicator(
         "Foreign official demand", "2. Supply/Demand",
         "Treasury TIC major-holders + official/private split",
         "0:official buying >$100B/y | 1:flat | 2:official selling, private offset | 3:broad selling >$300B/y",
-        3, "[Sep-22] July TIC: holdings -$50.4B to $9.25T (Japan -$12.8B, 3rd straight); LT flows: PRIVATE net sellers -$3.7B, official net buyers +$44.4B (intervention-funding pattern, per the Sep-10 rule not scored as new stress). Held 2 | Official SOLD $39.9B May-26; China $652B (-$113B y/y); private +$172B offset", 2,
+        3, "[Sep-28] Xi-Trump summit (Sep 24-25): truce extended ~2 months to early 2027, tariff cuts on ~$30B of goods, purchase pledges -- no Treasury-holdings language; Trump reportedly flagged yen weakness to Takaichi (Sep 22/25); JGB 30Y 4.13%, 10Y 3.06% (since 1996) keeps Japanese repatriation risk live; Aug TIC due mid-Oct. Held 2 | [Sep-22] July TIC: holdings -$50.4B to $9.25T (Japan -$12.8B, 3rd straight); LT flows: PRIVATE net sellers -$3.7B, official net buyers +$44.4B (intervention-funding pattern, per the Sep-10 rule not scored as new stress). Held 2 | Official SOLD $39.9B May-26; China $652B (-$113B y/y); private +$172B offset", 2,
         "Dalio Stage-4 marker: owned demand replaced by rented (levered basis-trade) demand"),
     Indicator(
         "30Y yield stress level", "2. Supply/Demand",
         "FRED DGS30",
         "0:<4.5 | 1:4.5-5.0 | 2:5.0-5.5 | 3:>=5.5% (forced-intervention zone)",
-        4, "[Sep-22] 5.29% (high close 5.33% Sep 18; 20Y 5.39% Sep 16); 10Y back to 4.95-4.97% on oil; 2s10s ~20bp (bear-flattening). Amendment clauses still unmet (no 5 closes >5.40; ops $4-6B; Fed hiking; the Sep-10 op's pre-op level was regained only on session 6). Held 2 | [Sep-16] 5.25% last verified (Sep 15); ~5.35-5.40 implied by 10Y 5.01 + 30-37bp 10s30s (5.37% headline UNVERIFIED). Amendment clauses: >5.40 x5 sessions NO; buybacks >$10B/op NO ($4-6B); Fed duration NO; intervention-fails clause NOT met on the 30Y itself (5.31 pre-op -> 5.25). Held at 2 | [Sep-10] 5.31% (2007 high; 5.33% Aug-18 peak) after TWO Treasury buyback escalations (Aug 19 $4B/op, Sep 9 $6B/op) each retraced within sessions. WATCH: score held at 2 under the unamended >=5.5% rule; see prospective amendment in log", 2,
+        4, "[Sep-28 UPGRADE 2 -> 3 under the Sep-10 amendment's intervention-fails clause] Treasury's 20-30Y buyback Sep 24 took $4.08B of a $6B cap ($10.47B offered) with the 30Y at 5.44-5.50% intraday; two sessions later (Sep 28) the 30Y traded 5.56% (CNBC intraday; highest since 2004) -- yields at/above the pre-intervention level within 5 sessions = the clause as written. Also: Sep 23 ~5.40% close (highest since 2004), Sep 24 intraday 5.501%, MOVE 80 -> 104.6 (Sep 24). The original >=5.5% CLOSE rule is NOT yet confirmed (Sep 25/28 closes not retrieved; one source has Sep 24 at 5.438%) -- flagged. Reverts to 2 if the 30Y closes <5.30% for 5 sessions | [Sep-22] 5.29% (high close 5.33% Sep 18; 20Y 5.39% Sep 16); 10Y back to 4.95-4.97% on oil; 2s10s ~20bp (bear-flattening). Amendment clauses still unmet (no 5 closes >5.40; ops $4-6B; Fed hiking; the Sep-10 op's pre-op level was regained only on session 6). Held 2 | [Sep-16] 5.25% last verified (Sep 15); ~5.35-5.40 implied by 10Y 5.01 + 30-37bp 10s30s (5.37% headline UNVERIFIED). Amendment clauses: >5.40 x5 sessions NO; buybacks >$10B/op NO ($4-6B); Fed duration NO; intervention-fails clause NOT met on the 30Y itself (5.31 pre-op -> 5.25). Held at 2 | [Sep-10] 5.31% (2007 high; 5.33% Aug-18 peak) after TWO Treasury buyback escalations (Aug 19 $4B/op, Sep 9 $6B/op) each retraced within sessions. WATCH: score held at 2 under the unamended >=5.5% rule; see prospective amendment in log", 3,
         "The long end is where repression regimes break (US-1951, UK-1976, Japan-2025)"),
 
     # ------------------------------------------------------------------
@@ -131,25 +131,25 @@ INDICATORS = [
         "Core PCE y/y", "3. Monetary",
         "FRED PCEPILFE",
         "0:<2.5 | 1:2.5-3.0 | 2:3.0-4.0 | 3:>=4.0%",
-        4, "3.4% (May-26, m/m highest since Oct-23); headline PCE 4.1%", 2,
+        4, "[Sep-28] Aug PCE + saving rate + Q2 GDP third estimate + annual revision all land Sep 30; gasoline $4.49 (record for late Sept) and Brent back to $105-107 after the Iran plan was rejected; Barr: inflation 'not clearly trending toward target'. Held 2 pending the print | 3.4% (May-26, m/m highest since Oct-23); headline PCE 4.1%", 2,
         "Tariff pass-through (+0.8pp per Dallas Fed) + Hormuz oil = classic wave one"),
     Indicator(
         "Inflation expectations (survey vs market)", "3. Monetary",
         "UMich 5-10yr; FRED T10YIE; +1 notch if survey-market gap >1pp",
         "0:<2.9 | 1:2.9-3.2 | 2:3.2-3.5 or gap>1pp | 3:>=3.5 or breakeven>2.8",
-        3, "[Sep-22] Philly Fed prices paid 48.6; CFO survey +4.1% planned price increases; UMich final Sep 25; Brent -10% to ~$97 eases the impulse | [Sep-16] UMich 5-10y 3.4% (one tick from the 3.5 trigger), 1y 4.6%; import prices +7.0% y/y, PPI 5.4%; breakeven not retrieved | UMich 5-10y 3.3%, 1y 4.2%; 10Y breakeven anchored 2.28% — ~1pp gap", 2,
+        3, "[Sep-28] UMich final 48.1 (prelim 47.8), 1y 4.6%, 5-10y final NOT retrieved (prelim 3.4 = one tick from 3.5); flash PMI price components hot (Sep 23); Brent reversed back to $105-107 (Sep 28). Held 2 | [Sep-22] Philly Fed prices paid 48.6; CFO survey +4.1% planned price increases; UMich final Sep 25; Brent -10% to ~$97 eases the impulse | [Sep-16] UMich 5-10y 3.4% (one tick from the 3.5 trigger), 1y 4.6%; import prices +7.0% y/y, PPI 5.4%; breakeven not retrieved | UMich 5-10y 3.3%, 1y 4.2%; 10Y breakeven anchored 2.28% — ~1pp gap", 2,
         "Households de-anchored, market not: the breakeven following is THE tell"),
     Indicator(
         "Fed independence stress", "3. Monetary",
         "Event index: removals/litigation (Trump v. Cook), probes, confirmation margins",
         "0:none | 1:rhetoric | 2:attempted removals/probes/accord machinery | 3:commanded easing",
-        4, "[Sep-22] Trump: rates 'should be 1% or less', board 'very hostile... political', told Warsh to 'vote with the board'; no removal action; Barr seen as next target; Fed speakers (Collins, Goolsbee, Musalem, Barkin) all keep hikes on the table; Oct hike ~55% | [Sep-16] Fed HIKED 25bp 12-0 (incl. Cook) despite Trump 'clowns' / 'I won't allow that' / trade-halt threats — independence functioning; pressure at 2, not 3 (no commanded easing) | Cook firing blocked 5-4; criminal probe of a Fed chair; Warsh confirmed 54-45 — but FOMC is HIKE-biased", 2,
+        4, "[Sep-28] Oct hike odds 55% -> 72% (CME, Sep 28) after Barr ('out of position', 'further adjustments likely needed') and Musalem; the Fed is tightening INTO the president's 1%-rates demand with no removal action -- the firewall is functioning, so no 3. Held 2 | [Sep-22] Trump: rates 'should be 1% or less', board 'very hostile... political', told Warsh to 'vote with the board'; no removal action; Barr seen as next target; Fed speakers (Collins, Goolsbee, Musalem, Barkin) all keep hikes on the table; Oct hike ~55% | [Sep-16] Fed HIKED 25bp 12-0 (incl. Cook) despite Trump 'clowns' / 'I won't allow that' / trade-halt threats — independence functioning; pressure at 2, not 3 (no commanded easing) | Cook firing blocked 5-4; criminal probe of a Fed chair; Warsh confirmed 54-45 — but FOMC is HIKE-biased", 2,
         "The firewall held by one vote; board tilts through 2028"),
     Indicator(
         "Monetization & real-rate stance (Stage-5 GATE)", "3. Monetary",
         "Real EFFR (EFFR - PCEPILFE); H.4.1 composition (bills vs coupons vs YCC)",
         "0:real>=+1%, no buys | 1:0-1%, bills-only | 2:real<0 w/ PCE>3 OR coupon QE | 3:YCC / real<-1% + QE",
-        2, "[Sep-22] Oct 27-28 hike priced ~55%, Dec ~90%; real EFFR ~+0.4%; RMPs zero this cycle; Treasury still buying long end ($4-6B/op, next sizing at Nov 4 QRA). Gate CLOSED | [Sep-16] Fed hiked to 3.75-4.00%, median one more 2026 hike; real EFFR ~+0.3-0.5%; bills-only RMPs. Gate more firmly CLOSED; Treasury still buying duration ($4-6B/op) — pre-Accord conflict persists | [Sep-10] Fed: real EFFR ~+0.3%, bills-only, ~59% priced to HIKE Sep 16 = affirmative evidence AGAINST the gate. Treasury buying duration ($6B/op, bill-funded 'Treasury Twist') counts toward 30Y stress (market forcing fiscal action) but NOT toward this gate, which requires the FED to accommodate: documented trigger = Fed duration purchases or a formal cap", 1,
+        2, "[Sep-28] Oct hike 72% priced (a second hike in 2027 implied by the 2Y at 4.90%); real EFFR ~+0.4-0.5%; Treasury's Sep 24 20-30Y buyback UNDER-filled ($4.08B of $6B) -- the fiscal side did not chase the market either; Fed duration purchases zero. Gate CLOSED and, if anything, further from opening | [Sep-22] Oct 27-28 hike priced ~55%, Dec ~90%; real EFFR ~+0.4%; RMPs zero this cycle; Treasury still buying long end ($4-6B/op, next sizing at Nov 4 QRA). Gate CLOSED | [Sep-16] Fed hiked to 3.75-4.00%, median one more 2026 hike; real EFFR ~+0.3-0.5%; bills-only RMPs. Gate more firmly CLOSED; Treasury still buying duration ($4-6B/op) — pre-Accord conflict persists | [Sep-10] Fed: real EFFR ~+0.3%, bills-only, ~59% priced to HIKE Sep 16 = affirmative evidence AGAINST the gate. Treasury buying duration ($6B/op, bill-funded 'Treasury Twist') counts toward 30Y stress (market forcing fiscal action) but NOT toward this gate, which requires the FED to accommodate: documented trigger = Fed duration purchases or a formal cap", 1,
         "THE gate indicator: Dalio Stage 5 has demonstrably NOT begun — the key 'not yet'"),
 
     # ------------------------------------------------------------------
@@ -165,13 +165,13 @@ INDICATORS = [
         "Equity risk premium", "4. Fragility",
         "S&P fwd E/P minus FRED DGS10",
         "0:>=+3pp | 1:+1-3 | 2:0-1 | 3:<=0",
-        3, "[Sep-22] 10Y 4.95-4.97% (>4.85 revert line) vs fwd E/P ~4.45-4.65% at S&P 7,776 = -0.3 to -0.5pp. Stays 3 | [Sep-16] 10Y 5.008% vs fwd E/P 4.55-4.85% (21-22x fwd carried from Jul; S&P ~7,600) = -0.45 to -0.15pp; midpoint -0.3 -> band 3. Single-input change (10Y). REVERTS to 2 if 10Y <4.85% or fwd P/E <20x. Was: straddled zero at 10Y 4.63", 3,
+        3, "[Sep-28] 10Y 5.17% close (Sep 25) / 5.23% intraday (Sep 28) vs fwd E/P ~4.45-4.65% at S&P 7,743 = -0.5 to -0.8pp: the most negative reading of the cycle; stock-bond correlation positive on every session of the week (bonds not hedging). Stays 3 | [Sep-22] 10Y 4.95-4.97% (>4.85 revert line) vs fwd E/P ~4.45-4.65% at S&P 7,776 = -0.3 to -0.5pp. Stays 3 | [Sep-16] 10Y 5.008% vs fwd E/P 4.55-4.85% (21-22x fwd carried from Jul; S&P ~7,600) = -0.45 to -0.15pp; midpoint -0.3 -> band 3. Single-input change (10Y). REVERTS to 2 if 10Y <4.85% or fwd P/E <20x. Was: straddled zero at 10Y 4.63", 3,
         "Zero cushion: term-premium shocks transmit one-for-one into multiples"),
     Indicator(
         "Credit complacency/stress (two-sided)", "4. Fragility",
         "FRED BAMLH0A0HYM2 / BAMLC0A0CM; private-credit true-default indices",
         "0:HY 350-500 | 1:300-350/500-600 | 2:<300 (complacency) or 600-800 | 3:>800 or PC defaults>6%",
-        4, "[Sep-22] HY OAS 268bp; Fitch private-credit TTM default 6.3% (record, from 6.1%); ALL tracked perpetual BDCs capped at 5% in 2Q; OBDC marked Loparex ~5c; public BDCs ~25% below NAV; no insurer writedown / BDC bond >600 / covenant breach / HY >500. NOTE: the original written clause 'PC defaults >6%' is now exceeded; the Sep-10 amendment (which made the four listed triggers the scoring rule) governs -- held 2; flagged for the next rule review | [Sep-16] HY OAS 265bp (Sep 11); BCRED capped 5% for 2nd straight qtr; Blue Owl/HLEND Q3 ~Oct 1; no insurer writedown / BDC >600 / covenant breach / HY >500 — held at 2 | [Sep-10] HY OAS 265bp / IG ~78bp richest decile; Fitch private-credit default rate RECORD 6.1% (headline incl. extensions); BCRED capped 3rd qtr, Cliffwater capped; BDC median discount ~26%, non-accruals highest since 2017; LL defaults 0.87%. 'High 2' — the 3-clause's transmission-to-insurers/pensions leg is NOT evidenced", 2,
+        4, "[Sep-28] HY OAS 268 -> 280bp (first widening since the Sep 16 hike; CCC 1,112bp); SoftBank priced the largest junk deal ever ($11.1B, sub-10%) to wire $10B to OpenAI Oct 1; CoreWeave-tenant DC paper 9.25% (+270bp vs comps) vs Meta-tenant 8.25% five days earlier -- the AI credit curve is tiering by tenant. No insurer/pension writedown, BDC bond >600, covenant breach, or HY >500. Oct 1 gate/redemption notices ahead. Held 2 | [Sep-22] HY OAS 268bp; Fitch private-credit TTM default 6.3% (record, from 6.1%); ALL tracked perpetual BDCs capped at 5% in 2Q; OBDC marked Loparex ~5c; public BDCs ~25% below NAV; no insurer writedown / BDC bond >600 / covenant breach / HY >500. NOTE: the original written clause 'PC defaults >6%' is now exceeded; the Sep-10 amendment (which made the four listed triggers the scoring rule) governs -- held 2; flagged for the next rule review | [Sep-16] HY OAS 265bp (Sep 11); BCRED capped 5% for 2nd straight qtr; Blue Owl/HLEND Q3 ~Oct 1; no insurer writedown / BDC >600 / covenant breach / HY >500 — held at 2 | [Sep-10] HY OAS 265bp / IG ~78bp richest decile; Fitch private-credit default rate RECORD 6.1% (headline incl. extensions); BCRED capped 3rd qtr, Cliffwater capped; BDC median discount ~26%, non-accruals highest since 2017; LL defaults 0.87%. 'High 2' — the 3-clause's transmission-to-insurers/pensions leg is NOT evidenced", 2,
         "Tightest-decile spreads offer zero cushion against the AI-credit or consumer channels"),
 
     # ------------------------------------------------------------------
@@ -181,38 +181,44 @@ INDICATORS = [
         "Top-10 S&P concentration", "5. Bubble",
         "S&P DJ factsheets; GS/JPM concentration work",
         "0:<22 | 1:22-27 (2000 peak) | 2:27-35 | 3:>=35%",
-        2, "~38% top-10 (top-5 ~30%, most in 50+ yrs); AI names = 75% of returns since Nov-22", 3,
+        1, "[Sep-28 AMENDMENT] weight 2 -> 1 (redundant with CAPE/ERP; weight moved to the new capital-cycle indicator) | ~38% top-10 (top-5 ~30%, most in 50+ yrs); AI names = 75% of returns since Nov-22", 3,
         "Index outcomes hinge on ~$545B/yr of AI capex earning its cost of capital"),
     Indicator(
         "AI capex-to-revenue gap", "5. Bubble",
         "Big-4 hyperscaler TOTAL capex guidance minus annualized genAI end-market revenue (disclosed cloud-AI run-rates + lab ARR; Sequoia/Bain aggregation)",
         "0:<$100B | 1:100-300 | 2:300-500 | 3:>=$500B",
-        3, "~$455-525B: big-4 2026 capex $725B (+77% y/y, confirmed) vs genAI revenue ~$200-270B; midpoint ~$490B -> band 2 by tiebreak; divergence 46% vs 32% at telecom-2001 peak", 2,
+        2, "[Sep-28 AMENDMENT] weight 3 -> 2 (net investment/GDP now carries the capital-cycle signal) | ~$455-525B: big-4 2026 capex $725B (+77% y/y, confirmed) vs genAI revenue ~$200-270B; midpoint ~$490B -> band 2 by tiebreak; divergence 46% vs 32% at telecom-2001 peak", 2,
         "AI revenue does not yet cover the ~$110B/yr depreciation on the installed base"),
     Indicator(
         "Circular / vendor-financed revenue share", "5. Bubble",
         "NVDA 10-Q concentration + deal map (OpenAI/Oracle/CoreWeave/SPVs); Lucent = 21% benchmark",
         "0:<5 | 1:5-15 | 2:15-30 (Lucent zone) | 3:>=30% or vendor debt guarantees at scale",
-        2, "[Sep-10] SIGNED: NVDA $105B residual-value guarantee on OpenAI's 20-yr Ohio lease (8-K Aug 17; cut from $250B) = vendor credit support >= 1 quarter of revenue and > NVDA's $99B equity book (stakes in its own customers). Watch, not counted: $500B platform (no deal), $36B rev-share (paused), Broadcom ~$100B (assembling)", 3,
+        2, "[Sep-28] ORCL 10-Q: $11.4B of customer prepayments with a 'significant financing component' (ASC 606) — Oracle books interest on them and later recognizes ~$1.9B more cloud revenue than collected, cost in interest expense (Burry). Vendor-side financing now embedded in revenue recognition; candidate rule for next review | [Sep-10] SIGNED: NVDA $105B residual-value guarantee on OpenAI's 20-yr Ohio lease (8-K Aug 17; cut from $250B) = vendor credit support >= 1 quarter of revenue and > NVDA's $99B equity book (stakes in its own customers). Watch, not counted: $500B platform (no deal), $36B rev-share (paused), Broadcom ~$100B (assembling)", 3,
         "Lucent/Nortel at 10x scale — mitigated by funders' ~$475B/yr real operating cash flow"),
     Indicator(
         "Debt/SPV-financed share of AI capex", "5. Bubble",
         "AI IG issuance + private-credit DC loans + DC ABS/CMBS over total AI capex",
         "0:<10 (2024 cash phase) | 1:10-20 | 2:20-35 | 3:>=35% (JST regime-flip)",
-        2, "[Sep-22] AI-related USD debt YTD $568B ($259B IG, $256B private, $40B HY); GS $420B hyperscaler bonds 2027; AI-issuer spread ~115bp vs IG 78bp; Meta DC ladder pricing wider each deal (7.5% -> 8.25%). Approaching 35%; held 2 | [Sep-16] ORCL $20B ATM exhausted, FCF -$5.4B/qtr, FY27 capex $90-95B now debt/lease-only; GS est hyperscaler bonds $250B 2026 / $400B 2027 — approaching 35% band | ~25-35% 2026E vs ~10% 2024: $175B bonds, >$200B private credit, >$120B SPV in 18mo", 2,
+        2, "[Sep-28] Burry tally: ~$3T of off-balance-sheet purchase commitments, uncommenced leases (MSFT >$300B, AMZN ~$267B), guarantees, CIP and SPVs (META ~$700B, GOOGL ~$900B commitments/exposures) across the big five; replaces the ~$2.4T carried since Sep 10; Moody's: uncommenced leases = 113% of on-BS debt | [Sep-22] AI-related USD debt YTD $568B ($259B IG, $256B private, $40B HY); GS $420B hyperscaler bonds 2027; AI-issuer spread ~115bp vs IG 78bp; Meta DC ladder pricing wider each deal (7.5% -> 8.25%). Approaching 35%; held 2 | [Sep-16] ORCL $20B ATM exhausted, FCF -$5.4B/qtr, FY27 capex $90-95B now debt/lease-only; GS est hyperscaler bonds $250B 2026 / $400B 2027 — approaching 35% band | ~25-35% 2026E vs ~10% 2024: $175B bonds, >$200B private credit, >$120B SPV in 18mo", 2,
         "THE damage variable: decides whether an AI bust is 2001-shaped or 1873/2008-shaped"),
     Indicator(
         "Forensic first-credit-event tripwires", "5. Bubble",
         "NVDA DSO>60d / 2-cust>40% / inv>$25B; ORCL CDS>150; capex guide CUT; B200 spot<$4/hr; SPV impairment; depreciation-life cut",
         "0:none | 1:warning proximity >=2 | 2:1-2 confirmed | 3:>=3 confirmed or any AI credit default",
-        3, "[Sep-22] Oracle Project Jupiter ~$18B project loans quoted 89-91c, syndication stalled (first sub-90 hyperscaler-linked project loan); NVDA DSO 60 (=threshold, not >); lenders reportedly declined Oracle as Abilene tenant (single source); ORCL CDS 190-215bp. Still 1 confirmed -> held 2 with proximity at maximum | [Sep-16] still 1 confirmed (ORCL CDS ~200bp regime). NOT on list but regime-relevant: labs' 'pace the frontier' (Sep 12-14), OpenAI IPO deferred to 2027, Moody's Baa2 NEG on ORCL, CRWV -8% — proximity up, held at 2 | [Sep-10] 1 CONFIRMED on list: ORCL 5Y CDS >150bp (record ~215bp Aug; BBB-, FY27 FCF -$42B guided). Adjacent/not listed: NVDA Q3 GM guide -100bp, top-3 customers 44% of rev, CRWV CDS ~855bp. NOT: no capex cut (3 raises/0 cuts), MSFT LENGTHENED DC lives 15->25y, no AI credit default", 2,
+        3, "[Sep-28] 2 CONFIRMED: (1) ORCL CDS >150bp; (2) Project Jupiter — ~$18B project loans 89-91c AND Oracle force majeure notice to the Blue Owl vehicle (Bloomberg): first hyperscaler-linked project debt in contractual distress. At threshold: NVDA DSO = 60. NEW watch item added to the list: DRAM/HBM contract-price rollover (Acer CEO: China DDR4 oversupply; Micron guide Sep 30) — the capital-cycle tell that precedes GPU-rental declines. Still 2 (needs >=3 confirmed for 3) | [Sep-22] Oracle Project Jupiter ~$18B project loans quoted 89-91c, syndication stalled (first sub-90 hyperscaler-linked project loan); NVDA DSO 60 (=threshold, not >); lenders reportedly declined Oracle as Abilene tenant (single source); ORCL CDS 190-215bp. Still 1 confirmed -> held 2 with proximity at maximum | [Sep-16] still 1 confirmed (ORCL CDS ~200bp regime). NOT on list but regime-relevant: labs' 'pace the frontier' (Sep 12-14), OpenAI IPO deferred to 2027, Moody's Baa2 NEG on ORCL, CRWV -8% — proximity up, held at 2 | [Sep-10] 1 CONFIRMED on list: ORCL 5Y CDS >150bp (record ~215bp Aug; BBB-, FY27 FCF -$42B guided). Adjacent/not listed: NVDA Q3 GM guide -100bp, top-3 customers 44% of rev, CRWV CDS ~855bp. NOT: no capex cut (3 raises/0 cuts), MSFT LENGTHENED DC lives 15->25y, no AI credit default", 2,
         "Minsky Stage 4 starts with funding failures; first-distress-to-peak ran 6-18 months historically"),
     Indicator(
         "Retail froth (margin debt + 0DTE)", "5. Bubble",
         "FINRA margin debt / GDP; Cboe 0DTE share",
         "0:<2.5 | 1:2.5-3.0 (2000 ~2.8) | 2:3.0-3.5 | 3:>3.5% GDP or 0DTE>55%",
-        2, "[Sep-22] FINRA Aug margin debt $1.45T record (+2.6% m/m, +37% y/y) | Record $1.53T margin debt (+51.5% y/y, ~4.0% GDP > 2021 peak ratio); 0DTE 59-65% of SPX volume", 3,
+        2, "[Sep-28] Burry added 'in some size' to MU/PLTR/NBIS/SOXX shorts on the day NDX made its ATH (Sep 22); MU +17% in 7 sessions into the Sep 30 print; Sept margin debt due ~Oct 15. Held 3 | [Sep-22] FINRA Aug margin debt $1.45T record (+2.6% m/m, +37% y/y) | Record $1.53T margin debt (+51.5% y/y, ~4.0% GDP > 2021 peak ratio); 0DTE 59-65% of SPX volume", 3,
         "Every prior margin-debt record (1929, 2000, 2007, 2021) preceded major drawdowns by 6-18mo"),
+    Indicator(
+        "Net investment / GDP (capital-cycle position)", "5. Bubble",
+        "S&P 500 aggregate capex minus depreciation, divided by nominal GDP (quarterly; Bloomberg/Compustat aggregates; Burry/Cassandra Unchained series)",
+        "0:<1.0 | 1:1.0-1.5 | 2:1.5-2.0 (2007 and 2014 peak zone) | 3:>=2.0% (2000-01 aftermath zone)",
+        2, "[Sep-28 ADDED, prospective] 2.07% as of 2026-06-30 — above every prior peak (2000 ~2.0 at the Nasdaq top, 2007 ~1.6, 2014 ~1.9) except the 2000-01 aftermath; prior peaks coincided with or slightly lagged the equity tops; 2003-06 ran NEGATIVE for 12 quarters as depreciation overwhelmed capex", 3,
+        "The capital-cycle position: returns collapse after capital floods in; the depreciation hangover follows the equity peak by 1-3 years"),
 
     # ------------------------------------------------------------------
     # PILLAR 6 — HOUSEHOLD / CONSUMER CREDIT (weight 13)
@@ -221,7 +227,7 @@ INDICATORS = [
         "Card + auto 90+ delinquency transitions", "6. Consumer",
         "NY Fed HHDC transition rates (quarterly)",
         "Card 0:<5.5 | 1:5.5-6.5 | 2:6.5-9.0 | 3:>=9.0 (GFC 13.7). Auto 0:<2.4 | 1:2.4-2.7 | 2:2.7-3.3 | 3:>=3.3",
-        4, "[Sep-22] COF Aug 30+ 3.57% per 8-K (vs 3.73% carried Sep 16 -- reconcile); claims 196K, continuing 1.73M lowest since Jan-24; Redbook decelerating 8.5 -> 7.6% | [Sep-16] NY Fed Q2 card transition 6.97% steady; COF Aug 30+ 3.73% (Jul 3.67%) drifting up; retail sales +1.2%/control +1.4% Aug vs UMich 47.8 & real AHE -0.1% y/y | Card ~7.0% (peak 7.2% mid-24, plateaued - highest since 2011, ~half the GFC's 13.7%); auto ~2.9-3.0% - NY Fed Q1-26: auto delinquency highest ever recorded", 2,
+        4, "[Sep-28] claims 197K (lowest since mid-July), continuing 1.719M; industry card DQ 2.50% creeping; AXP 1.1% flat; ICE Aug mortgage DQ 3.53% (below every pre-pandemic Aug); UPST/AFRM -4% Sep 23. No re-acceleration -> held 2 | [Sep-22] COF Aug 30+ 3.57% per 8-K (vs 3.73% carried Sep 16 -- reconcile); claims 196K, continuing 1.73M lowest since Jan-24; Redbook decelerating 8.5 -> 7.6% | [Sep-16] NY Fed Q2 card transition 6.97% steady; COF Aug 30+ 3.73% (Jul 3.67%) drifting up; retail sales +1.2%/control +1.4% Aug vs UMich 47.8 & real AHE -0.1% y/y | Card ~7.0% (peak 7.2% mid-24, plateaued - highest since 2011, ~half the GFC's 13.7%); auto ~2.9-3.0% - NY Fed Q1-26: auto delinquency highest ever recorded", 2,
         "In the 2008-entry zone but PLATEAUED; the flip signal is re-acceleration + claims >2.3M"),
     Indicator(
         "Utilization / maxed-out / min-pay share", "6. Consumer",
@@ -233,7 +239,7 @@ INDICATORS = [
         "Subprime auto 60+ (Fitch ABS index)", "6. Consumer",
         "Fitch subprime auto ABS 60+ dpd; prime 60+ (<0.6% trigger) as contagion check",
         "0:<4.0 | 1:4.0-5.0 | 2:5.0-6.0, or >=6.0 with prime contained | 3:>=6.0 AND prime 60+ >0.6% (stress escaping the bottom quartile)",
-        2, "[Sep-16] no Aug index yet; 6.13% Jul / prime 0.49% stand | [Sep-10] RE-ACCELERATING: 6.13% Jul (from 5.80% Jun; record 6.90% Jan); Fitch guides 'weaken further in H2'; PRIME 60+ 0.49% vs 0.6% escape trigger (closest yet); America's Car-Mart at going-concern (non-fraud failure candidate #1, covenant runway to Nov 6)", 2,
+        2, "[Sep-28] Fitch Aug index still not published; Car-Mart lenders extended waivers a 4th time to Oct 1; CACC settlement ~$710M incl. $634M balance waivers; prime 0.49% vs 0.6% trigger unchanged. Held 2 | [Sep-16] no Aug index yet; 6.13% Jul / prime 0.49% stand | [Sep-10] RE-ACCELERATING: 6.13% Jul (from 5.80% Jun; record 6.90% Jan); Fitch guides 'weaken further in H2'; PRIME 60+ 0.49% vs 0.6% escape trigger (closest yet); America's Car-Mart at going-concern (non-fraud failure candidate #1, covenant runway to Nov 6)", 2,
         "Above GFC-era levels but confined to the bottom quartile; PRIME contamination is the systemic signal"),
     Indicator(
         "Student loan 90+ share", "6. Consumer",
@@ -251,7 +257,7 @@ INDICATORS = [
         "Subprime lender defaults / funding stress", "6. Consumer",
         "Failure count (BHPH/fintech/specialty) T12M; ABS BB spread persistence",
         "0:none | 1:1 idiosyncratic, spreads re-tighten | 2:2-3 in 12mo or +200bp sustained | 3:funding freeze",
-        2, "[Sep-22] Credit Acceptance $694M 40-AG settlement (Sep 17); America's Car-Mart $300M facility deadline extended to Sep 25, bankruptcy 'an option'. A Car-Mart filing would be failure #2 in 12 months -> 2 | Tricolor Ch.7 (Sep-25, $1.4B ABS, fraud, >$1B bank hit) + First Brands; spreads re-tightened; no verified 2026 failures", 1,
+        2, "[Sep-28] Car-Mart did NOT file: waivers extended a 4th time, to Oct 1 (from Sep 25); a filing = failure #2 -> 2. Held 1 | [Sep-22] Credit Acceptance $694M 40-AG settlement (Sep 17); America's Car-Mart $300M facility deadline extended to Sep 25, bankruptcy 'an option'. A Car-Mart filing would be failure #2 in 12 months -> 2 | Tricolor Ch.7 (Sep-25, $1.4B ABS, fraud, >$1B bank hit) + First Brands; spreads re-tightened; no verified 2026 failures", 1,
         "Dimon's cockroach rule: fraud DISCOVERY, not credit deterioration, is the likely surprise vector"),
 
     # ------------------------------------------------------------------
@@ -261,25 +267,25 @@ INDICATORS = [
         "Internal disorder index", "7. Big Cycle",
         "Political-violence counts; election-machinery events; DFA top-1% share; Dalio Stage-5/6 checklist",
         "0:normal | 1:polarized | 2:Stage-5 markers | 3:Stage-6 onset (contested election, organized violence)",
-        5, "[Sep-22] ICE officer shot a delivery driver in Austin (Sep 20), multi-day protests; three outlets banned from the White House; approval 32-41%; 3,073 Guard in DC to 2029; Russia/Iran sanctions law signed Sep 18 | [Sep-16] Fed hike delivered under open WH attack; midterms D+7-9, Dem Senate odds ~59%; no violence in window | Stage 5: political attacks at 30-yr high; two assassinations + one attempt; top-1% wealth 31.7% (record); Nov-26 midterms ahead", 2,
+        5, "[Sep-28] Trump approval 33/63 (new low); generic ballot D+7-10; CR to Dec 11 passed House 370-48 (Oct 1 shutdown risk removed); Austin protests continuing (~160, chemical agents, arrests), no new Guard deployment found; Section 232 100% pharma tariff + Canada import bans effective Sep 29. Held 2 | [Sep-22] ICE officer shot a delivery driver in Austin (Sep 20), multi-day protests; three outlets banned from the White House; approval 32-41%; 3,073 Guard in DC to 2029; Russia/Iran sanctions law signed Sep 18 | [Sep-16] Fed hike delivered under open WH attack; midterms D+7-9, Dem Senate odds ~59%; no violence in window | Stage 5: political attacks at 30-yr high; two assassinations + one attempt; top-1% wealth 31.7% (record); Nov-26 midterms ahead", 2,
         "Markets priced this twice (Apr-25 'Sell America', Jan-26 Fed-probe spike) — episodically, not persistently"),
     Indicator(
         "External conflict index", "7. Big Cycle",
         "Hormuz/Iran status (Brent); US-China truce (expiry Nov-10-26); Taiwan posture; capital-war provisions",
         "0:none | 1:trade war | 2:regional war + commodity disruption OR truce fraying | 3:great-power confrontation",
-        3, "[Sep-22] Two-track: new US strikes on IRGC targets Sep 22 AND a 3-hr US-Iran meeting in NY ('very productive'; Trump: deal 'right after' Nov 3); Hormuz transits still <=15/day; Saudi E-W pipeline restarted at low rate; Brent ~$97 (-10%); sanctions law with up-to-100% secondary tariffs on top-5 Russian-oil buyers (China, India) SIGNED; CCG-Philippine collision Sep 18; DPRK SRBMs Sep 20. Held 2 | [Sep-16] Hormuz transits single digits; US destroyed 5 Iranian tankers (Sep 8-9); Houthis seized 2 Red Sea islands, Saudi East-West pipeline out for weeks; Brent $108; first NATO drone shoot-down over Lithuania (Sep 15); India-Pak naval collision; secondary-tariff bill (100% on top-5 Russian-oil buyers) advancing. Offsets: Xi state visit Sep 23-25, truce extension expected. HIGH 2; 3 requires great-power confrontation | Iran war since Feb-26, Brent $86.6 (>$90 in July); new 12.5% S.301 tariff Jul-23-26; truce expires Nov-10-26", 2,
+        3, "[Sep-28] Trump REJECTED Iran's 7-day/60-day Hormuz plan (Sep 26) and per WSJ told aides he expects to RESUME BOMBING IRAN AFTER NOV 3; Brent $97 -> $105-107 (intraday $108.8); Xi summit constructive (truce extended ~2 months to early 2027; tariff cuts ~$30B; Taiwan 'red line'; no chip-export relief); Ukraine drone strikes on Russian refineries; no new NATO-Russia incident. Oil channel re-armed but no great-power confrontation -> held 2 (high) | [Sep-22] Two-track: new US strikes on IRGC targets Sep 22 AND a 3-hr US-Iran meeting in NY ('very productive'; Trump: deal 'right after' Nov 3); Hormuz transits still <=15/day; Saudi E-W pipeline restarted at low rate; Brent ~$97 (-10%); sanctions law with up-to-100% secondary tariffs on top-5 Russian-oil buyers (China, India) SIGNED; CCG-Philippine collision Sep 18; DPRK SRBMs Sep 20. Held 2 | [Sep-16] Hormuz transits single digits; US destroyed 5 Iranian tankers (Sep 8-9); Houthis seized 2 Red Sea islands, Saudi East-West pipeline out for weeks; Brent $108; first NATO drone shoot-down over Lithuania (Sep 15); India-Pak naval collision; secondary-tariff bill (100% on top-5 Russian-oil buyers) advancing. Offsets: Xi state visit Sep 23-25, truce extension expected. HIGH 2; 3 requires great-power confrontation | Iran war since Feb-26, Brent $86.6 (>$90 in July); new 12.5% S.301 tariff Jul-23-26; truce expires Nov-10-26", 2,
         "The oil channel is the live stagflation transmitter; reserve transitions tip on wars (Suez 1956)"),
     Indicator(
         "Reserve erosion & gold signal", "7. Big Cycle",
         "IMF COFER USD share; gold vs USTs in CB reserves (WGC/ECB); Dalio triple check",
         "0:COFER>60 | 1:57.5-60 drifting | 2:55-57.5 + gold>USTs + CB>700t/y + gold+20%y/y | 3:<55 falling fast or triple confirmed 3mo",
-        4, "[Sep-22] gold ~$4,310 spot / $4,409 Dec fut (+17% y/y; -23% from ATH) through a Fed hike and DXY ~100.6; BTC $86K (+14% wk); July TIC -$50B; COFER Q2 due Sep 30. Held 2, weakening | [Sep-16] gold $4,263-4,348 (6-wk low, -24% from ATH, ~+17-19% y/y — the +20% clause is now borderline); PBOC +20.2t Aug (largest since Oct-23), CB Q2 record 289t; DXY 99.6 firming; Japan funding intervention via FIMA repo not UST sales. Held 2, WEAKENING; downgrade to 1 if COFER Q2 (Sep 30) >57.5 AND gold y/y <20% | [Sep-10 CORRECTION] gold ATH was $5,596 (Jan 28 2026); ~$4,400 now = -20% from record, ~+20% y/y. Score rests on LEVEL clauses that survive: COFER 57.13% (in 55-57.5 band, though UP q/q), gold > USTs in CB reserves, gold +~20% y/y; CB buying slower YTD. Dalio triple 2 of 3 (yields up, DXY 98.8 down; gold NOT up since Jun 1). Low end of 2", 2,
+        4, "[Sep-28] gold $4,310 -> ~$4,150 (-3.8%, 7-week low; ~+12% y/y -- the +20% clause now FAILS); silver -9%; DXY 101.1 (2-month high); Dalio triple 1 of 3 (yields up, dollar UP, gold DOWN) -- the market is doing the OPPOSITE of a reserve exit this week. Downgrade to 1 executes if COFER Q2 (Sep 30) prints >57.5%. Held 2 pending | [Sep-22] gold ~$4,310 spot / $4,409 Dec fut (+17% y/y; -23% from ATH) through a Fed hike and DXY ~100.6; BTC $86K (+14% wk); July TIC -$50B; COFER Q2 due Sep 30. Held 2, weakening | [Sep-16] gold $4,263-4,348 (6-wk low, -24% from ATH, ~+17-19% y/y — the +20% clause is now borderline); PBOC +20.2t Aug (largest since Oct-23), CB Q2 record 289t; DXY 99.6 firming; Japan funding intervention via FIMA repo not UST sales. Held 2, WEAKENING; downgrade to 1 if COFER Q2 (Sep 30) >57.5 AND gold y/y <20% | [Sep-10 CORRECTION] gold ATH was $5,596 (Jan 28 2026); ~$4,400 now = -20% from record, ~+20% y/y. Score rests on LEVEL clauses that survive: COFER 57.13% (in 55-57.5 band, though UP q/q), gold > USTs in CB reserves, gold +~20% y/y; CB buying slower YTD. Dalio triple 2 of 3 (yields up, DXY 98.8 down; gold NOT up since Jun 1). Low end of 2", 2,
         "Hedging the dollar system without leaving it: no successor exists (euro 20%, RMB 2%)"),
     Indicator(
         "China / global contagion index", "7. Big Cycle",
         "NBS China FAI cumulative y/y; 30Y JGB + BOJ; global mfg PMI; CNY/JPY tail checks",
         "0:FAI>+4, JGB30<2, PMI>52 | 1:FAI 0-4 or JGB 2-3 | 2:FAI contracting + JGB30>3 + PMI<=50.5 | 3:China credit event / CNY>7.5 / carry unwind 2.0 / JP repatriation>$200B/y",
-        3, "[Sep-22] LPR held 16th month ('no need to cut'); banks told to keep Vanke loans off NPL books; property investment -19.9% YTD; CNY 6.70 (strongest since Jan-23); OAT-Bund 105bp (first >100 since 2012; Scope cut France to A+); UK 30Y ~5.75%; JGB 30Y 4.07%; MOF cutting super-long issuance for lack of insurer demand. Held 2 | [Sep-16] China Jan-Aug FAI -7.2% y/y (CNBC; deepening), retail +0.4%, Aug new loans RMB 60bn vs 400bn exp, M2 17-mo low, home prices -39th month; JGB 30Y 4.15% (near record), 30Y auction cover 2.92 worst since 2023; CNY 6.71 STRONG (opposite of the 7.5 trigger); Korea chips +270% y/y. Held 2 | China FAI -5.7% y/y H1-26 (property -14%, PPI negative ~39mo); 30Y JGB ~3.5% record, yen ~164; global PMI ~49.7-50.8", 2,
+        3, "[Sep-28] GLOBAL LONG END BROKE OUT Sep 24: JGB 10Y 3.055% (since 1996), 30Y 4.134%; Bund 10Y 3.64% (since 2009); UK 10Y 5.36%; Norges hiked to 4.50%; EZ PMI 53.1 (3-yr high) feeds ECB hikes; France budget slips to Oct 1 (2026 deficit 5.4%), OAT-Bund ~105bp; China EPMI 52.3, PBOC fixing weaker than est. into Golden Week; Korea chips +259%. JGB30 >3 and PMI clauses unchanged -> held 2 | [Sep-22] LPR held 16th month ('no need to cut'); banks told to keep Vanke loans off NPL books; property investment -19.9% YTD; CNY 6.70 (strongest since Jan-23); OAT-Bund 105bp (first >100 since 2012; Scope cut France to A+); UK 30Y ~5.75%; JGB 30Y 4.07%; MOF cutting super-long issuance for lack of insurer demand. Held 2 | [Sep-16] China Jan-Aug FAI -7.2% y/y (CNBC; deepening), retail +0.4%, Aug new loans RMB 60bn vs 400bn exp, M2 17-mo low, home prices -39th month; JGB 30Y 4.15% (near record), 30Y auction cover 2.92 worst since 2023; CNY 6.71 STRONG (opposite of the 7.5 trigger); Korea chips +270% y/y. Held 2 | China FAI -5.7% y/y H1-26 (property -14%, PPI negative ~39mo); 30Y JGB ~3.5% record, yen ~164; global PMI ~49.7-50.8", 2,
         "Two-edged: China's deflation export is worth 30-50bp OFF US yields; Japan is the real Treasury-flow risk"),
 ]
 
@@ -332,7 +338,7 @@ def classify(score: float) -> tuple[str, str]:
 
 def dashboard():
     print(__doc__.split("\n")[1])
-    print("BDCR-26 dashboard — baseline 2026-07-28, re-scored 2026-09-22")
+    print("BDCR-26 dashboard — baseline 2026-07-28, re-scored 2026-09-28")
     print("=" * 100)
     pillar_totals: dict[str, list[int]] = {}
     for ind in INDICATORS:
@@ -518,3 +524,98 @@ if __name__ == "__main__":
 # NEXT: Sep 23 flash PMIs/5Y auction; Sep 24 Xi-Trump + 7Y auction + 20-30Y buyback;
 #   Sep 25 UMich final + Car-Mart deadline; Sep 30 PCE/saving rate, Micron, COFER Q2,
 #   France budget, quarter-end; Oct 1 gates; Oct 2 payrolls; Oct 6 JOLTS hires.
+
+# ======================================================================
+# SEPT 28 2026 RE-SCORE LOG (2026-09-28)
+# ======================================================================
+# Composite 70.0 -> 71.7 (raw 210 -> 215). Indicator count 31 -> 32. Two changes:
+#
+#   (a) STRUCTURAL AMENDMENT (prospective, applied this cycle for the first time):
+#       new Pillar-5 indicator 'Net investment / GDP (capital-cycle position)',
+#       weight 2, thresholds 0:<1.0 | 1:1.0-1.5 | 2:1.5-2.0 | 3:>=2.0%. Reading
+#       2.07% (2026-06-30, S&P 500 capex minus depreciation over nominal GDP; Burry/
+#       Cassandra Unchained series from Bloomberg aggregates) -> score 3. Weight
+#       funded by Top-10 concentration 2->1 and AI capex-to-revenue gap 3->2 so the
+#       total stays 100. Net effect of the amendment alone: raw +1 (211), +0.3 pts.
+#       Rationale: capital-cycle theory (Marathon; Burry's 'Capital Cycle IQ') --
+#       returns collapse after capital floods in; the 2000, 2007 and 2014 peaks in
+#       this ratio coincided with or slightly lagged equity tops, and the 2003-06
+#       negative stretch shows the depreciation hangover. The existing capex-gap
+#       indicator measures the same phenomenon less precisely, hence its de-weight.
+#       Also: the forensic watch-list gains 'DRAM/HBM contract-price rollover' (not
+#       a scoring change); the circularity note records the $11.4B ASC-606 prepayment
+#       financing component; the debt/SPV note carries the ~$3T off-balance-sheet tally.
+#
+#   (b) 30Y YIELD STRESS 2 -> 3 under the Sep-10 amendment's fourth clause ('an
+#       official long-end intervention fails to hold: yields at/above the pre-
+#       intervention level within 5 sessions'). Treasury's 20-30Y buyback on Sep 24
+#       took $4.08B of a $6B cap with the 30Y at 5.44-5.50%; on Sep 28 (session +2)
+#       the 30Y traded 5.56%. Raw +4, +1.3 pts. The ORIGINAL >=5.5% rule is a CLOSE
+#       test and is not yet confirmed (Sep 25/28 closes not retrieved; one source has
+#       Sep 24 at 5.438% while Bloomberg has an intraday high of 5.501%) -- recorded
+#       so the upgrade is auditable as an amendment-clause call, not a level call.
+#       Reversion rule (prospective): back to 2 if the 30Y closes <5.30% for 5 sessions.
+#
+# TESTED AND HELD (evidence in each indicator's note): auction stress 2 (5Y tail 3.1bp,
+#   BTC 2.21 -- the 3-clause needs >=4bp AND <2.2 at the 10Y/30Y); ERP 3 (10Y 5.17-5.23
+#   vs E/P ~4.5); credit 2 (HY 280, no listed trigger); forensic 2 (Jupiter force
+#   majeure + CDS record = 2 confirmed; needs 3); reserve erosion 2 (gold +20% clause
+#   FAILS at ~+12% y/y; COFER Sep 30 decides the downgrade); external conflict 2
+#   (Iran plan rejected, post-midterm bombing report; no great-power confrontation);
+#   subprime lender 1 (Car-Mart waivers to Oct 1); consumer transitions 2 (claims 197K).
+#
+# CLASSIFICATION: 71.7 -> R4 band, Monetization Gate NOT met (Fed 72% to hike in
+#   October; Treasury under-filled its own buyback). Output: 'R3-upper -- repression-
+#   lite onset'. The gap between what the market is pricing (fiscal dominance: the
+#   long end sells off on hikes) and what the Fed is doing (tightening) is now the
+#   widest of the cycle. That gap is the Second-Wave mechanism.
+#
+# THIS WEEK'S EVIDENCE (Sept 22-28):
+#   Rates: whole curve 2Y-30Y +16-28bp in four sessions; 5Y >5% (first since 2007),
+#   10Y 5.17 close / 5.23 intraday (since 2007), 30Y 5.56 intraday (since 2004), 2Y
+#   4.90 (since 2023); MOVE 80 -> 104.6 (biggest weekly jump since Apr-25; a second
+#   source has 96 on Sep 25); Oct hike 55% -> 72%. Global long end broke out the same
+#   day: JGB 10Y 3.06 (since 1996), Bund 3.64 (since 2009), UK 5.36.
+#   Equities: S&P 7,776 -> 7,704 (Sep 24) -> 7,743 (Sep 25) -> lower Sep 28 (-0.7% to
+#   -1% from the Aug 26-27 record); NDX ATH Sep 22 not extended; VIX 14.9; stock-bond
+#   correlation positive every session; quarter-end pension rebalance = sell equities.
+#   AI: Oracle FORCE MAJEURE on Project Jupiter (Sep 24), ORCL CDS record, ORCL -8.5%
+#   w/w, WSJ 'cracks' at the New Mexico site; SoftBank $11.1B junk to fund OpenAI's
+#   $10B Oct 1 call; CoreWeave-tenant DC paper 9.25%; Burry 'moving timelines up'
+#   (Sep 28); Micron Sep 30 with consensus above guide; Acer CEO: no memory shortage.
+#   Oil/geo: Trump rejected Iran's Hormuz plan (Sep 26), WSJ: bombing resumes after
+#   Nov 3; Brent $97 -> $105-107; Xi summit constructive, truce extended to ~Jan 2027.
+#   Consumer: claims 197K; mortgage 7.03%; UMich 48.1; gasoline $4.49 (late-Sept
+#   record); Car-Mart waivers to Oct 1; CR to Dec 11 passed House.
+#   Reserve: gold -3.8% to ~$4,150, silver -9%, DXY 101.1 -- the dollar was bought.
+#
+# PROBABILITIES: Muddle 26 | Repression 19 | AI Bust 19 | Second Wave 19 |
+#   Escape 12 | Fracture 5   (Sep 22: 29/19/18/16/14/4)
+#   Second Wave +3: the intervention-fails clause fired; the global long end broke
+#     out in one session; oil reversed up; the Fed is 72% to hike into a flattening
+#     curve with MOVE at a 6-month high. This is the accident scenario's setup.
+#   Muddle -3: the election put still works (Trump: Iran after Nov 3, truce extended),
+#     but the long end is no longer cooperating at any level of oil.
+#   AI Bust +1: force majeure is the first CONTRACTUAL distress event in the
+#     hyperscaler chain; capital-cycle indicator added at 3; credit tiering by tenant.
+#   Escape -2: 10Y 5.2%, oil $105, real wages negative, tariffs escalating Sep 29.
+#   Fracture +1: Iran plan rejected + post-midterm bombing intent; France budget slip;
+#     netted against a genuinely constructive Xi summit.
+#
+# TIMING: crash (>=25%) distribution: pre-Nov-26 8 | Nov-26-Jun-27 14 |
+#   Jul-27-Jun-28 38 | Jul-28-2029 21 | none-to-2031 19 (was 7/13/38/22/20).
+#   Modal month UNCHANGED: October 2027. Correction >=10% before the Nov 4 QRA:
+#   ~45% (from 40%) on the 30Y at 5.56, MOVE >100, oil >$105, quarter-end selling,
+#   Oct 1 gates, Oct 8 30Y auction, Oct 27-28 hike at 72%. Modal correction month
+#   unchanged: October 2026. P(Aug 26-27 record is THE cycle high): ~25% (from 20%).
+#   P(cycle high in by Dec 31 2026): ~40% (from 35%).
+#
+# PROSPECTIVE (never retroactive): 30Y reverts to 2 on 5 closes <5.30%. Reserve
+#   erosion -> 1 if COFER Q2 (Sep 30) >57.5% (gold clause already failed). Forensic
+#   -> 3 on any ONE more listed confirmation (ORCL CDS >250 verified, NVDA DSO >60,
+#   capex guide cut, DRAM contract-price rollover confirmed by two producers).
+#   Capital-cycle indicator re-reads quarterly (next: Q3 aggregates, ~mid-Nov).
+#   Credit rule conflict (PC defaults 6.3% > original '>6%' clause) still open.
+# NEXT: Sep 29 Conf Board, 7Y results; Sep 30 PCE/saving/GDP revision, Micron, COFER,
+#   France budget, quarter-end; Oct 1 Car-Mart, gates, OpenAI $10B; Oct 2 payrolls;
+#   Oct 6 JOLTS; Oct 8 30Y auction; Oct 13-14 banks; Oct 27-28 FOMC; Nov 3; Nov 4 QRA.

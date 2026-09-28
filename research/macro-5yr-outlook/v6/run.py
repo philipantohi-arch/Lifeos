@@ -16,7 +16,7 @@ from .surfaces import surface_at
 from . import timing
 
 HERE = Path(__file__).resolve().parent
-WEIGHTS = dict(Muddle=.29, Repression=.19, AIBust=.18, SecondWave=.16, Escape=.14, Fracture=.04)
+WEIGHTS = dict(Muddle=.26, Repression=.19, AIBust=.19, SecondWave=.19, Escape=.12, Fracture=.05)  # 2026-09-28
 V4_EV = {  # Sept-16 synthetic run, exit rule on (put_scenario_model_sept2026.py)
     "SPX Mar-27 10% OTM": 1.28, "SPX Mar-27 90/75 spread": 1.11, "[B] QQQ Jun-27 p 11% OTM": 1.82,
     "SPX Dec-27 10% OTM": 2.37, "SPX Dec-27 90/70 spread": 2.07, "QQQ Dec-27 10% OTM": 2.19,
@@ -251,7 +251,7 @@ def main(quick=False):
              "VIX term structure: 'vix-futures' where the VIX-futures slope exists (2006+), 'default-MR' before. Put wing: spec default 0.35·T^-0.25 everywhere (SKEW unavailable to fit), flat 0.10 before 1987-10-19.\n")
     R.append("## 0. Timing reconciliation (v4 engine vs report §2)\n")
     R.append(timing.table())
-    R.append("\nThe v6 replay does not use scenario timing (it replays real dates), but the scenario-weighted EV in §1 uses the current BDCR-26 weights (28/19/17/17/14/5). "
+    R.append("\nThe v6 replay does not use scenario timing (it replays real dates), but the scenario-weighted EV in §1 uses the current BDCR-26 weights (" + "/".join(str(round(100*WEIGHTS[k])) for k in ("Muddle","Repression","AIBust","SecondWave","Escape","Fracture")) + "). "
              "For the synthetic model, the v6 windows above are the reconciled timing and are what `put_scenario_model_sept2026.py` should adopt (`SecondWave` 40% in months 0–1.5 and 60% in 1.5–20; `AI Bust` 6–22; `Repression` 8–24; `Fracture` 16–24). The report's §2 table is the timing used.\n")
     R.append("## 1. Main table (v4 format), historical conditionals\n")
     R.append("Entries within 12 months of each episode peak, exit rule = v4 (−22% index trigger), 7% haircuts. Conditionals are pooled means by BDCR analog: Muddle = 0.65 × correction episodes (2011/2015/2018) + 0.35 × non-event windows; Escape = non-event windows; Fracture = 1998 only (N=1). "

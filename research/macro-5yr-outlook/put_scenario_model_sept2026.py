@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Scenario-weighted put-strategy model v4 — inputs refreshed 2026-09-22 (S&P 7,776, 10Y 4.96%, VIX 14.25, 3m bill 4.17%).
+Scenario-weighted put-strategy model v4 — inputs refreshed 2026-09-28 (S&P 7,743 Sep 25 close, 10Y 5.17-5.23%, 30Y 5.56%, VIX 14.87, MOVE ~100, 2Y 4.90%).
+Prior refresh 2026-09-22 (S&P 7,776, 10Y 4.96%, VIX 14.25, 3m bill 4.17%).
 SPX 7,786 (record), VIX 14.25, SPX skew at 1-yr lows, r~4.0%.
 Verified IVs: ORCL 30d ATM ~70 (IVR 62), CRWV 3m ~81, NVDA ~43 (into Aug-26
 earnings), PLTR ~55 (post-crush est), HYG ~10, SPX long-dated ~17.5-19.5 (est
@@ -17,7 +18,7 @@ from dataclasses import dataclass, field
 
 random.seed(27)
 N_PATHS = 12000
-RISK_FREE = 0.044
+RISK_FREE = 0.046   # 2Y 4.90% / 3m ~4.2% blend for 4-22m tenors (was 0.044)
 HORIZON = 24
 
 @dataclass
@@ -32,14 +33,14 @@ class Und:
     crash_iv: float = 0.40
 
 U = {
- "SPX":  Und("SPX 7776", 0.0104, 1.00, 0.000, {4:.165,7:.18,10:.19,16:.20,22:.21}, crash_iv=.34),
- "QQQ":  Und("QQQ 731",  0.005,  1.35, 0.010, {4:.215,7:.23,10:.235,16:.25,22:.255}, crash_iv=.42),
- "SOXX": Und("SOXX 550", 0.005,  1.80, 0.020, {4:.31,7:.32,10:.325,16:.33,22:.335}, crash_iv=.52),
- "NVDA": Und("NVDA 227", 0.000,  2.00, 0.045, {4:.40,7:.42,10:.43,16:.44,22:.45}, floor=.35, crash_iv=.72),
- "ORCL": Und("ORCL 140", 0.013,  1.70, 0.050, {4:.58,7:.57,10:.56,16:.55,22:.53}, floor=.40, crash_iv=.85),
+ "SPX":  Und("SPX 7743", 0.0104, 1.00, 0.000, {4:.17,7:.18,10:.19,16:.20,22:.21}, crash_iv=.34),
+ "QQQ":  Und("QQQ ~742", 0.005,  1.35, 0.010, {4:.225,7:.235,10:.24,16:.25,22:.255}, crash_iv=.42),
+ "SOXX": Und("SOXX ~580", 0.005,  1.80, 0.020, {4:.33,7:.33,10:.335,16:.34,22:.34}, crash_iv=.52),
+ "NVDA": Und("NVDA 227 (stale)", 0.000,  2.00, 0.045, {4:.40,7:.42,10:.43,16:.44,22:.45}, floor=.35, crash_iv=.72),
+ "ORCL": Und("ORCL 137", 0.013,  1.70, 0.050, {4:.60,7:.58,10:.57,16:.56,22:.54}, floor=.40, crash_iv=.85),
  "PLTR": Und("PLTR ~169", 0.000,  2.20, 0.060, {4:.55,7:.56,10:.57,16:.58,22:.58}, floor=.30, crash_iv=.90),
  "CRWV": Und("CRWV 108", 0.000,  2.50, 0.090, {4:.80,7:.82,10:.84,16:.86,22:.88}, floor=.10, crash_iv=1.20),
- "HYG":  Und("HYG 78.7", 0.058,  0.35, 0.004, {4:.09,7:.10,10:.10,16:.11,22:.11}, exit_trig=.08, crash_iv=.22),
+ "HYG":  Und("HYG ~78.2", 0.058,  0.35, 0.004, {4:.09,7:.10,10:.10,16:.11,22:.11}, exit_trig=.08, crash_iv=.22),
  "VRT":  Und("VRT 272",  0.001,  1.90, 0.050, {7:.55,10:.54,16:.52,22:.50}, floor=.45, crash_iv=.75),
  "DLR":  Und("DLR 191",  0.036,  0.90, 0.020, {7:.26,10:.26,16:.27,22:.27}, exit_trig=.18, crash_iv=.40),
 }
@@ -52,7 +53,7 @@ class Sc:
 
 def scenarios(mode="base"):
     if mode == "base":       # post-adversarial map, Aug-2026 timing refresh
-        p = dict(mu=.29, rp=.19, ab=.18, sw=.16, es=.14, fr=.04)
+        p = dict(mu=.26, rp=.19, ab=.19, sw=.19, es=.12, fr=.05)   # Sep 28 (was .29/.19/.18/.16/.14/.04)
     elif mode == "bear":     # pre-adversarial synthesis weights
         p = dict(mu=.30, rp=.22, ab=.17, sw=.15, es=.13, fr=.03)
     elif mode == "benign":   # market-implied-ish: crash mass halved
@@ -198,5 +199,5 @@ def run(mode="base", use_exit=True, tag=""):
         print(f"{mark}{r['label']:<35}{r['cost']:>6.2f}%{r['ev']:>6.2f}{r['pz']:>5.0%}{r['p3']:>6.0%}{r['p10']:>7.0%}  {cs}")
 
 if __name__ == "__main__":
-    run("base", True, "SEPT-22: Mu29/Rp19/AB18/SW16/Es14/Fr4, exit rule on")
-    run("base", False, "SEPT-22: hold-to-expiry")
+    run("base", True, "SEPT-28: Mu26/Rp19/AB19/SW19/Es12/Fr5, exit rule on")
+    run("base", False, "SEPT-28: hold-to-expiry")
