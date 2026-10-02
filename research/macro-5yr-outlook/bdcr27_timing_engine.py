@@ -316,9 +316,9 @@ def funding_gap(rate_shock_bp=0, revenue_shock=0.0, spread_shock_bp=0, util_shoc
 DECISION_TREE = [
     ("Debt rising faster than income", "federal debt growth vs nominal GDP growth (y/y)", "debt +~7-8% vs NGDP +4.2% (E)", 4, True),
     ("Debt service becoming restrictive", "net interest / revenue >= 18% OR marginal r - g > 0", "19.4% (V); marginal r-g +0.9pp (V)", 2, True),
-    ("Monetary policy unable to fully offset", "Fed constrained by inflation: core PCE > 3% while hiking; real EFFR > 0", "core 3.4%, Oct hike 72% priced (V)", 2, True),
+    ("Monetary policy unable to fully offset", "Fed constrained by inflation: core PCE >= 3% with headline >3% while policy is restrictive; real EFFR > 0", "core 3.0% (revised, methodology), headline 3.4%, ISM prices 77.9; Oct hike ~17% after payrolls but no easing path with 6% consumer expectations (V)", 2, True),
     ("Credit contraction", "HY OAS > 400 OR bank C&I standards tightening > +20 net OR private-credit gates AND defaults > 6%", "HY 280 (no); gates + 6.3% defaults (yes, private only)", 2, False),
-    ("Spending deterioration", "real retail sales < 0 y/y OR claims > 260K OR saving rate < 3.0%", "retail +1.2% nominal, claims 197K, saving 3.0% at line", 2, False),
+    ("Spending deterioration", "real retail sales < 0 y/y OR claims > 260K OR saving rate < 3.0% (old series; ~4.0% on the Sep-30 revised series)", "real PCE +0.6% Aug, claims 197K, saving 4.1% (revised series); payrolls +29K and real wages negative are the leading edge but not the written condition", 2, False),
     ("Deleveraging regime", "household or corporate debt/GDP falling with defaults rising", "no", 2, False),
 ]
 
@@ -442,23 +442,23 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) ->
                "Nov 4 QRA (coupon sizes) -> Q1-27 refunding + $9.7T rollover at 5%+ -> post-election coupon step-up and the Oct-8 30Y auction as the near test",
                0.030),
         Engine("B", "AI capital cycle", 2,
-               "Oracle force majeure on Jupiter (T1: contractual); Jupiter loans 89-91 + CDS record (T2); CoreWeave-tenant paper 9.25% vs 8.25% (T2); no default, no capex cut, no impairment (T1 absent)",
+               "Oracle force majeure on Jupiter (T1: contractual); Jupiter loans 89-91, CDS record 227, long bonds >8% (T2); CoreWeave-tenant paper 9.25% vs 8.25% (T2); Micron FY27 capex RAISED >$40B = supply response funded (T3); SoftBank $10B funded Oct 1 with 9%+ junk, SB CDS >400 (T2); no default, no capex cut, no impairment, no DRAM rollover (T1 absent)",
                0.55, "capex -> revenue coverage 46% (gap $490B); prepayment financing in revenue (ASC 606) = A->B->A loop forming; write-offs 2028-29",
                gap["coverage"], 1, 3, [(3, 2, 0.20), (9, 4, 0.40), (16, 6, 0.40)],
                "Micron/DRAM contract rollover Q4-26 -> OpenAI 2027 round + Oracle FY27 debt need (Q1-Q2 27) -> OpenAI cash-out / write-off window (2028)",
                0.028),
         Engine("C", "Private credit", 5,
-               "PC sequence reached 'gates' (stage 5 of 7): fundraising slowing (T3), Fitch PC default 6.3% record (T2), all perpetual BDCs gated 5% for 2-3 quarters (T2), OBDC mark at 5c (T2), BDCs ~25% below NAV (T2); NOT reached: forced sales, insurer/pension writedown (T1 absent), BDC bond >600, covenant breach; bank exposure to PC ~$1T+ of lending lines (E, no stress print)",
+               "PC sequence at 'gates' (stage 5 of 7): Oct 1 windows -- OTIC 39% requested, OCIC 16.8%, BCRED ~10%, ADS 14.7%, HLEND ~11.5%, ASIF 11.6%, all capped 5% again, requests EASING except AI/tech lending (T2); Fitch PC default 6.3% record (T2); OWL -46% YTD (T3); NOT reached: forced sales, insurer/pension writedown (T1 absent), BDC bond >600, covenant breach",
                0.50, "gates -> NAV doubt -> redemptions -> gates: loop live but capped by the 5% structure; discount to NAV ~25% = the market's own mark",
                0.85, 0, 4, [(0.2, 1.0, 0.25), (4, 3, 0.35), (13, 5, 0.40)],
                "Oct 1 Q3 windows -> Jan 1 Q4 windows (second gate wave) -> 2027 BDC unsecured maturities (placeholder)",
                0.022, chain=PC_CHAIN),
         Engine("D", "Consumer / recession", 1,
-               "hires 3.2% and saving 3.0% at trigger (T3); subprime auto 6.13% re-accelerating (T2); prime 0.49% contained (T2); claims 197K, mortgage DQ stable (T2 benign); Car-Mart alive to Oct 1 (T1 pending)",
-               0.30, "delinquency -> tighter credit -> spending -> jobs: not self-reinforcing while claims <230K",
-               1.10, 0, 2, [(8, 5, 0.6), (15, 6, 0.4)],
-               "second hike Oct 27 + $105 oil + 7% mortgages transmit on a 6-9 month lag -> Q2-Q3 2027",
-               0.018),
+               "LABOR TURNED Oct 2: payrolls +29K, revisions -60K, July -10K, UR 4.2, real AHE ~-0.4% (T2); Conf Board 81.9, expectations 63.6 (T3); hires 3.3% (T3, above trigger); saving 4.1% on the REVISED series (T2; old-series trigger moot); subprime auto 6.13% (T2); prime 0.49% contained (T2); claims 197K / continuing 1.70M benign (T2); mortgage 7.28% (T2); Car-Mart alive to Oct 8 (T1 pending)",
+               0.35, "delinquency -> tighter credit -> spending -> jobs: not self-reinforcing while claims <230K, but the income side (payrolls, real wages) flipped this week",
+               1.05, 0, 4, [(6, 4, 0.6), (13, 6, 0.4)],
+               "payroll stall + 7.3% mortgages + $100 oil transmit on a 4-8 month lag -> Q1-Q2 2027 (pulled forward from Q2-Q3 on the Oct 2 print)",
+               0.020),
     ]
 
 # ======================================================================
@@ -466,10 +466,10 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) ->
 # ======================================================================
 DOMAINS = {  # (confirmed 0/0.5/1, tier, evidence)
     "Treasury stress":        (1.0, 1, "5Y tail; 30Y 5.56 through buyback; MOVE 105; two consecutive weeks"),
-    "Credit stress":          (0.5, 2, "HY 268->280 (first widening since hike); ORCL CDS record; but HY <300 = still complacency band"),
-    "Equity breadth":         (0.5, 3, "no new records since Sep 22; R2K -4% 1M; NDX led down Sep 23/28; one observation"),
-    "Funding/plumbing stress": (0.0, 2, "no repo/SRF/fails signal; Sep 30 quarter-end test pending"),
-    "Real-economy deterioration": (0.0, 2, "claims 197K; mortgage DQ 3.53%; hires/saving AT trigger, not through it"),
+    "Credit stress":          (0.5, 2, "FRED HY OAS 308->312 (Sep 29-30), CCC 1,179; ORCL CDS record 227, long bonds >8%; SB CDS >400; still no default/writedown; HY <350"),
+    "Equity breadth":         (0.5, 3, "no new records since Sep 22; R2K -4% 1M; NDX led down Sep 23/28; SOXX worst quarter since 2025; one observation"),
+    "Funding/plumbing stress": (0.0, 2, "no repo/SRF/fails signal reported through the Sep 30 quarter-end ($202B coupon settlement); update pending"),
+    "Real-economy deterioration": (0.5, 2, "PARTIAL: payrolls +29K with -60K revisions and July -10K, UR 4.2, AHE 3.0 (real negative), Conf Board 81.9 lowest since 2014, Challenger hiring plans 15-yr low; against: claims 197K / continuing 1.70M (3-yr low), real PCE +0.6%"),
 }
 
 def confirmation() -> dict:
