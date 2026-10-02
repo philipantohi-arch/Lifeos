@@ -10,9 +10,9 @@
  {
   "entity": "America's Car-Mart (CRMT)",
   "score": 8,
-  "expiry": "2026-10-01",
+  "expiry": "2026-10-08 (fifth extension; was Oct 1)",
   "due": "covenant/waiver dates Sep 4 -> Sep 11 -> Sep 25 -> Oct 1 (V)",
-  "next_check": "Oct 1 8-K: fifth waiver or default notice",
+  "next_check": "Oct 8: sixth waiver or default notice (weekly waivers are now the pattern; Hertz's lenders also extended before they stopped)",
   "put_market": "CRMT listed options exist but are THIN (small cap); expect wide spreads and IV >100%; shares already reflect distress -> asymmetric only if a filing is not fully priced (NF: quotes)"
  },
  {

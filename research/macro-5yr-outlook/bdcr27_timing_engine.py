@@ -132,18 +132,18 @@ def systemic_vulnerability(fs: dict) -> float:
 class Obs:
     name: str; value: str; score: float; tier: int; note: str = ""   # score 0..1 = stress
 
-INTERNALS = [
-    Obs("Breadth: R2K vs SPX 1M", "R2K -4% 1M vs SPX ~0", 0.6, 3, "Sep 22 digest; Sep 23 'Russell 2000 sinks'"),
-    Obs("Breadth: NYSE Composite / new records", "flat on the week of Sep 16-22; NDX ATH Sep 22 not extended", 0.5, 3, ""),
-    Obs("Leadership: equal-weight vs cap-weight", "RSP lagged 2-4 pts (Sep 22); NF since", 0.5, 3, "stale"),
-    Obs("Leadership: semis vs software / MU", "MU +17% in 7 sessions into print; Burry short in size", 0.4, 4, "extreme, not yet reversal"),
-    Obs("Volatility: VIX / VVIX", "14.87 / 90.6", 0.2, 2, "sleeping"),
-    Obs("Volatility: MOVE", "104.6 (from ~80; +30% wk)", 0.8, 2, "bond vol led; a second source 96.0"),
-    Obs("Stock-bond correlation", "positive every session Sep 23-28", 0.7, 2, "bonds not hedging"),
-    Obs("Liquidity: Treasury depth / repo / SRF", "no stress print; SRF quarter-end test Sep 30 pending", 0.3, 3, "NF"),
-    Obs("Positioning: CTAs", "sellers in every 1-wk scenario (GS); down-tape branch engaged Sep 23/28", 0.7, 3, ""),
-    Obs("Positioning: margin debt", "$1.45T record (Aug), +37% y/y", 0.7, 2, "FINRA"),
-    Obs("Positioning: buyback blackout / pension", "blackout to mid-Oct; Sep 30 rebalance = sell equities", 0.6, 3, ""),
+INTERNALS = [  # as of 2026-10-02
+    Obs("Breadth: new lows vs new highs", "NYSE lows > highs 23 straight sessions (longest since Oct-23); Oct 1 lows 393 vs highs 15", 0.9, 2, "Oct 2 digest"),
+    Obs("Breadth: % above 200dma / 50dma", "43-49% above 200dma, ~31% above 50dma, with NDX at a record (lowest 7% of days historically for a near-record index)", 0.8, 2, ""),
+    Obs("Leadership: equal-weight vs cap-weight", "RSP -1.9% in Q3 vs SPX +2.0%; 75% of S&P members fell in September", 0.7, 2, ""),
+    Obs("Leadership: semis / memory", "NVDA record $234, MU ~$1,097, SOXX +2% Oct 2 after its worst quarter since 2025", 0.4, 3, "extreme, not reversal"),
+    Obs("Volatility: VIX / VVIX", "15.5 (range 15.5-16.4 this week); VVIX contained", 0.25, 2, "equity vol still asleep"),
+    Obs("Volatility: MOVE", "108 (Oct 1) from ~80 on Sep 22", 0.85, 2, "bond vol over equity vol regime"),
+    Obs("Stock-bond correlation", "10Y +6bp on a +29K payroll; stocks up on the same print", 0.6, 2, "bonds refused the dovish read"),
+    Obs("Liquidity: Treasury depth / repo / SRF", "$202B settlement Sep 30 passed without a reported SOFR/SRF spike (pending rates sweep)", 0.3, 3, ""),
+    Obs("Positioning: CTAs / dealer gamma", "GS: CTA now asymmetric to the UPSIDE (+$9B US up-tape vs -$0.5B down); dealers 'extremely short gamma into a breakout' (GS); Nomura: clustering risk", 0.5, 3, "fuel for a melt-up leg, then air pocket"),
+    Obs("Positioning: margin debt", "$1.45T record (Aug), +37% y/y; Sept due ~Oct 15", 0.7, 2, "FINRA"),
+    Obs("Positioning: pension / blackout", "$30-33B quarter-end pension sell EXECUTED (late-day Sep 30 dump); blackout ~61% of cap, reopens ~Oct 13", 0.4, 3, "supply turns supportive mid-Oct"),
 ]
 
 def internals_score() -> float:
@@ -467,7 +467,7 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) ->
 DOMAINS = {  # (confirmed 0/0.5/1, tier, evidence)
     "Treasury stress":        (1.0, 1, "5Y tail; 30Y 5.56 through buyback; MOVE 105; two consecutive weeks"),
     "Credit stress":          (0.5, 2, "FRED HY OAS 308->312 (Sep 29-30), CCC 1,179; ORCL CDS record 227, long bonds >8%; SB CDS >400; still no default/writedown; HY <350"),
-    "Equity breadth":         (0.5, 3, "no new records since Sep 22; R2K -4% 1M; NDX led down Sep 23/28; SOXX worst quarter since 2025; one observation"),
+    "Equity breadth":         (1.0, 2, "CONFIRMED: NYSE lows > highs 23 consecutive sessions, 43-49% above 200dma, 75% of S&P down in September, RSP -1.9% vs SPX +2.0% in Q3 -- while NDX made a record Oct 2 (the divergence IS the signal)"),
     "Funding/plumbing stress": (0.0, 2, "no repo/SRF/fails signal reported through the Sep 30 quarter-end ($202B coupon settlement); update pending"),
     "Real-economy deterioration": (0.5, 2, "PARTIAL: payrolls +29K with -60K revisions and July -10K, UR 4.2, AHE 3.0 (real negative), Conf Board 81.9 lowest since 2014, Challenger hiring plans 15-yr low; against: claims 197K / continuing 1.70M (3-yr low), real PCE +0.6%"),
 }
