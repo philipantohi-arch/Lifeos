@@ -54,7 +54,7 @@ class Sc:
 
 def scenarios(mode="base"):
     if mode == "base":       # post-adversarial map, Aug-2026 timing refresh
-        p = dict(mu=.26, rp=.19, ab=.19, sw=.19, es=.12, fr=.05)   # Sep 28 (was .29/.19/.18/.16/.14/.04)
+        p = dict(mu=.26, rp=.20, ab=.18, sw=.19, es=.12, fr=.05)   # Oct 2 (Sep 28: .26/.19/.19/.19/.12/.05)
     elif mode == "bear":     # pre-adversarial synthesis weights
         p = dict(mu=.30, rp=.22, ab=.17, sw=.15, es=.13, fr=.03)
     elif mode == "benign":   # market-implied-ish: crash mass halved

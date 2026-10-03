@@ -74,7 +74,7 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
 import bdcr26  # the structural layer (unchanged)
 
-TODAY = date(2026, 9, 28)
+TODAY = date(2026, 10, 2)
 TIER_W = {1: 1.0, 2: 0.8, 3: 0.5, 4: 0.3, 5: 0.1}
 
 def month_add(d: date, n: int) -> date:
@@ -192,8 +192,9 @@ AUCTIONS = [  # (date, tenor, tail_bp (+ = tailed), btc, indirect %, dealer %, n
     ("2026-09-09", "10Y", -1.0, 2.71, 70.0, 4.3, "stop-through; best cover since 2019 (VERIFIED)"),
     ("2026-09-15", "20Y", 0.0, 2.45, 62.0, 10.0, "stopped 5.42% (VERIFIED level); tail/btc NF -> neutral"),
     ("2026-09-22", "2Y", +0.2, 2.55, 57.8, 13.2, "indirects 57.8 from 66; dealers highest since Mar (VERIFIED)"),
-    ("2026-09-23", "5Y", +3.1, 2.21, 60.0, 15.0, "5.033% stop, first >5% since 2007 (VERIFIED tail/btc); indirects/dealers ESTIMATE"),
-    ("2026-09-24", "7Y", None, None, None, None, "result NOT FOUND"),
+    ("2026-09-23", "5Y", +3.1, 2.21, 61.6, 15.0, "5.033% stop, first >5% since 2007; tail 3.1bp (one outlet) vs 0.7bp (another) -- CONFLICT, larger figure carried; indirects 61.6 from 74.9 (V)"),
+    ("2026-09-24", "7Y", +3.0, 2.42, 57.2, 12.5, "5.085% vs 4.512% in Aug; ~3bp above WI; 'below average' (V, Oct-2 sweep)"),
+    ("2026-10-01", "bills 4w/8w", -0.5, 2.80, 56.8, 8.0, "4-wk 3.890% 2.83x, 8-wk 3.99% 2.70x: the SHORT end is fine (V); not a coupon auction, scored as a control"),
 ]
 
 def buyers_strike() -> dict:
@@ -217,6 +218,7 @@ RESCUES = [  # (date, size_cap $B, filled $B, sessions until pre-op yield level 
     ("2026-08-19", 4.0, 4.0, 4, -6, "retraced 'within sessions' (Sep-10 note); sessions ESTIMATE"),
     ("2026-09-10", 6.0, 5.19, 6, -6, "pre-op level regained on session 6 (VERIFIED, Sep-22 note)"),
     ("2026-09-24", 6.0, 4.08, 2, -3, "30Y 5.44-5.50 pre-op -> 5.56 on session +2 (VERIFIED intraday)"),
+    ("2026-10-01", 6.0, 6.0, 2, -2, "10-20Y op: FULL $6B of $46.4B offered (7.7x) in two 2041-42 issues at 67-76c; 30Y 5.632 pre-op -> 5.613 -> ~5.63 on session +2 (V). Note: the Oct 1 long-end bid was partly French haven flow, not the buyback"),
 ]
 
 def failed_rescue() -> dict:
@@ -228,7 +230,7 @@ def failed_rescue() -> dict:
 
 # Policy-exhaustion clock (memo #14): capacity REMAINING, 0..100 per arm (judgment on tier-2/3 data)
 POLICY = {
-    "Fed rate room":        (55, 3, "3.75-4.00% with core PCE 3.4%: ~150bp of cuts before real rate <0; inflation-constrained"),
+    "Fed rate room":        (55, 3, "3.75-4.00% with core PCE 3.0 (revised) / headline 3.4 and consumer expectations 6%: ~100-150bp of cuts before the real rate <0; the hike cycle ended on data (Oct 2), which preserves room but not credibility"),
     "Fed balance sheet/QE": (35, 3, "QE into 3.4% core with 5-10y expectations at 3.4 = credibility cost; bills-only RMPs only"),
     "Treasury buybacks":    (25, 2, "$4-6B/op vs a market moving $10B+ of 30Y risk a day; last op under-filled; sizing at Nov 4 QRA"),
     "Fiscal impulse":       (15, 2, "deficit 6.6% GDP, interest >$1T, CR to Dec 11; no room without the bond market's consent"),
@@ -435,7 +437,7 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) ->
                "Sep 30 quarter-end funding test -> Oct 8 30Y auction -> Nov 4 QRA; thereafter whenever a 10% index move meets the collateral loop",
                0.020, chain=PLUMB_CHAIN),
         Engine("A", "Sovereign / bond-market", 4,
-               "5Y auction tail 3.1bp at 5.03% (T1); 30Y 5.56 through the buyback (T1); MOVE 105 (T2); buyback under-filled (T1); no failed auction, no fails spike (T1 absent)",
+               "5Y and 7Y auctions weak (T1); 30Y five closes >=5.50, 5.632 high since 2002 (T1); Oct 1 buyback: $46.4B offered for a $6B cap, pre-op level regained in 2 sessions = fourth rescue with the shortest half-life (T1); 10Y +6bp on a +29K payroll (T2); MOVE 108 (T2); short end and plumbing CLEAN (T1 benign); no failed auction, no fails spike (T1 absent)",
                min(1.0, 0.45 + 0.5 * fr["score"]), f"loop gain {sov['loop_gain']:.2f} pp/pp per year (damped, cumulative); rescue half-life 6 -> 2 sessions",
                1.0 / max(1e-6, 1 + max(0.0, sov["residual_T"]) / 2.0),  # crude: residual $T vs $2T of elastic demand
                3, 3, [(1.2, 1.0, 0.35), (5, 3, 0.35), (12, 5, 0.30)],
@@ -465,10 +467,10 @@ def engines(sov: dict, bs: dict, fr: dict, gap: dict, lp: list | None = None) ->
 # §6  CROSS-MARKET CONFIRMATION (memo #16): 3 of 5 domains, consecutive observations
 # ======================================================================
 DOMAINS = {  # (confirmed 0/0.5/1, tier, evidence)
-    "Treasury stress":        (1.0, 1, "5Y tail; 30Y 5.56 through buyback; MOVE 105; two consecutive weeks"),
+    "Treasury stress":        (1.0, 1, "THIRD consecutive week: 30Y five closes >=5.50 (5.632 high, since 2002), 10Y 5.342 intraday (since 2002), 7Y weak, Oct 1 buyback drew $46.4B of offers for $6B, MOVE 108, long end sold off into a +29K payroll"),
     "Credit stress":          (0.5, 2, "FRED HY OAS 308->312 (Sep 29-30), CCC 1,179; ORCL CDS record 227, long bonds >8%; SB CDS >400; still no default/writedown; HY <350"),
     "Equity breadth":         (1.0, 2, "CONFIRMED: NYSE lows > highs 23 consecutive sessions, 43-49% above 200dma, 75% of S&P down in September, RSP -1.9% vs SPX +2.0% in Q3 -- while NDX made a record Oct 2 (the divergence IS the signal)"),
-    "Funding/plumbing stress": (0.0, 2, "no repo/SRF/fails signal reported through the Sep 30 quarter-end ($202B coupon settlement); update pending"),
+    "Funding/plumbing stress": (0.0, 2, "quarter-end PASSED CLEAN: SOFR 3.90% on Sep 30 inside the band through a $202B coupon settlement; bills 2.7-2.8x covered; MMF assets record $7.98T; Fed RMP paused to Oct 14 without incident"),
     "Real-economy deterioration": (0.5, 2, "PARTIAL: payrolls +29K with -60K revisions and July -10K, UR 4.2, AHE 3.0 (real negative), Conf Board 81.9 lowest since 2014, Challenger hiring plans 15-yr low; against: claims 197K / continuing 1.70M (3-yr low), real PCE +0.6%"),
 }
 

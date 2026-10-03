@@ -16,7 +16,7 @@ from .surfaces import surface_at
 from . import timing
 
 HERE = Path(__file__).resolve().parent
-WEIGHTS = dict(Muddle=.26, Repression=.19, AIBust=.19, SecondWave=.19, Escape=.12, Fracture=.05)  # 2026-09-28
+WEIGHTS = dict(Muddle=.26, Repression=.20, AIBust=.18, SecondWave=.19, Escape=.12, Fracture=.05)  # 2026-10-02
 V4_EV = {  # Sept-16 synthetic run, exit rule on (put_scenario_model_sept2026.py)
     "SPX Mar-27 10% OTM": 1.28, "SPX Mar-27 90/75 spread": 1.11, "[B] QQQ Jun-27 p 11% OTM": 1.82,
     "SPX Dec-27 10% OTM": 2.37, "SPX Dec-27 90/70 spread": 2.07, "QQQ Dec-27 10% OTM": 2.19,
