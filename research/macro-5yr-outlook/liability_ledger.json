@@ -1,0 +1,82 @@
+[
+ {
+  "entity": "HERTZ (2020) \u2014 calibration template",
+  "score": 10,
+  "expiry": "2020-05-22",
+  "due": "2020-04-27",
+  "next_check": "n/a",
+  "put_market": "HTZ listed puts, liquid; IV >150% after Apr 27 (the trade was cheapest BEFORE the missed payment was public)"
+ },
+ {
+  "entity": "America's Car-Mart (CRMT)",
+  "score": 8,
+  "expiry": "2026-10-08 (fifth extension; was Oct 1)",
+  "due": "covenant/waiver dates Sep 4 -> Sep 11 -> Sep 25 -> Oct 1 (V)",
+  "next_check": "Oct 8: sixth waiver or default notice (weekly waivers are now the pattern; Hertz's lenders also extended before they stopped)",
+  "put_market": "CRMT listed options exist but are THIN (small cap); expect wide spreads and IV >100%; shares already reflect distress -> asymmetric only if a filing is not fully priced (NF: quotes)"
+ },
+ {
+  "entity": "Oracle \u2014 Project Jupiter (New Mexico, OpenAI capacity)",
+  "score": 8,
+  "expiry": "NF \u2014 the lease/loan documents' cure period and the lenders' waiver expiry are the dates to find (EDGAR exhibit or Bloomberg)",
+  "due": "rent commencement tied to construction milestones; gas-pipeline slip to Feb 2027 (V)",
+  "next_check": "Oracle AI World / investor day (mid-Oct, date NF); any 8-K Item 1.01/2.04; Jupiter loan quotes; Blue Owl BDC Q3 marks",
+  "put_market": "ORCL listed puts, deep and liquid; 30d IV ~60-70 (V, Sep); Dec-27 15%-OTM costs ~14% of spot in the model; spreads (85/55) ~10%. OWL (Blue Owl) puts liquid, lower IV. Also: project-loan marks are the leading indicator (not tradable)"
+ },
+ {
+  "entity": "OpenAI (private) \u2014 via ORCL / SoftBank / MSFT / NVDA / CRWV",
+  "score": 6,
+  "expiry": "2027 round; contract milestones NF",
+  "due": "2026-10-01 (SoftBank tranche); 2027 mega-round (>$1.2T ask, V); 2028 cash exhaustion (V)",
+  "next_check": "Oct 1 wire confirmation; Q4 round talk; Oracle RPO disclosure Dec",
+  "put_market": "no direct puts; ORCL (largest single dependency), SoftBank 9984 JP (US retail access limited), CRWV, NVDA (least sensitive)"
+ },
+ {
+  "entity": "CoreWeave (CRWV) \u2014 GPU-collateralized delayed-draw term loans",
+  "score": 4,
+  "expiry": "NF \u2014 the DDTL collateral-coverage test dates and the 2027 maturities are the dates to find",
+  "due": "amortization monthly/quarterly per DDTL schedules (NF exact)",
+  "next_check": "10-Q covenant disclosures; any DDTL amendment 8-K",
+  "put_market": "CRWV puts liquid; IV ~80-88 (model) -> expensive; Dec-27 70/25 spread ~15% of spot for ~1.1x EV in the model"
+ },
+ {
+  "entity": "Non-traded BDCs / private-credit funds (BCRED, OBDC, HLEND, ADS, ASIF)",
+  "score": 8,
+  "expiry": "each quarter-end; the second wave is Jan 1, 2027 (E)",
+  "due": "Oct 1, 2026 (Q3 windows, V); Jan 1, 2027",
+  "next_check": "Oct 1-10: redemption-request disclosures; Q3 NAV marks (Nov); any insurer 10-Q writedown",
+  "put_market": "listed proxies: OWL (Blue Owl, the most concentrated node), ARCC, OBDC, BXSL, KKR/APO/BX (managers). Puts liquid on the managers; IV moderate (30-45, E)"
+ },
+ {
+  "entity": "Credit Acceptance (CACC) / subprime auto ABS",
+  "score": 4,
+  "expiry": "NF \u2014 first ABS deal to hit a CNL trigger is the date",
+  "due": "settlement dated Sep 17 (V); ABS trigger tests monthly",
+  "next_check": "monthly ABS servicer reports; Fitch August index (still missing)",
+  "put_market": "CACC puts moderately liquid; IV ~40-50 (E)"
+ },
+ {
+  "entity": "US Treasury \u2014 long-end clearing (not a default; a forced-action clock)",
+  "score": 7,
+  "expiry": "Nov 4 QRA: the next chance to change coupon sizes (V)",
+  "due": "Oct 8 (30Y auction); Nov 4 (refunding); each buyback op",
+  "next_check": "Oct 8 auction stats; Nov 4 QRA sizes; buyback fill ratios",
+  "put_market": "TLT/TBT and long-bond futures options: liquid; index puts (SPX/QQQ) for the equity transmission; MOVE cannot be traded directly by retail"
+ },
+ {
+  "entity": "SoftBank (9984 JP) \u2014 OpenAI funding chain",
+  "score": 3,
+  "expiry": "NF",
+  "due": "Oct 1 wire (V); coupon dates semi-annual (E)",
+  "next_check": "Oct 1; ARM lock-up/margin disclosures",
+  "put_market": "9984 puts (Tokyo) \u2014 poor access for US retail; proxy: ARM puts (liquid), SFTBY (no options)"
+ },
+ {
+  "entity": "Micron / DRAM contract pricing (capital-cycle tell, not a liability)",
+  "score": 4,
+  "expiry": "n/a",
+  "due": "2026-09-30",
+  "next_check": "Sep 30 4:30pm ET call; TrendForce 4Q26 numbers",
+  "put_market": "MU puts very liquid; IV elevated into the print (level NF); SOXX/SMH puts liquid (IV ~33)"
+ }
+]
