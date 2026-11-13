@@ -80,7 +80,7 @@ def _print_pick(i: int, a: Analysis) -> None:
     print(f"    BET {s.outcome!r} @ {s.fill_price:.3f} (+{s.fee_per_share:.3f} fee)  fair {s.fair:.1%}  "
           f"EV {s.ev:+.1%}  stake ${s.stake:,.0f}  ({s.kelly:.1%} full-Kelly)")
     print(f"    closes in {a.days_left:.1f}d · 24h vol ${a.volume24h:,.0f} · retail tickets {a.n_retail} · "
-          f"signal agreement {s.agreement:.0%}")
+          f"signal agreement {s.agreement:.0%} · value disparity {s.disparity:.2f}")
     for r in s.reasons:
         print(f"      - {r}")
     if a.smart_wallets:
@@ -136,7 +136,8 @@ def cmd_scan(args) -> int:
             for a in picks:
                 f.write(json.dumps({"ts": time.time(), "slug": a.slug, "condition_id": a.condition_id,
                                     "question": a.question, **{k: getattr(a.best, k) for k in
-                                    ("outcome", "token_id", "fair", "mid", "calibrated", "cost", "ev", "stake")}})
+                                    ("outcome", "token_id", "fair", "mid", "calibrated", "cost", "ev", "stake",
+                                     "disparity")}})
                         + "\n")
         print(f"Logged {len(picks)} picks to {PICKS_LOG.resolve()}")
     return 0
@@ -156,6 +157,8 @@ def cmd_explain(args) -> int:
         print(f"\n  {s.outcome}: mid {s.mid:.3f} -> calibrated {s.calibrated:.3f} -> fair {s.fair:.3f}")
         print(f"    public {s.public:+.2f} smart {s.smart:+.2f} rlm {s.rlm:+.2f} fade {s.fade:+.2f} "
               f"dp24 {s.dp24 * 100:+.1f}c")
+        print(f"    $ share {s.money_share:.0%} (excess vs price {s.money_excess:+.2f}) split {s.split:+.2f} "
+              f"disparity {s.disparity:.2f}")
         print(f"    cost {s.cost:.3f}  EV {s.ev:+.1%}  kelly {s.kelly:.1%}  stake ${s.stake:,.0f}  "
               f"agreement {s.agreement:.0%}")
         for r in s.reasons:
@@ -216,6 +219,10 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument("--min-ev", dest="min_ev", type=float)
         p.add_argument("--any-side", dest="contrarian_only", action="store_false", default=None,
                        help="allow bets on the public side too")
+        p.add_argument("--disparity-weight", dest="disparity_weight", type=float,
+                       help="how much to rank up lopsided-action bets (default 1.0 = up to 2x; 0 = off)")
+        p.add_argument("--min-disparity", dest="min_disparity", type=float,
+                       help="only show bets with value disparity >= this (0-1), e.g. 0.3")
         p.add_argument("--maker", action="store_true", default=None,
                        help="assume you post limit orders at mid (no taker fee)")
 

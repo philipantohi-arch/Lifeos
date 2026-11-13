@@ -53,6 +53,38 @@ class TestSignals(unittest.TestCase):
         self.assertEqual(correlation_group(m, {"crypto-prices", "bitcoin"}), "asset:bitcoin")
         self.assertEqual(correlation_group(m, {"nba"}), "event:btc-nov")
 
+    def test_money_excess_is_price_relative(self):
+        from sharpbets.model import money_excess
+        self.assertAlmostEqual(money_excess(0.75, 0.75), 0.0)   # favourite drawing its "fair" share
+        self.assertAlmostEqual(money_excess(1.0, 0.75), 1.0)
+        self.assertAlmostEqual(money_excess(0.0, 0.75), -1.0)
+
+    def test_big_money_quiet_crowd(self):
+        # Tickets 80/20 on 0, but 90% of dollars on 1 at a 40c price -> disparity favours side 1.
+        _, sides = score_sides(0.6, 0.0, [80, 20], [0, 0], Calibrator(None), Config(),
+                               money=[10000, 90000])
+        self.assertGreater(sides[1]["split"], 0.5)
+        self.assertGreater(sides[1]["disparity"], 0.5)
+        self.assertEqual(sides[0]["disparity"], 0.0)
+
+    def test_one_whale_counts_half(self):
+        kw = dict(money=[10000, 90000])
+        _, many = score_sides(0.6, 0.0, [80, 20], [0, 0], Calibrator(None), Config(), money_top=[0.1, 0.2], **kw)
+        _, whale = score_sides(0.6, 0.0, [80, 20], [0, 0], Calibrator(None), Config(), money_top=[0.1, 0.9], **kw)
+        self.assertAlmostEqual(whale[1]["split"], many[1]["split"] / 2)
+
+    def test_frenzy_fade(self):
+        # Money AND tickets piled on 0 well beyond its 50c price -> disparity favours fading to 1.
+        _, sides = score_sides(0.5, 0.0, [90, 10], [0, 0], Calibrator(None), Config(),
+                               money=[95000, 5000])
+        self.assertGreater(sides[1]["disparity"], 0.7)
+
+    def test_balanced_money_no_disparity(self):
+        _, sides = score_sides(0.75, 0.0, [50, 50], [0, 0], Calibrator(None), Config(),
+                               money=[75000, 25000])
+        self.assertAlmostEqual(sides[0]["disparity"], 0.0, places=6)
+        self.assertAlmostEqual(sides[1]["disparity"], 0.0, places=6)
+
     def test_adjustment_is_capped(self):
         cfg = Config()
         fair0, _ = score_sides(0.5, 0.2, [0, 1000], [1e9, 0], Calibrator(None), cfg)
@@ -65,8 +97,10 @@ class TestSignals(unittest.TestCase):
             {"token_id": "B", "side": "SELL", "size": 10, "price": 0.5, "proxy_wallet": "0xr2"},  # = backing A
             {"token_id": "B", "side": "BUY", "size": 1000, "price": 0.5, "proxy_wallet": "0xSHARP"},
         ]
-        tickets, smart, names = flow_features(trades, ["A", "B"], roster, 200)
+        tickets, smart, names, money, top = flow_features(trades, ["A", "B"], roster, 200)
         self.assertEqual(tickets, [2, 0])
+        self.assertEqual(money, [10.0, 0.0])
+        self.assertEqual(top, [0.5, 0.0])  # two retail wallets split side A's dollars
         self.assertEqual(smart, [0.0, 500.0])
         self.assertEqual(names, {"s"})
 
