@@ -456,7 +456,9 @@ def analyze_market(client: Client, m: dict, roster: dict[str, WalletSkill], cal:
 
 
 def candidate_markets(client: Client, limit: int = 60, max_days: float = 45, min_liquidity: float = 5000,
-                      min_volume24h: float = 5000, include_live: bool = False) -> list[dict]:
+                      min_volume24h: float = 5000, include_live: bool = False,
+                      market_type: str | None = None) -> list[dict]:
+    """market_type: Polymarket sportsMarketType to keep only, e.g. "spreads", "totals", "moneyline"."""
     now = time.time()
     out, offset = [], 0
     while len(out) < limit and offset < 1000:
@@ -474,7 +476,8 @@ def candidate_markets(client: Client, limit: int = 60, max_days: float = 45, min
                     or float(m.get("liquidityNum") or 0) < min_liquidity
                     or float(m.get("volume24hr") or 0) < min_volume24h
                     or not 0.05 <= prices[0] <= 0.95
-                    or (not include_live and start and start < now)):
+                    or (not include_live and start and start < now)
+                    or (market_type and m.get("sportsMarketType") != market_type)):
                 continue
             out.append(m)
             if len(out) >= limit:

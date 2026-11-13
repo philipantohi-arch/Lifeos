@@ -38,6 +38,12 @@ Ticket share is judged against price because the public always leans to moneylin
 python -m sharpbets scan --fade-public-only                 # only bets against an obvious public play
 python -m sharpbets scan --fade-public-only --public-threshold 0.75   # stricter: 75%+ of bets
 python -m sharpbets scan --no-sportsbooks                   # Polymarket-only signals
+python -m sharpbets scan --type spreads --max-days 1.2      # against the spread, tonight only
+```
+
+For spreads, check the line: Polymarket often hangs a different number than the books, and the public percentages refer to the **sportsbook** line. `explain <slug>` prints both.
+
+```bash
 ```
 
 Plus a signal for **value disparity**, meaning lopsided action:

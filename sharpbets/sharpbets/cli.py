@@ -112,7 +112,8 @@ def _analyses(args, client, markets) -> tuple[list[Analysis], object]:
 def cmd_scan(args) -> int:
     client = _client(args)
     markets = candidate_markets(client, limit=args.markets, max_days=args.max_days,
-                                min_liquidity=args.min_liquidity, include_live=args.live)
+                                min_liquidity=args.min_liquidity, min_volume24h=args.min_volume,
+                                include_live=args.live, market_type=args.type)
     print(f"{len(markets)} candidate markets")
     results, cfg = _analyses(args, client, markets)
     picks, groups = [], set()
@@ -247,6 +248,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--max-days", type=float, default=45)
     p.add_argument("--min-liquidity", type=float, default=5000)
     p.add_argument("--live", action="store_true", help="include games already in progress")
+    p.add_argument("--type", choices=["moneyline", "spreads", "totals"],
+                   help="only this kind of sports market (e.g. spreads = against the spread)")
+    p.add_argument("--min-volume", type=float, default=5000, help="minimum 24h volume in USD")
     p.add_argument("--allow-correlated", action="store_true",
                    help="allow several picks on the same event / underlying asset")
     p.add_argument("--json", help="write picks to this JSON file")
