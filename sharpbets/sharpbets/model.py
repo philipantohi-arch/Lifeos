@@ -10,6 +10,10 @@ For each binary market and each side i (j = the other side):
   split_i    in [-1, 1]  value disparity: share of non-roster $ on i *relative to price*, minus
                          the retail ticket lean -> big money the crowd isn't on (follow it)
 
+  book_public_i          sportsbook public (Action Network consensus ticket %): fade OBVIOUS public
+                         plays, ramping from 60% to 90% of bets on the other side
+  book_split_i           sportsbook money % above ticket % on i -> bigger bettors on i (follow)
+
   disparity_i in [0, 1]  how lopsided the action is in i's favour: max(split_i, money AND tickets
                          both piled on j). Boosts ranking: score *= 1 + disparity_weight * disparity
 
@@ -28,6 +32,7 @@ from dataclasses import asdict, dataclass, field
 
 from .api import Client, parse_json_field
 from .calibration import Calibrator, _ts, expit, logit
+from .publicbets import sportsbook_splits
 from .wallets import WalletSkill
 
 
@@ -50,6 +55,12 @@ class Config:
     b_split: float = 0.30           # money-vs-tickets divergence (classic "sharp side" indicator)
     disparity_weight: float = 1.0   # ranking boost for lopsided-action bets: score *= 1 + w * disparity
     min_disparity: float = 0.0      # only recommend bets whose disparity >= this (0..1)
+    use_sportsbooks: bool = True    # pull sportsbook public splits for sports markets
+    b_book_public: float = 0.25     # fade obvious sportsbook public plays (ramps from 60% to 90% tickets)
+    b_book_split: float = 0.20      # follow sportsbook money that outweighs its ticket share
+    public_fade_weight: float = 1.0 # ranking boost for fading an obvious public play
+    public_threshold: float = 0.65  # "obvious public play" = this share of sportsbook tickets or more
+    fade_public_only: bool = False  # only recommend bets AGAINST an obvious sportsbook public play
 
 
 @dataclass
@@ -68,6 +79,10 @@ class Side:
     money_excess: float = 0.0       # money share vs. what the price implies, in [-1, 1]
     split: float = 0.0              # money excess minus ticket lean: >0 = big money here, crowd not
     disparity: float = 0.0          # 0..1, how lopsided the action is in this bet's favour
+    book_tickets: float | None = None  # sportsbook share of bets on this side
+    book_money: float | None = None    # sportsbook share of dollars on this side
+    book_fade: float = 0.0          # 0..1, strength of fading an obvious public play on the other side
+    crowd: float = 0.0              # combined crowd lean (Polymarket retail + sportsbook public), -1..1
     fill_price: float = 0.0
     fee_per_share: float = 0.0
     cost: float = 0.0
@@ -95,6 +110,7 @@ class Analysis:
     sides: list[Side]
     best: Side | None = None
     group: str = ""
+    book: dict | None = None
     skipped: str = ""
 
     def to_dict(self) -> dict:
@@ -218,7 +234,8 @@ def holder_features(holders: list[dict], tokens: list[str], mids: list[float],
 def score_sides(mid0: float, dp0: float, tickets: list[int], smart_usd: list[float], cal: Calibrator,
                 cfg: Config, price_signals: bool = True,
                 money: list[float] | None = None,
-                money_top: list[float] | None = None) -> tuple[float, list[dict]]:
+                money_top: list[float] | None = None,
+                book: dict | None = None) -> tuple[float, list[dict]]:
     """Pure function: signals -> fair probability for outcome 0, plus per-side signal breakdown."""
     n_retail = sum(tickets)
     public0 = (tickets[0] - tickets[1]) / n_retail if n_retail else 0.0
@@ -251,8 +268,27 @@ def score_sides(mid0: float, dp0: float, tickets: list[int], smart_usd: list[flo
     if one_whale:
         split0 *= 0.5
 
+    # Sportsbook public (ticket %) and money %, when this is a game the books also take.
+    bpub0 = bsplit0 = bfade0 = conf_b = 0.0
+    if book:
+        t0, t1 = book["tickets"]
+        conf_b = 1 - math.exp(-book.get("num_bets", 0) / 3000)
+        bpub0 = t0 - t1
+        bsplit0 = max(-1.0, min(1.0, (book["money"][0] - t0) / 0.2))  # money outweighs tickets on 0
+        # Fading only bites on OBVIOUS public plays, judged against the price: on a moneyline the public
+        # always leans to the favourite, so 85% of tickets on a 75% favourite is not that lopsided.
+        # Ticket excess vs price: 0 -> as expected, 1 -> every ticket. Ramp 0.2 -> 0.7 (on a 50c
+        # spread/total that is 60% -> 85% of tickets).
+        tx0 = money_excess(t0, mid0)
+        bfade0 = -_sign(tx0) * max(0.0, min(1.0, (abs(tx0) - 0.2) / 0.5))
+    # Combined crowd lean: sportsbook public counts double (it is the bigger, more retail crowd).
+    w_pm, w_b = conf_p, 2 * conf_b
+    crowd0 = (w_pm * public0 + w_b * bpub0) / (w_pm + w_b) if w_pm + w_b else 0.0
+
     terms = {
         "smart": cfg.b_smart * smart0 * conf_s,
+        "book_public": cfg.b_book_public * bfade0 * conf_b,
+        "book_split": cfg.b_book_split * bsplit0 * conf_b,
         "split": cfg.b_split * split0 * conf_m,
         "public": -cfg.b_public * public0 * conf_p,
         "rlm": cfg.b_rlm * rlm0,
@@ -268,7 +304,10 @@ def score_sides(mid0: float, dp0: float, tickets: list[int], smart_usd: list[flo
         # or money AND tickets both piled onto the other side (fade the frenzy).
         frenzy_other = min(-mx, -pub) if mx < 0 and pub < 0 else 0.0
         disparity = max(0.0, sp, frenzy_other) * conf_m
-        sides.append({"money_share": mshare0 if i == 0 else 1 - mshare0, "money_excess": mx,
+        sides.append({"book_tickets": book["tickets"][i] if book else None,
+                      "book_money": book["money"][i] if book else None,
+                      "book_fade": max(0.0, s * bfade0) * conf_b, "crowd": s * crowd0,
+                      "money_share": mshare0 if i == 0 else 1 - mshare0, "money_excess": mx,
                       "split": sp, "disparity": disparity, "conf_m": conf_m, "one_whale": one_whale,"mid": mid0 if i == 0 else 1 - mid0,
                       "calibrated": cal0 if i == 0 else 1 - cal0,
                       "fair": fair0 if i == 0 else 1 - fair0,
@@ -302,13 +341,26 @@ def price_side(side: Side, asks: list[dict], fee_enabled: bool, terms: dict, cfg
     side.agreement = sum(v for v in pushing if v > 0) / sum(abs(v) for v in pushing) if pushing else 0.0
     # Rank: EV, discounted when the signals disagree or the call rests on calibration alone,
     # boosted when the action is lopsided in this bet's favour (the user's value-disparity preference).
-    side.score = side.ev * (0.5 + 0.5 * side.agreement) * (1 + cfg.disparity_weight * side.disparity)
+    side.score = (side.ev * (0.5 + 0.5 * side.agreement) * (1 + cfg.disparity_weight * side.disparity)
+                  * (1 + cfg.public_fade_weight * side.book_fade))
 
 
 def explain(side: Side, terms: dict, conf_s: float, n_smart: int, one_whale: bool = False) -> list[str]:
     r = []
     if abs(side.calibrated - side.mid) > 0.004:
         r.append(f"longshot-bias calibration: {side.mid:.1%} priced -> {side.calibrated:.1%} historically")
+    if side.book_tickets is not None:
+        other_t, other_m = 1 - side.book_tickets, 1 - side.book_money
+        if side.book_fade > 0:
+            r.append(f"SPORTSBOOK PUBLIC FADE: {other_t:.0%} of bets / {other_m:.0%} of money on the other "
+                     f"side - obvious public play, ranked up {side.book_fade * 100:.0f}%")
+        elif side.book_tickets > 0.6:
+            r.append(f"sportsbook public is ON this side: {side.book_tickets:.0%} of bets")
+        else:
+            r.append(f"sportsbooks: {side.book_tickets:.0%} of bets / {side.book_money:.0%} of money on this side")
+        if side.book_money - side.book_tickets >= 0.08:
+            r.append(f"sportsbook sharp split: {side.book_money:.0%} of money on only {side.book_tickets:.0%} "
+                     f"of bets - bigger bettors here")
     if side.public < -0.1:
         r.append(f"public fade: {(1 - side.public) / 2:.0%} of retail tickets on the other side")
     elif side.public > 0.1:
@@ -373,20 +425,30 @@ def analyze_market(client: Client, m: dict, roster: dict[str, WalletSkill], cal:
 
     tags = market_tags(m)
     a.group = correlation_group(m, tags)
+    book = None
+    if cfg.use_sportsbooks:
+        try:
+            book = sportsbook_splits(client, m, [str(o) for o in outcomes])
+        except Exception:  # unofficial feed: if its shape changes, fall back to Polymarket-only signals
+            book = None
+    a.book = book
     _, raw = score_sides(mid0, dp0, tickets, smart_usd, cal, cfg,
                          price_signals=not tags & UNDERLYING_TAGS, money=money,
-                         money_top=money_top)
+                         money_top=money_top, book=book)
     fee_enabled = client.fee_rate(tokens[0]) > 0
     for i, r in enumerate(raw):
         s = Side(str(outcomes[i]), tokens[i], r["mid"], r["calibrated"], r["fair"], r["public"], r["smart"],
                  r["rlm"], r["fade"], r["dp24"], r["money_share"], r["money_excess"], r["split"],
-                 r["disparity"])
+                 r["disparity"], r["book_tickets"], r["book_money"], r["book_fade"], r["crowd"])
         price_side(s, books[i].get("asks", []), fee_enabled, r["terms"], cfg)
         s.reasons = explain(s, r["terms"], r["conf_s"], len(a.smart_wallets), r["one_whale"])
         a.sides.append(s)
 
     eligible = [s for s in a.sides if s.ev >= cfg.min_ev and s.stake > 0
-                and (not cfg.contrarian_only or s.public < 0) and s.disparity >= cfg.min_disparity]
+                and (not cfg.contrarian_only or s.crowd < 0) and s.disparity >= cfg.min_disparity
+                and (not cfg.fade_public_only
+                     or (s.book_tickets is not None and 1 - s.book_tickets >= cfg.public_threshold
+                         and s.book_fade > 0))]
     a.best = max(eligible, key=lambda s: s.score) if eligible else None
     if not a.best:
         a.skipped = "no side clears EV/contrarian filters"

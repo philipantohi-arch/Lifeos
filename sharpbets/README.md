@@ -12,7 +12,7 @@ python -m sharpbets scan --log  ...  then later:  python -m sharpbets grade
 python -m unittest discover -s tests              # offline tests
 ```
 
-Pure Python 3.10+ standard library. No API keys needed. Everything goes through Polymarket's public Gamma, Data (v2) and CLOB APIs, with responses cached in `~/.cache/sharpbets`.
+Pure Python 3.10+ standard library. No API keys needed. Data comes from Polymarket's public Gamma, Data (v2) and CLOB APIs plus Action Network's public-betting feed, with responses cached in `~/.cache/sharpbets`.
 
 ## How a pick is made
 
@@ -25,7 +25,22 @@ For every binary market (filtered on liquidity, volume, time to close and a 5–
 | **Reverse line move** | The price moved *toward* a side while retail tickets backed the other side | Someone bigger than the crowd is pushing the price |
 | **Overreaction fade** | The price ran toward the crowd's side with no smart-money support | Retail momentum tends to overshoot |
 
-Plus a fifth signal for **value disparity**, meaning lopsided action:
+For **sports games** (NFL, NBA, NHL, NCAAF, NCAAB, plus MLB and WNBA in season), it also pulls **sportsbook public betting**: the share of bets ("tickets") and the share of money on each side from Action Network's consensus across US books. Each Polymarket moneyline, spread or total is matched to its game by league, start time and team names.
+
+| Signal | What it measures | Contrarian logic |
+|---|---|---|
+| **Sportsbook public fade** | Ticket % at the books, judged against the price | Fade **obvious public plays**. Strength ramps from "a bit more than the price implies" to "nearly every ticket" (on a 50¢ spread or total, that's 60% → 85% of bets) |
+| **Sportsbook sharp split** | Money % above ticket % on a side | Fewer, bigger bets = sharper money: follow it |
+
+Ticket share is judged against price because the public always leans to moneyline favorites: 80% of bets on a 78¢ favorite is about what the price implies. 94% on a 74¢ favorite is an obvious public play. Fading one raises the bet's ranking by up to 2× (`--public-fade-weight`). The contrarian filter now uses the **combined crowd**: Polymarket retail plus the sportsbook public, with the books counted double because they are the larger retail crowd.
+
+```bash
+python -m sharpbets scan --fade-public-only                 # only bets against an obvious public play
+python -m sharpbets scan --fade-public-only --public-threshold 0.75   # stricter: 75%+ of bets
+python -m sharpbets scan --no-sportsbooks                   # Polymarket-only signals
+```
+
+Plus a signal for **value disparity**, meaning lopsided action:
 
 | Signal | What it measures | Logic |
 |---|---|---|
@@ -47,6 +62,7 @@ The signals combine in log-odds space on top of an **empirically calibrated pric
 
 ```
 fair = expit( b·logit(mid) + clip(0.45·smart·conf − 0.20·public·conf + 0.30·split·conf
+                                  + 0.25·book_fade·conf + 0.20·book_split·conf
                                   + 0.25·rlm + 0.20·fade, ±0.35) )
 ```
 
@@ -80,6 +96,8 @@ The roster starts from the PnL leaderboard (all-time plus last month) and then *
 - **Only the calibration is fit to outcomes.** The signal weights are conservative priors. Polymarket doesn't expose historical holder snapshots, so the smart-money and public signals can't be backtested yet. Validate them yourself: run `scan --log` for a few weeks, then `grade`. It reports P&L and the model's Brier score versus the market's. Under ~100 resolved picks, the results are noise.
 - **Fees are estimated.** On fee-enabled markets, observed taker fees were about 2.4% of cost at 50¢, modeled as `0.05·p·(1−p)` per share. Posting limit orders (`--maker`) avoids them.
 - The retail/smart split uses the last ~1,000 fills and the top 20 holders per side. Whales trading through fresh wallets are invisible to it.
+- **Fading the public is a weak edge on its own.** Bookmakers shade lines toward the public, so the classic "fade 80%+" angle has historically been close to break-even before the vig. Here it is one capped input among several, and the total adjustment can never move a price more than ±0.35 log-odds. Expect it to pick many moneyline underdogs on nights when the public piles onto favorites. Underdogs lose most of the time even when they're good value, so size small and judge it over 100+ bets.
+- Sportsbook splits come from an unofficial, undocumented Action Network endpoint that can change or disappear. If it fails, the model quietly falls back to Polymarket-only signals. Cache TTL is 10 minutes; please don't hammer it.
 - Live in-game markets are excluded by default (`--live` includes them). Prices there move faster than this model refreshes.
 - This is a research tool, not financial advice. Polymarket is geo-restricted in some jurisdictions, including parts of the US, so check what's legal where you live. Never stake money you can't lose.
 
@@ -89,6 +107,7 @@ The roster starts from the PnL leaderboard (all-time plus last month) and then *
 sharpbets/
   api.py          cached client for Gamma / Data v2 / CLOB (incl. the unredeemed-losers fix)
   wallets.py      leaderboard -> luck-filtered skill roster
+  publicbets.py   sportsbook public splits (Action Network consensus), matched to Polymarket games
   calibration.py  resolved-market fit of price -> true probability (shrunk logit slope)
   model.py        signals, fair value, book walking, fees, Kelly sizing, ranking
   cli.py          scan / explain / wallets / calibrate / grade

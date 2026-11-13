@@ -105,6 +105,56 @@ class TestSignals(unittest.TestCase):
         self.assertEqual(names, {"s"})
 
 
+class TestSportsbookPublic(unittest.TestCase):
+    TEAMS = [{"id": 162, "full_name": "New York Knicks", "display_name": "Knicks", "short_name": "Knicks", "abbr": "NYK"},
+             {"id": 168, "full_name": "Indiana Pacers", "display_name": "Pacers", "short_name": "Pacers", "abbr": "IND"}]
+
+    def test_match_teams_by_nickname(self):
+        from sharpbets.publicbets import match_teams
+        self.assertEqual(match_teams(["Pacers", "Knicks"], self.TEAMS), [168, 162])
+        self.assertEqual(match_teams(["New York Knicks", "Indiana Pacers"], self.TEAMS), [162, 168])
+        self.assertIsNone(match_teams(["Lakers", "Celtics"], self.TEAMS))
+
+    def test_match_college_names(self):
+        from sharpbets.publicbets import match_teams
+        teams = [{"id": 1, "full_name": "UNC Wilmington Seahawks", "display_name": "UNCW", "short_name": "Seahawks"},
+                 {"id": 2, "full_name": "Louisiana Ragin' Cajuns", "display_name": "Louisiana", "short_name": "Ragin' Cajuns"}]
+        self.assertEqual(match_teams(["Louisiana-Lafayette Ragin' Cajuns", "UNCW Seahawks"], teams), [2, 1])
+
+    def test_title_teams(self):
+        from sharpbets.publicbets import title_teams
+        self.assertEqual(title_teams({"question": "Bucks vs. Magic: O/U 223.5"}), ["Bucks", "Magic"])
+        self.assertEqual(title_teams({"events": [{"title": "Knicks vs. Pacers"}]}), ["Knicks", "Pacers"])
+
+    def test_fade_obvious_public_play(self):
+        book = {"tickets": [0.86, 0.14], "money": [0.74, 0.26], "num_bets": 10000}
+        fair0, sides = score_sides(0.5, 0.0, [0, 0], [0, 0], Calibrator(None), Config(), book=book)
+        self.assertLess(fair0, 0.5)                    # Over (86% of bets) faded
+        self.assertGreater(sides[1]["book_fade"], 0.7)  # Under gets the public-fade boost
+        self.assertEqual(sides[0]["book_fade"], 0.0)
+        self.assertLess(sides[1]["crowd"], 0)          # Under is the contrarian side
+
+    def test_no_fade_on_mild_lean(self):
+        book = {"tickets": [0.56, 0.44], "money": [0.56, 0.44], "num_bets": 10000}
+        _, sides = score_sides(0.5, 0.0, [0, 0], [0, 0], Calibrator(None), Config(), book=book)
+        self.assertEqual(sides[1]["book_fade"], 0.0)
+
+    def test_favourite_lean_judged_against_price(self):
+        # 80% of tickets on a 78c moneyline favourite is roughly what the price implies: no fade.
+        book = {"tickets": [0.80, 0.20], "money": [0.80, 0.20], "num_bets": 10000}
+        _, sides = score_sides(0.78, 0.0, [0, 0], [0, 0], Calibrator(None), Config(), book=book)
+        self.assertEqual(sides[1]["book_fade"], 0.0)
+        # 80% of tickets on a 50c spread side is an obvious public play.
+        _, sides = score_sides(0.50, 0.0, [0, 0], [0, 0], Calibrator(None), Config(), book=book)
+        self.assertGreater(sides[1]["book_fade"], 0.5)
+
+    def test_sharp_money_split(self):
+        # 44% of bets but 61% of money on side 1 -> bigger bettors there -> fair1 rises.
+        book = {"tickets": [0.56, 0.44], "money": [0.39, 0.61], "num_bets": 8000}
+        fair0, _ = score_sides(0.5, 0.0, [0, 0], [0, 0], Calibrator(None), Config(), book=book)
+        self.assertLess(fair0, 0.5)
+
+
 class TestWallets(unittest.TestCase):
     def test_losers_count(self):
         winners = [pos(0.5, 100, 50, 1.0) for _ in range(30)]

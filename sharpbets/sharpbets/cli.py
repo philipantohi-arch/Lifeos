@@ -137,7 +137,7 @@ def cmd_scan(args) -> int:
                 f.write(json.dumps({"ts": time.time(), "slug": a.slug, "condition_id": a.condition_id,
                                     "question": a.question, **{k: getattr(a.best, k) for k in
                                     ("outcome", "token_id", "fair", "mid", "calibrated", "cost", "ev", "stake",
-                                     "disparity")}})
+                                     "disparity", "book_tickets", "book_money", "book_fade")}})
                         + "\n")
         print(f"Logged {len(picks)} picks to {PICKS_LOG.resolve()}")
     return 0
@@ -151,12 +151,18 @@ def cmd_explain(args) -> int:
         return 1
     (a,), _ = _analyses(args, client, [m])
     print(f"\n{a.question}  (closes in {a.days_left:.1f}d)")
+    if a.book:
+        print(f"sportsbook splits: {a.book['source']}, {a.book['num_bets']:,} bets"
+              + (f", book line {a.book['book_line']}" if a.book.get("book_line") is not None else ""))
     print(f"retail tickets {a.n_retail} · skill-weighted smart $ {a.smart_usd:,.0f} · wallets: "
           f"{', '.join(a.smart_wallets) or 'none'}")
     for s in a.sides:
         print(f"\n  {s.outcome}: mid {s.mid:.3f} -> calibrated {s.calibrated:.3f} -> fair {s.fair:.3f}")
         print(f"    public {s.public:+.2f} smart {s.smart:+.2f} rlm {s.rlm:+.2f} fade {s.fade:+.2f} "
               f"dp24 {s.dp24 * 100:+.1f}c")
+        if s.book_tickets is not None:
+            print(f"    sportsbooks: {s.book_tickets:.0%} of bets / {s.book_money:.0%} of money · "
+                  f"public fade {s.book_fade:.2f} · combined crowd lean {s.crowd:+.2f}")
         print(f"    $ share {s.money_share:.0%} (excess vs price {s.money_excess:+.2f}) split {s.split:+.2f} "
               f"disparity {s.disparity:.2f}")
         print(f"    cost {s.cost:.3f}  EV {s.ev:+.1%}  kelly {s.kelly:.1%}  stake ${s.stake:,.0f}  "
@@ -223,6 +229,14 @@ def build_parser() -> argparse.ArgumentParser:
                        help="how much to rank up lopsided-action bets (default 1.0 = up to 2x; 0 = off)")
         p.add_argument("--min-disparity", dest="min_disparity", type=float,
                        help="only show bets with value disparity >= this (0-1), e.g. 0.3")
+        p.add_argument("--fade-public-only", dest="fade_public_only", action="store_true", default=None,
+                       help="only bets AGAINST an obvious sportsbook public play")
+        p.add_argument("--public-threshold", dest="public_threshold", type=float,
+                       help="sportsbook ticket share that makes a play 'obvious public' (default 0.65)")
+        p.add_argument("--public-fade-weight", dest="public_fade_weight", type=float,
+                       help="ranking boost for fading obvious public plays (default 1.0 = up to 2x)")
+        p.add_argument("--no-sportsbooks", dest="use_sportsbooks", action="store_false", default=None,
+                       help="skip sportsbook public-betting data")
         p.add_argument("--maker", action="store_true", default=None,
                        help="assume you post limit orders at mid (no taker fee)")
 
